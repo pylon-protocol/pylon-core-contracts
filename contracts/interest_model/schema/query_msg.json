@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "QueryMsg",
+  "anyOf": [
+    {
+      "type": "object",
+      "required": [
+        "config"
+      ],
+      "properties": {
+        "config": {
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "borrow_rate"
+      ],
+      "properties": {
+        "borrow_rate": {
+          "type": "object",
+          "required": [
+            "market_balance",
+            "total_liabilities",
+            "total_reserves"
+          ],
+          "properties": {
+            "market_balance": {
+              "$ref": "#/definitions/Uint256"
+            },
+            "total_liabilities": {
+              "$ref": "#/definitions/Decimal256"
+            },
+            "total_reserves": {
+              "$ref": "#/definitions/Decimal256"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "Decimal256": {
+      "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal256(1_000_000_000_000_000_000) == 1.0 The greatest possible value that can be represented is 115792089237316195423570985008687907853269984665640564039457.584007913129639935 (which is (2^128 - 1) / 10^18)",
+      "type": "string"
+    },
+    "Uint256": {
+      "type": "string"
+    }
+  }
+}

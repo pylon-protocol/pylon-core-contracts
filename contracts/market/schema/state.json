@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "State",
+  "type": "object",
+  "required": [
+    "anc_emission_rate",
+    "global_interest_index",
+    "global_reward_index",
+    "last_interest_updated",
+    "last_reward_updated",
+    "total_liabilities",
+    "total_reserves"
+  ],
+  "properties": {
+    "anc_emission_rate": {
+      "$ref": "#/definitions/Decimal256"
+    },
+    "global_interest_index": {
+      "$ref": "#/definitions/Decimal256"
+    },
+    "global_reward_index": {
+      "$ref": "#/definitions/Decimal256"
+    },
+    "last_interest_updated": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "last_reward_updated": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "total_liabilities": {
+      "$ref": "#/definitions/Decimal256"
+    },
+    "total_reserves": {
+      "$ref": "#/definitions/Decimal256"
+    }
+  },
+  "definitions": {
+    "Decimal256": {
+      "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal256(1_000_000_000_000_000_000) == 1.0 The greatest possible value that can be represented is 115792089237316195423570985008687907853269984665640564039457.584007913129639935 (which is (2^128 - 1) / 10^18)",
+      "type": "string"
+    }
+  }
+}

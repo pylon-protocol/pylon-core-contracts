@@ -1,90 +1,80 @@
-# CosmWasm Starter Pack
+# Anchor Money Market Contracts
+This monorepository contains the source code for the Money Market smart contracts implementing Anchor Protocol on the [Terra](https://terra.money) blockchain.
 
-This is a template to build smart contracts in Rust to run inside a
-[Cosmos SDK](https://github.com/cosmos/cosmos-sdk) module on all chains that enable it.
-To understand the framework better, please read the overview in the
-[cosmwasm repo](https://github.com/CosmWasm/cosmwasm/blob/master/README.md),
-and dig into the [cosmwasm docs](https://www.cosmwasm.com).
-This assumes you understand the theory and just want to get coding.
+You can find information about the architecture, usage, and function of the smart contracts on the official Anchor documentation [site](https://app.gitbook.com/@anchor-protocol/s/anchor-2/smart-contracts/money-market).
 
-## Creating a new repo from template
+### Dependencies
 
-Assuming you have a recent version of rust and cargo installed (via [rustup](https://rustup.rs/)),
-then the following should get you a new repo to start a contract:
+Money Market depends on [Anchor Token Contracts](https://github.com/anchor-protocol/anchor-token-contracts) and [bAsset Contracts](https://github.com/Anchor-Protocol/anchor-bAsset-contracts).
 
-First, install
-[cargo-generate](https://github.com/ashleygwilliams/cargo-generate).
-Unless you did that before, run this line now:
+## Contracts
 
-```sh
-cargo install cargo-generate --features vendored-openssl
-```
+| Contract                                               | Reference                                                                                                      | Description                                                                   |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| [`overseer`](./contracts/overseer)                     | [doc](https://app.gitbook.com/@anchor-protocol/s/anchor-2/smart-contracts/money-market/overseer)               | Manages money market overalls, stores borrower information                    |
+| [`market`](../contracts/market)                        | [doc](https://app.gitbook.com/@anchor-protocol/s/anchor-2/smart-contracts/money-market/market)                 | Handles Terra stablecoin deposits and borrows, ANC distribution to borrowers  |
+| [`custody_bluna`](./contracts/custody_bluna)           | [doc](https://app.gitbook.com/@anchor-protocol/s/anchor-2/smart-contracts/money-market/custody-bluna-specific) | Handles bLuna collateral deposits and withdrawals                             |
+| [`interest_model`](./contracts/interest_model)         | [doc](https://app.gitbook.com/@anchor-protocol/s/anchor-2/smart-contracts/money-market/interest_model)         | Calculates the current borrow interest rate based on the market situation     |
+| [`distribution_model`](./contracts/distribution_model) | [doc](https://app.gitbook.com/@anchor-protocol/s/anchor-2/smart-contracts/money-market/distribution_model)     | Calculates the borrower ANC emission rate based on the previous emission rate |
+| [`oracle`](./contracts/oracle)                         | [doc](https://app.gitbook.com/@anchor-protocol/s/anchor-2/smart-contracts/money-market/oracle)                 | Provides a price feed for bAsset collaterals                                  |
+| [`liquidation`](./contracts/liquidation)               | [doc](https://app.gitbook.com/@anchor-protocol/s/anchor-2/smart-contracts/liquidations/liquidation-contract)   | OTC exchange contract for bAsset collateral liquidations                      |
 
-Now, use it to create your new contract.
-Go to the folder in which you want to place it and run:
+## Development
 
-**0.10 (latest)**
+### Environment Setup
 
-```sh
-cargo generate --git https://github.com/CosmWasm/cosmwasm-template.git --name PROJECT_NAME
-```
+- Rust v1.44.1+
+- `wasm32-unknown-unknown` target
+- Docker
 
-**0.9**
+1. Install `rustup` via https://rustup.rs/
 
-```sh
-cargo generate --git https://github.com/CosmWasm/cosmwasm-template.git --branch 0.9 --name PROJECT_NAME
-```
-
-**0.8**
+2. Run the following:
 
 ```sh
-cargo generate --git https://github.com/CosmWasm/cosmwasm-template.git --branch 0.8 --name PROJECT_NAME
+rustup default stable
+rustup target add wasm32-unknown-unknown
 ```
 
-You will now have a new folder called `PROJECT_NAME` (I hope you changed that to something else)
-containing a simple working contract and build system that you can customize.
+3. Make sure [Docker](https://www.docker.com/) is installed
 
-## Create a Repo
+### Unit / Integration Tests
 
-After generating, you have a initialized local git repo, but no commits, and no remote.
-Go to a server (eg. github) and create a new upstream repo (called `YOUR-GIT-URL` below).
-Then run the following:
+Each contract contains Rust unit and integration tests embedded within the contract source directories. You can run:
 
 ```sh
-# this is needed to create a valid Cargo.lock file (see below)
-cargo check
-git checkout -b master # in case you generate from non-master
-git add .
-git commit -m 'Initial Commit'
-git remote add origin YOUR-GIT-URL
-git push -u origin master
+cargo unit-test
+cargo integration-test
 ```
 
-## CI Support
+### Compiling
 
-We have template configurations for both [GitHub Actions](.github/workflows/Basic.yml)
-and [Circle CI](.circleci/config.yml) in the generated project, so you can
-get up and running with CI right away.
+After making sure tests pass, you can compile each contract with the following:
 
-One note is that the CI runs all `cargo` commands
-with `--locked` to ensure it uses the exact same versions as you have locally. This also means
-you must have an up-to-date `Cargo.lock` file, which is not auto-generated.
-The first time you set up the project (or after adding any dep), you should ensure the
-`Cargo.lock` file is updated, so the CI will test properly. This can be done simply by
-running `cargo check` or `cargo unit-test`.
+```sh
+RUSTFLAGS='-C link-arg=-s' cargo wasm
+cp ../../target/wasm32-unknown-unknown/release/cw1_subkeys.wasm .
+ls -l cw1_subkeys.wasm
+sha256sum cw1_subkeys.wasm
+```
 
-## Using your project
+#### Production
 
-Once you have your custom repo, you should check out [Developing](./Developing.md) to explain
-more on how to run tests and develop code. Or go through the
-[online tutorial](https://www.cosmwasm.com/docs/getting-started/intro) to get a better feel
-of how to develop.
+For production builds, run the following:
 
-[Publishing](./Publishing.md) contains useful information on how to publish your contract
-to the world, once you are ready to deploy it on a running blockchain. And
-[Importing](./Importing.md) contains information about pulling in other contracts or crates
-that have been published.
+```sh
+docker run --rm -v "$(pwd)":/code \
+  --mount type=volume,source="$(basename "$(pwd)")_cache",target=/code/target \
+  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+  cosmwasm/workspace-optimizer:0.10.4
+```
 
-Please replace this README file with information about your specific project. You can keep
-the `Developing.md` and `Publishing.md` files as useful referenced, but please set some
-proper description in the README.
+This performs several optimizations which can significantly reduce the final size of the contract binaries, which will be available inside the `artifacts/` directory.
+
+## License
+
+Copyright 2020 Anchor Protocol
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+
+See the License for the specific language governing permissions and limitations under the License.
