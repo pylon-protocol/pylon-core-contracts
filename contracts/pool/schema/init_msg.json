@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InitMsg",
+  "type": "object",
+  "required": [
+    "beneficiary",
+    "dp_code_id",
+    "pool_name",
+    "stable_denom",
+    "strategy"
+  ],
+  "properties": {
+    "beneficiary": {
+      "$ref": "#/definitions/HumanAddr"
+    },
+    "dp_code_id": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "pool_name": {
+      "type": "string"
+    },
+    "stable_denom": {
+      "type": "string"
+    },
+    "strategy": {
+      "$ref": "#/definitions/HumanAddr"
+    }
+  },
+  "definitions": {
+    "HumanAddr": {
+      "type": "string"
+    }
+  }
+}
