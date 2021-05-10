@@ -6,8 +6,6 @@ use cosmwasm_std::{
 use cw20::Cw20QueryMsg;
 use cw20::{BalanceResponse, TokenInfoResponse};
 
-use crate::config;
-
 pub fn balance_of<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     token: &CanonicalAddr,

@@ -36,7 +36,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     config.stable_denom = market_config.stable_denom.clone();
     config.atoken = deps.api.canonical_address(&market_config.aterra_contract)?;
 
-    config::store(&mut deps.storage, &config);
+    config::store(&mut deps.storage, &config)?;
 
     Ok(InitResponse {
         messages: vec![CosmosMsg::Wasm(WasmMsg::Instantiate {
