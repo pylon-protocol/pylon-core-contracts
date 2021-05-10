@@ -8,7 +8,8 @@
     "dp_token",
     "moneymarket",
     "owner",
-    "stable_denom"
+    "stable_denom",
+    "this"
   ],
   "properties": {
     "atoken": {
@@ -28,6 +29,9 @@
     },
     "stable_denom": {
       "type": "string"
+    },
+    "this": {
+      "$ref": "#/definitions/CanonicalAddr"
     }
   },
   "definitions": {
