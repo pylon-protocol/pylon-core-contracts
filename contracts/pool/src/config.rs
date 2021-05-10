@@ -8,11 +8,13 @@ pub static CONFIG_KEY: &[u8] = b"config";
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Config {
+    pub this: CanonicalAddr,
     pub owner: CanonicalAddr,
     pub beneficiary: CanonicalAddr,
-    pub strategy: CanonicalAddr,
-    pub dp_token: CanonicalAddr,
+    pub moneymarket: CanonicalAddr,
+    pub atoken: CanonicalAddr,
     pub stable_denom: String,
+    pub dp_token: CanonicalAddr,
 }
 
 pub fn store_config<S: Storage>(storage: &mut S, data: &Config) -> StdResult<()> {

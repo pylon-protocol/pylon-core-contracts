@@ -35,17 +35,6 @@
     {
       "type": "object",
       "required": [
-        "get_strategy"
-      ],
-      "properties": {
-        "get_strategy": {
-          "type": "object"
-        }
-      }
-    },
-    {
-      "type": "object",
-      "required": [
         "get_beneficiary"
       ],
       "properties": {
@@ -57,10 +46,54 @@
     {
       "type": "object",
       "required": [
+        "get_money_market"
+      ],
+      "properties": {
+        "get_money_market": {
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_a_token"
+      ],
+      "properties": {
+        "get_a_token": {
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_stable_denom"
+      ],
+      "properties": {
+        "get_stable_denom": {
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
         "get_claimable_reward"
       ],
       "properties": {
         "get_claimable_reward": {
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "get_d_p_token"
+      ],
+      "properties": {
+        "get_d_p_token": {
           "type": "object"
         }
       }

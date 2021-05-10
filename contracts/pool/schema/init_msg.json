@@ -5,9 +5,8 @@
   "required": [
     "beneficiary",
     "dp_code_id",
-    "pool_name",
-    "stable_denom",
-    "strategy"
+    "moneymarket",
+    "pool_name"
   ],
   "properties": {
     "beneficiary": {
@@ -18,14 +17,11 @@
       "format": "uint64",
       "minimum": 0.0
     },
+    "moneymarket": {
+      "$ref": "#/definitions/HumanAddr"
+    },
     "pool_name": {
       "type": "string"
-    },
-    "stable_denom": {
-      "type": "string"
-    },
-    "strategy": {
-      "$ref": "#/definitions/HumanAddr"
     }
   },
   "definitions": {

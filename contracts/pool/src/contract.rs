@@ -7,13 +7,14 @@ use terraswap::hook::InitHook as TokenInitHook;
 use terraswap::token::InitMsg as TokenInitMsg;
 
 use crate::config::{read_config, store_config, Config};
-use crate::handler::{
-    handle_claim_reward, handle_deposit, handle_redeem, handle_register_dp_token,
+use crate::handler_exec::{
+    handle_claim_reward, handle_deposit, handle_receive, handle_redeem, handle_register_dp_token,
 };
 use crate::handler_query::{
-    query_beneficiary, query_claimable_reward, query_deposit_amount, query_strategy,
-    query_total_deposit_amount,
+    query_anchor_token, query_beneficiary, query_claimable_reward, query_deposit_amount,
+    query_dp_token, query_money_market, query_stable_denom, query_total_deposit_amount,
 };
+use crate::lib_anchor::market_config;
 use crate::msg::{HandleMsg, InitMsg, QueryMsg};
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
@@ -24,16 +25,22 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     let sender = env.message.sender;
     let raw_sender = deps.api.canonical_address(&sender)?;
 
-    store_config(
-        &mut deps.storage,
-        &Config {
-            owner: raw_sender,
-            beneficiary: deps.api.canonical_address(&msg.beneficiary)?,
-            strategy: deps.api.canonical_address(&msg.strategy)?,
-            dp_token: CanonicalAddr::default(),
-            stable_denom: msg.stable_denom.clone(),
-        },
-    );
+    let mut config = Config {
+        this: deps.api.canonical_address(&env.contract.address)?,
+        owner: raw_sender,
+        beneficiary: deps.api.canonical_address(&msg.beneficiary)?,
+        moneymarket: deps.api.canonical_address(&msg.moneymarket)?,
+        stable_denom: String::default(),
+        atoken: CanonicalAddr::default(),
+        dp_token: CanonicalAddr::default(),
+    };
+
+    let market_config = market_config(deps, &config.moneymarket)?;
+
+    config.stable_denom = market_config.stable_denom.clone();
+    config.atoken = deps.api.canonical_address(&market_config.aterra_contract)?;
+
+    store_config(&mut deps.storage, &config);
 
     Ok(InitResponse {
         messages: vec![CosmosMsg::Wasm(WasmMsg::Instantiate {
@@ -65,8 +72,8 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     msg: HandleMsg,
 ) -> StdResult<HandleResponse> {
     match msg {
+        HandleMsg::Receive(msg) => handle_receive(deps, env, msg),
         HandleMsg::Deposit {} => handle_deposit(deps, env),
-        HandleMsg::Redeem { amount } => handle_redeem(deps, env, amount),
         HandleMsg::ClaimReward {} => handle_claim_reward(deps, env),
         HandleMsg::RegisterDPToken {} => handle_register_dp_token(deps, env),
     }
@@ -79,8 +86,11 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
     match msg {
         QueryMsg::DepositAmountOf { owner } => to_binary(&query_deposit_amount(deps, owner)?), // dp_token.balanceOf(msg.sender)
         QueryMsg::TotalDepositAmount {} => to_binary(&query_total_deposit_amount(deps)?), // dp_token.totalSupply()
-        QueryMsg::GetStrategy {} => to_binary(&query_strategy(deps)?), // config.strategy
         QueryMsg::GetBeneficiary {} => to_binary(&query_beneficiary(deps)?), // config.beneficiary
+        QueryMsg::GetMoneyMarket {} => to_binary(&query_money_market(deps)?),
+        QueryMsg::GetStableDenom {} => to_binary(&query_stable_denom(deps)?),
+        QueryMsg::GetAToken {} => to_binary(&query_anchor_token(deps)?),
+        QueryMsg::GetDPToken {} => to_binary(&query_dp_token(deps)?),
         QueryMsg::GetClaimableReward {} => to_binary(&query_claimable_reward(deps)?), // config.strategy.reward()
     }
 }

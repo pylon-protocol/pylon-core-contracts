@@ -2,8 +2,13 @@
 pub mod contract;
 
 // handlers
-pub mod handler;
+pub mod handler_exec;
 pub mod handler_query;
+
+// querier
+pub mod lib_anchor;
+pub mod lib_pool;
+pub mod lib_token;
 
 // config / data structures
 pub mod config;

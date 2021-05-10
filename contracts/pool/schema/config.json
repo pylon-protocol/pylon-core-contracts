@@ -3,17 +3,24 @@
   "title": "Config",
   "type": "object",
   "required": [
+    "atoken",
     "beneficiary",
     "dp_token",
+    "moneymarket",
     "owner",
-    "stable_denom",
-    "strategy"
+    "stable_denom"
   ],
   "properties": {
+    "atoken": {
+      "$ref": "#/definitions/CanonicalAddr"
+    },
     "beneficiary": {
       "$ref": "#/definitions/CanonicalAddr"
     },
     "dp_token": {
+      "$ref": "#/definitions/CanonicalAddr"
+    },
+    "moneymarket": {
       "$ref": "#/definitions/CanonicalAddr"
     },
     "owner": {
@@ -21,9 +28,6 @@
     },
     "stable_denom": {
       "type": "string"
-    },
-    "strategy": {
-      "$ref": "#/definitions/CanonicalAddr"
     }
   },
   "definitions": {
