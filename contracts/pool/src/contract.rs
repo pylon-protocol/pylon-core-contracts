@@ -68,10 +68,10 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     msg: HandleMsg,
 ) -> StdResult<HandleResponse> {
     match msg {
-        HandleMsg::Receive(msg) => ExecHandler::handle_receive(deps, env, msg),
-        HandleMsg::Deposit {} => ExecHandler::handle_deposit(deps, env),
-        HandleMsg::ClaimReward {} => ExecHandler::handle_claim_reward(deps, env),
-        HandleMsg::RegisterDPToken {} => ExecHandler::handle_register_dp_token(deps, env),
+        HandleMsg::Receive(msg) => ExecHandler::receive(deps, env, msg),
+        HandleMsg::Deposit {} => ExecHandler::deposit(deps, env),
+        HandleMsg::ClaimReward {} => ExecHandler::claim_reward(deps, env),
+        HandleMsg::RegisterDPToken {} => ExecHandler::register_dp_token(deps, env),
     }
 }
 

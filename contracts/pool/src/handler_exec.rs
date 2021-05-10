@@ -12,7 +12,7 @@ use crate::lib_anchor as anchor;
 use crate::lib_pool as pool;
 use crate::msg::Cw20HookMsg;
 
-pub fn handle_receive<S: Storage, A: Api, Q: Querier>(
+pub fn receive<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     _env: Env,
     cw20_msg: Cw20ReceiveMsg,
@@ -27,7 +27,7 @@ pub fn handle_receive<S: Storage, A: Api, Q: Querier>(
                     return Err(StdError::unauthorized());
                 }
 
-                handle_redeem(deps, _env, cw20_msg.sender, cw20_msg.amount)
+                redeem(deps, _env, cw20_msg.sender, cw20_msg.amount)
             }
         }
     } else {
@@ -37,7 +37,7 @@ pub fn handle_receive<S: Storage, A: Api, Q: Querier>(
     }
 }
 
-pub fn handle_deposit<S: Storage, A: Api, Q: Querier>(
+pub fn deposit<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     _env: Env,
 ) -> StdResult<HandleResponse> {
@@ -86,7 +86,7 @@ pub fn handle_deposit<S: Storage, A: Api, Q: Querier>(
     })
 }
 
-pub fn handle_redeem<S: Storage, A: Api, Q: Querier>(
+pub fn redeem<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     _env: Env,
     sender: HumanAddr,
@@ -135,7 +135,7 @@ pub fn handle_redeem<S: Storage, A: Api, Q: Querier>(
     })
 }
 
-pub fn handle_claim_reward<S: Storage, A: Api, Q: Querier>(
+pub fn claim_reward<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     _env: Env,
 ) -> StdResult<HandleResponse> {
@@ -173,7 +173,7 @@ pub fn handle_claim_reward<S: Storage, A: Api, Q: Querier>(
     })
 }
 
-pub fn handle_register_dp_token<S: Storage, A: Api, Q: Querier>(
+pub fn register_dp_token<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     _env: Env,
 ) -> StdResult<HandleResponse> {
