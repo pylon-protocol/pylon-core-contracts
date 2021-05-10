@@ -1,14 +1,16 @@
-use crate::config::{read_config, store_config, Config};
-use crate::lib_anchor::{market_deposit_stable_msg, market_epoch_state, market_redeem_stable_msg};
-use crate::lib_pool::{calculate_return_amount, calculate_reward_amount};
-use crate::msg::Cw20HookMsg;
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{
     from_binary, log, to_binary, Api, BankMsg, CanonicalAddr, Coin, CosmosMsg, Env, Extern,
     HandleResponse, HumanAddr, Querier, StdError, StdResult, Storage, Uint128, WasmMsg,
 };
+
 use cw20::{Cw20HandleMsg, Cw20ReceiveMsg};
 use moneymarket::querier::deduct_tax;
+
+use crate::config;
+use crate::lib_anchor as anchor;
+use crate::lib_pool as pool;
+use crate::msg::Cw20HookMsg;
 
 pub fn handle_receive<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
@@ -20,7 +22,7 @@ pub fn handle_receive<S: Storage, A: Api, Q: Querier>(
         match from_binary(&msg)? {
             Cw20HookMsg::Redeem {} => {
                 // only asset contract can execute this message
-                let config: Config = read_config(&deps.storage)?;
+                let config: config::Config = config::read(&deps.storage)?;
                 if deps.api.canonical_address(&sender)? != config.dp_token {
                     return Err(StdError::unauthorized());
                 }
@@ -39,7 +41,7 @@ pub fn handle_deposit<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     _env: Env,
 ) -> StdResult<HandleResponse> {
-    let config: Config = read_config(&deps.storage)?;
+    let config: config::Config = config::read(&deps.storage)?;
 
     // check deposit
     let deposit_amount: Uint256 = _env
@@ -59,7 +61,7 @@ pub fn handle_deposit<S: Storage, A: Api, Q: Querier>(
 
     Ok(HandleResponse {
         messages: [
-            market_deposit_stable_msg(
+            anchor::deposit_stable_msg(
                 deps,
                 &config.moneymarket,
                 &config.stable_denom,
@@ -90,9 +92,9 @@ pub fn handle_redeem<S: Storage, A: Api, Q: Querier>(
     sender: HumanAddr,
     amount: Uint128,
 ) -> StdResult<HandleResponse> {
-    let config: Config = read_config(&deps.storage)?;
+    let config: config::Config = config::read(&deps.storage)?;
 
-    let epoch_state = market_epoch_state(deps, &config.moneymarket)?;
+    let epoch_state = anchor::epoch_state(deps, &config.moneymarket)?;
 
     let market_redeem_amount = Uint256::from(amount) / epoch_state.exchange_rate; // calculate
     let pool_redeem_amount = deduct_tax(
@@ -111,7 +113,7 @@ pub fn handle_redeem<S: Storage, A: Api, Q: Querier>(
                 msg: to_binary(&Cw20HandleMsg::Burn { amount })?,
                 send: vec![],
             })],
-            market_redeem_stable_msg(
+            anchor::redeem_stable_msg(
                 deps,
                 &config.moneymarket,
                 &config.atoken,
@@ -138,18 +140,18 @@ pub fn handle_claim_reward<S: Storage, A: Api, Q: Querier>(
     _env: Env,
 ) -> StdResult<HandleResponse> {
     // calculate (total_aust_amount * exchange_rate) - (total_dp_balance)
-    let config: Config = read_config(&deps.storage)?;
+    let config: config::Config = config::read(&deps.storage)?;
     if config.beneficiary != deps.api.canonical_address(&_env.message.sender)? {
         return Err(StdError::unauthorized());
     }
 
-    let reward_amount = calculate_reward_amount(deps)?;
+    let reward_amount = pool::calculate_reward_amount(deps)?;
     let (market_redeem_amount, _, return_amount) =
-        calculate_return_amount(deps, reward_amount.clone())?;
+        pool::calculate_return_amount(deps, reward_amount.clone())?;
 
     Ok(HandleResponse {
         messages: [
-            market_redeem_stable_msg(
+            anchor::redeem_stable_msg(
                 deps,
                 &config.moneymarket,
                 &config.atoken,
@@ -175,13 +177,13 @@ pub fn handle_register_dp_token<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     _env: Env,
 ) -> StdResult<HandleResponse> {
-    let mut config: Config = read_config(&deps.storage)?;
+    let mut config: config::Config = config::read(&deps.storage)?;
     if config.dp_token != CanonicalAddr::default() {
         return Err(StdError::unauthorized());
     }
 
     config.dp_token = deps.api.canonical_address(&_env.message.sender)?;
-    store_config(&mut deps.storage, &config)?;
+    config::store(&mut deps.storage, &config)?;
 
     Ok(HandleResponse {
         messages: vec![],

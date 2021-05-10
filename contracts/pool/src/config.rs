@@ -17,10 +17,10 @@ pub struct Config {
     pub dp_token: CanonicalAddr,
 }
 
-pub fn store_config<S: Storage>(storage: &mut S, data: &Config) -> StdResult<()> {
+pub fn store<S: Storage>(storage: &mut S, data: &Config) -> StdResult<()> {
     Singleton::new(storage, CONFIG_KEY).save(data)
 }
 
-pub fn read_config<S: Storage>(storage: &S) -> StdResult<Config> {
+pub fn read<S: Storage>(storage: &S) -> StdResult<Config> {
     ReadonlySingleton::new(storage, CONFIG_KEY).load()
 }

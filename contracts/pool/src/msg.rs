@@ -1,8 +1,8 @@
-use cosmwasm_std::{HumanAddr, Uint128};
-
-use cw20::Cw20ReceiveMsg;
+use cosmwasm_std::HumanAddr;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use cw20::Cw20ReceiveMsg;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InitMsg {

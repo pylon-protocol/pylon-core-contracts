@@ -1,45 +1,39 @@
 use cosmwasm_std::{
-    to_binary, Api, CanonicalAddr, Coin, CosmosMsg, Extern, HumanAddr, Querier, QueryRequest,
-    StdResult, Storage, Uint128, WasmMsg, WasmQuery,
+    to_binary, Api, CanonicalAddr, Coin, CosmosMsg, Extern, Querier, QueryRequest, StdResult,
+    Storage, Uint128, WasmMsg, WasmQuery,
 };
 
-use cw20::Cw20HandleMsg::Send as TokenSendMsg;
-use moneymarket::market::Cw20HookMsg::RedeemStable as MarketRedeemStable;
-use moneymarket::market::HandleMsg::DepositStable as MarketDepositStable;
-use moneymarket::market::QueryMsg::{Config as MarketConfig, EpochState as MarketEpochState};
-use moneymarket::market::{
-    ConfigResponse as MarketConfigResponse, Cw20HookMsg,
-    EpochStateResponse as MarketEpochStateResponse,
-};
+use cw20::Cw20HandleMsg;
+use moneymarket::market::{ConfigResponse, Cw20HookMsg, EpochStateResponse, HandleMsg, QueryMsg};
 use moneymarket::querier::deduct_tax;
 
-pub fn market_config<S: Storage, A: Api, Q: Querier>(
+pub fn config<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     market: &CanonicalAddr,
-) -> StdResult<MarketConfigResponse> {
-    let market_config: MarketConfigResponse =
+) -> StdResult<ConfigResponse> {
+    let market_config: ConfigResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: deps.api.human_address(market)?,
-            msg: to_binary(&MarketConfig {})?,
+            msg: to_binary(&QueryMsg::Config {})?,
         }))?;
 
     Ok(market_config)
 }
 
-pub fn market_epoch_state<S: Storage, A: Api, Q: Querier>(
+pub fn epoch_state<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     market: &CanonicalAddr,
-) -> StdResult<MarketEpochStateResponse> {
-    let epoch_state: MarketEpochStateResponse =
+) -> StdResult<EpochStateResponse> {
+    let epoch_state: EpochStateResponse =
         deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: deps.api.human_address(market)?,
-            msg: to_binary(&MarketEpochState { block_height: None })?,
+            msg: to_binary(&QueryMsg::EpochState { block_height: None })?,
         }))?;
 
     Ok(epoch_state)
 }
 
-pub fn market_deposit_stable_msg<S: Storage, A: Api, Q: Querier>(
+pub fn deposit_stable_msg<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     market: &CanonicalAddr,
     denom: &String,
@@ -47,7 +41,7 @@ pub fn market_deposit_stable_msg<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<Vec<CosmosMsg>> {
     Ok(vec![CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: deps.api.human_address(market)?,
-        msg: to_binary(&MarketDepositStable {})?,
+        msg: to_binary(&HandleMsg::DepositStable {})?,
         send: vec![deduct_tax(
             deps,
             Coin {
@@ -58,7 +52,7 @@ pub fn market_deposit_stable_msg<S: Storage, A: Api, Q: Querier>(
     })])
 }
 
-pub fn market_redeem_stable_msg<S: Storage, A: Api, Q: Querier>(
+pub fn redeem_stable_msg<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     market: &CanonicalAddr,
     token: &CanonicalAddr,
@@ -66,10 +60,10 @@ pub fn market_redeem_stable_msg<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<Vec<CosmosMsg>> {
     Ok(vec![CosmosMsg::Wasm(WasmMsg::Execute {
         contract_addr: deps.api.human_address(token)?,
-        msg: to_binary(&TokenSendMsg {
+        msg: to_binary(&Cw20HandleMsg::Send {
             contract: deps.api.human_address(market)?,
             amount,
-            msg: Option::from(to_binary(&MarketRedeemStable {})?),
+            msg: Option::from(to_binary(&Cw20HookMsg::RedeemStable {})?),
         })?,
         send: vec![],
     })])

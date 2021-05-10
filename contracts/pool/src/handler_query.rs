@@ -1,97 +1,80 @@
-use cosmwasm_std::{
-    to_binary, Api, CanonicalAddr, Env, Extern, HumanAddr, Querier, QueryRequest, StdResult,
-    Storage, Uint128, WasmQuery,
-};
+use cosmwasm_std::{to_binary, Api, Binary, Extern, HumanAddr, Querier, StdResult, Storage};
 
-use crate::config::{read_config, Config};
-use crate::lib_pool::calculate_reward_amount;
-use crate::lib_token::{token_balance_of, token_total_supply};
+use crate::config;
+use crate::lib_pool as pool;
+use crate::lib_token as token;
 use crate::resp::{
-    GetATokenResponse, GetBeneficiaryResponse, GetClaimableRewardResponse, GetDPTokenResponse,
-    GetDepositAmountResponse, GetMoneyMarketResponse, GetStableDenomResponse,
-    GetTotalDepositAmountResponse,
+    ATokenResponse, BeneficiaryResponse, ClaimableRewardResponse, DPTokenResponse,
+    DepositAmountResponse, MoneyMarketResponse, StableDenomResponse, TotalDepositAmountResponse,
 };
-use cw20::{BalanceResponse, TokenInfoResponse};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 
-pub fn query_deposit_amount<S: Storage, A: Api, Q: Querier>(
+pub fn deposit_amount<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     owner: HumanAddr,
-) -> StdResult<GetDepositAmountResponse> {
-    let config: Config = read_config(&deps.storage)?;
+) -> StdResult<Binary> {
+    let config: config::Config = config::read(&deps.storage)?;
 
-    Ok(GetDepositAmountResponse {
-        amount: token_balance_of(deps, &config.dp_token, owner)?,
-    })
+    Ok(to_binary(&DepositAmountResponse {
+        amount: token::balance_of(deps, &config.dp_token, owner)?,
+    })?)
 }
 
-pub fn query_total_deposit_amount<S: Storage, A: Api, Q: Querier>(
+pub fn total_deposit_amount<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
-) -> StdResult<GetTotalDepositAmountResponse> {
-    let config: Config = read_config(&deps.storage)?;
+) -> StdResult<Binary> {
+    let config: config::Config = config::read(&deps.storage)?;
 
-    Ok(GetTotalDepositAmountResponse {
-        amount: token_total_supply(deps, &config.dp_token)?,
-    })
+    Ok(to_binary(&TotalDepositAmountResponse {
+        amount: token::total_supply(deps, &config.dp_token)?,
+    })?)
 }
 
-pub fn query_beneficiary<S: Storage, A: Api, Q: Querier>(
-    deps: &Extern<S, A, Q>,
-) -> StdResult<GetBeneficiaryResponse> {
-    let config: Config = read_config(&deps.storage)?;
+pub fn beneficiary<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
+    let config: config::Config = config::read(&deps.storage)?;
 
-    Ok(GetBeneficiaryResponse {
+    Ok(to_binary(&BeneficiaryResponse {
         beneficiary: deps.api.human_address(&config.beneficiary)?,
-    })
+    })?)
 }
 
-pub fn query_money_market<S: Storage, A: Api, Q: Querier>(
-    deps: &Extern<S, A, Q>,
-) -> StdResult<GetMoneyMarketResponse> {
-    let config: Config = read_config(&deps.storage)?;
+pub fn money_market<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
+    let config: config::Config = config::read(&deps.storage)?;
 
-    Ok(GetMoneyMarketResponse {
+    Ok(to_binary(&MoneyMarketResponse {
         moneymarket: deps.api.human_address(&config.moneymarket)?,
-    })
+    })?)
 }
 
-pub fn query_stable_denom<S: Storage, A: Api, Q: Querier>(
-    deps: &Extern<S, A, Q>,
-) -> StdResult<GetStableDenomResponse> {
-    let config: Config = read_config(&deps.storage)?;
+pub fn stable_denom<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
+    let config: config::Config = config::read(&deps.storage)?;
 
-    Ok(GetStableDenomResponse {
+    Ok(to_binary(&StableDenomResponse {
         stable_denom: config.stable_denom.clone(),
-    })
+    })?)
 }
 
-pub fn query_anchor_token<S: Storage, A: Api, Q: Querier>(
-    deps: &Extern<S, A, Q>,
-) -> StdResult<GetATokenResponse> {
-    let config: Config = read_config(&deps.storage)?;
+pub fn anchor_token<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
+    let config: config::Config = config::read(&deps.storage)?;
 
-    Ok(GetATokenResponse {
+    Ok(to_binary(&ATokenResponse {
         anchor_token: deps.api.human_address(&config.atoken)?,
-    })
+    })?)
 }
 
-pub fn query_dp_token<S: Storage, A: Api, Q: Querier>(
-    deps: &Extern<S, A, Q>,
-) -> StdResult<GetDPTokenResponse> {
-    let config: Config = read_config(&deps.storage)?;
+pub fn dp_token<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
+    let config: config::Config = config::read(&deps.storage)?;
 
-    Ok(GetDPTokenResponse {
+    Ok(to_binary(&DPTokenResponse {
         dp_token: deps.api.human_address(&config.dp_token)?,
-    })
+    })?)
 }
 
-pub fn query_claimable_reward<S: Storage, A: Api, Q: Querier>(
+pub fn claimable_reward<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
-) -> StdResult<GetClaimableRewardResponse> {
-    let reward_amount = calculate_reward_amount(deps)?;
+) -> StdResult<Binary> {
+    let reward_amount = pool::calculate_reward_amount(deps)?;
 
-    Ok(GetClaimableRewardResponse {
+    Ok(to_binary(&ClaimableRewardResponse {
         claimable_reward: reward_amount.into(),
-    })
+    })?)
 }
