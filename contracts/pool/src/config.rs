@@ -8,17 +8,19 @@ pub static CONFIG_KEY: &[u8] = b"config";
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Config {
+    pub this: CanonicalAddr,
     pub owner: CanonicalAddr,
     pub beneficiary: CanonicalAddr,
-    pub strategy: CanonicalAddr,
-    pub dp_token: CanonicalAddr,
+    pub moneymarket: CanonicalAddr,
+    pub atoken: CanonicalAddr,
     pub stable_denom: String,
+    pub dp_token: CanonicalAddr,
 }
 
-pub fn store_config<S: Storage>(storage: &mut S, data: &Config) -> StdResult<()> {
+pub fn store<S: Storage>(storage: &mut S, data: &Config) -> StdResult<()> {
     Singleton::new(storage, CONFIG_KEY).save(data)
 }
 
-pub fn read_config<S: Storage>(storage: &S) -> StdResult<Config> {
+pub fn read<S: Storage>(storage: &S) -> StdResult<Config> {
     ReadonlySingleton::new(storage, CONFIG_KEY).load()
 }

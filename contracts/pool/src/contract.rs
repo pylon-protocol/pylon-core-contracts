@@ -1,19 +1,16 @@
 use cosmwasm_std::{
-    to_binary, Api, Binary, CanonicalAddr, CosmosMsg, Env, Extern, HandleResponse, HumanAddr,
-    InitResponse, Querier, StdError, StdResult, Storage, Uint128, WasmMsg,
+    to_binary, Api, Binary, CanonicalAddr, CosmosMsg, Env, Extern, HandleResponse, InitResponse,
+    Querier, StdResult, Storage, WasmMsg,
 };
-use cw20::{Cw20CoinHuman, MinterResponse};
-use terraswap::hook::InitHook as TokenInitHook;
-use terraswap::token::InitMsg as TokenInitMsg;
 
-use crate::config::{read_config, store_config, Config};
-use crate::handler::{
-    handle_claim_reward, handle_deposit, handle_redeem, handle_register_dp_token,
-};
-use crate::handler_query::{
-    query_beneficiary, query_claimable_reward, query_deposit_amount, query_strategy,
-    query_total_deposit_amount,
-};
+use cw20::MinterResponse;
+use terraswap::hook::InitHook as Cw20InitHook;
+use terraswap::token::InitMsg as Cw20InitMsg;
+
+use crate::config;
+use crate::handler_exec as ExecHandler;
+use crate::handler_query as QueryHandler;
+use crate::lib_anchor as anchor;
 use crate::msg::{HandleMsg, InitMsg, QueryMsg};
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
@@ -24,23 +21,29 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     let sender = env.message.sender;
     let raw_sender = deps.api.canonical_address(&sender)?;
 
-    store_config(
-        &mut deps.storage,
-        &Config {
-            owner: raw_sender,
-            beneficiary: deps.api.canonical_address(&msg.beneficiary)?,
-            strategy: deps.api.canonical_address(&msg.strategy)?,
-            dp_token: CanonicalAddr::default(),
-            stable_denom: msg.stable_denom.clone(),
-        },
-    );
+    let mut config = config::Config {
+        this: deps.api.canonical_address(&env.contract.address)?,
+        owner: raw_sender,
+        beneficiary: deps.api.canonical_address(&msg.beneficiary)?,
+        moneymarket: deps.api.canonical_address(&msg.moneymarket)?,
+        stable_denom: String::default(),
+        atoken: CanonicalAddr::default(),
+        dp_token: CanonicalAddr::default(),
+    };
+
+    let market_config = anchor::config(deps, &config.moneymarket)?;
+
+    config.stable_denom = market_config.stable_denom.clone();
+    config.atoken = deps.api.canonical_address(&market_config.aterra_contract)?;
+
+    config::store(&mut deps.storage, &config)?;
 
     Ok(InitResponse {
         messages: vec![CosmosMsg::Wasm(WasmMsg::Instantiate {
             code_id: msg.dp_code_id,
             send: vec![],
             label: None,
-            msg: to_binary(&TokenInitMsg {
+            msg: to_binary(&Cw20InitMsg {
                 name: format!("Pylon Deposit Token {}", msg.pool_name),
                 symbol: "DPv1".to_string(),
                 decimals: 6u8,
@@ -49,7 +52,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
                     minter: env.contract.address.clone(),
                     cap: None,
                 }),
-                init_hook: Some(TokenInitHook {
+                init_hook: Some(Cw20InitHook {
                     contract_addr: env.contract.address.clone(),
                     msg: to_binary(&HandleMsg::RegisterDPToken {})?,
                 }),
@@ -65,10 +68,10 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     msg: HandleMsg,
 ) -> StdResult<HandleResponse> {
     match msg {
-        HandleMsg::Deposit {} => handle_deposit(deps, env),
-        HandleMsg::Redeem { amount } => handle_redeem(deps, env, amount),
-        HandleMsg::ClaimReward {} => handle_claim_reward(deps, env),
-        HandleMsg::RegisterDPToken {} => handle_register_dp_token(deps, env),
+        HandleMsg::Receive(msg) => ExecHandler::receive(deps, env, msg),
+        HandleMsg::Deposit {} => ExecHandler::deposit(deps, env),
+        HandleMsg::ClaimReward {} => ExecHandler::claim_reward(deps, env),
+        HandleMsg::RegisterDPToken {} => ExecHandler::register_dp_token(deps, env),
     }
 }
 
@@ -77,10 +80,13 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
     msg: QueryMsg,
 ) -> StdResult<Binary> {
     match msg {
-        QueryMsg::DepositAmountOf { owner } => to_binary(&query_deposit_amount(deps, owner)?), // dp_token.balanceOf(msg.sender)
-        QueryMsg::TotalDepositAmount {} => to_binary(&query_total_deposit_amount(deps)?), // dp_token.totalSupply()
-        QueryMsg::GetStrategy {} => to_binary(&query_strategy(deps)?), // config.strategy
-        QueryMsg::GetBeneficiary {} => to_binary(&query_beneficiary(deps)?), // config.beneficiary
-        QueryMsg::GetClaimableReward {} => to_binary(&query_claimable_reward(deps)?), // config.strategy.reward()
+        QueryMsg::DepositAmountOf { owner } => QueryHandler::deposit_amount(deps, owner), // dp_token.balanceOf(msg.sender)
+        QueryMsg::TotalDepositAmount {} => QueryHandler::total_deposit_amount(deps), // dp_token.totalSupply()
+        QueryMsg::GetBeneficiary {} => QueryHandler::beneficiary(deps), // config.beneficiary
+        QueryMsg::GetMoneyMarket {} => QueryHandler::money_market(deps),
+        QueryMsg::GetStableDenom {} => QueryHandler::stable_denom(deps),
+        QueryMsg::GetAToken {} => QueryHandler::anchor_token(deps),
+        QueryMsg::GetDPToken {} => QueryHandler::dp_token(deps),
+        QueryMsg::GetClaimableReward {} => QueryHandler::claimable_reward(deps), // config.strategy.reward()
     }
 }

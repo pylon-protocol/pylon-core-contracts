@@ -1,5 +1,5 @@
 [package]
-name = "strategy"
+name = "staking"
 version = "0.1.0"
 authors = ["frostornge <frostornge@gmail.com>"]
 edition = "2018"
