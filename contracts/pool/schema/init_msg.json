@@ -3,25 +3,15 @@
   "title": "InitMsg",
   "type": "object",
   "required": [
-    "beneficiary",
-    "dp_code_id",
-    "moneymarket",
-    "pool_name"
+    "dp_token",
+    "reward_token"
   ],
   "properties": {
-    "beneficiary": {
+    "dp_token": {
       "$ref": "#/definitions/HumanAddr"
     },
-    "dp_code_id": {
-      "type": "integer",
-      "format": "uint64",
-      "minimum": 0.0
-    },
-    "moneymarket": {
+    "reward_token": {
       "$ref": "#/definitions/HumanAddr"
-    },
-    "pool_name": {
-      "type": "string"
     }
   },
   "definitions": {

@@ -3,35 +3,47 @@
   "title": "Config",
   "type": "object",
   "required": [
-    "atoken",
-    "beneficiary",
     "dp_token",
-    "moneymarket",
+    "finish_time",
+    "open_claim",
+    "open_deposit",
+    "open_withdraw",
     "owner",
-    "stable_denom",
-    "this"
+    "reward_rate",
+    "reward_token",
+    "start_time"
   ],
   "properties": {
-    "atoken": {
-      "$ref": "#/definitions/CanonicalAddr"
-    },
-    "beneficiary": {
-      "$ref": "#/definitions/CanonicalAddr"
-    },
     "dp_token": {
       "$ref": "#/definitions/CanonicalAddr"
     },
-    "moneymarket": {
-      "$ref": "#/definitions/CanonicalAddr"
+    "finish_time": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "open_claim": {
+      "type": "boolean"
+    },
+    "open_deposit": {
+      "type": "boolean"
+    },
+    "open_withdraw": {
+      "type": "boolean"
     },
     "owner": {
       "$ref": "#/definitions/CanonicalAddr"
     },
-    "stable_denom": {
-      "type": "string"
+    "reward_rate": {
+      "$ref": "#/definitions/Decimal256"
     },
-    "this": {
+    "reward_token": {
       "$ref": "#/definitions/CanonicalAddr"
+    },
+    "start_time": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
     }
   },
   "definitions": {
@@ -41,6 +53,10 @@
     },
     "CanonicalAddr": {
       "$ref": "#/definitions/Binary"
+    },
+    "Decimal256": {
+      "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal256(1_000_000_000_000_000_000) == 1.0 The greatest possible value that can be represented is 115792089237316195423570985008687907853269984665640564039457.584007913129639935 (which is (2^128 - 1) / 10^18)",
+      "type": "string"
     }
   }
 }

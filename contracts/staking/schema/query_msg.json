@@ -5,10 +5,32 @@
     {
       "type": "object",
       "required": [
-        "deposit_amount_of"
+        "config"
       ],
       "properties": {
-        "deposit_amount_of": {
+        "config": {
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "reward"
+      ],
+      "properties": {
+        "reward": {
+          "type": "object"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "balance_of"
+      ],
+      "properties": {
+        "balance_of": {
           "type": "object",
           "required": [
             "owner"
@@ -24,44 +46,27 @@
     {
       "type": "object",
       "required": [
-        "total_deposit_amount"
+        "claimable_reward"
       ],
       "properties": {
-        "total_deposit_amount": {
-          "type": "object"
-        }
-      }
-    },
-    {
-      "type": "object",
-      "required": [
-        "get_strategy"
-      ],
-      "properties": {
-        "get_strategy": {
-          "type": "object"
-        }
-      }
-    },
-    {
-      "type": "object",
-      "required": [
-        "get_beneficiary"
-      ],
-      "properties": {
-        "get_beneficiary": {
-          "type": "object"
-        }
-      }
-    },
-    {
-      "type": "object",
-      "required": [
-        "get_claimable_reward"
-      ],
-      "properties": {
-        "get_claimable_reward": {
-          "type": "object"
+        "claimable_reward": {
+          "type": "object",
+          "required": [
+            "owner"
+          ],
+          "properties": {
+            "owner": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "timestamp": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          }
         }
       }
     }
