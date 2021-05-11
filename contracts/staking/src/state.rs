@@ -1,9 +1,8 @@
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-
 use cosmwasm_bignumber::Decimal256;
 use cosmwasm_std::{CanonicalAddr, ReadonlyStorage, StdResult, Storage, Uint128};
 use cosmwasm_storage::{Bucket, ReadonlyBucket, ReadonlySingleton, Singleton};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 pub static KEY_CONFIG: &[u8] = b"config";
 pub static KEY_REWARD: &[u8] = b"reward";
@@ -32,6 +31,7 @@ pub fn read_config<S: Storage>(storage: &S) -> StdResult<Config> {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Reward {
+    pub total_deposit: Uint128,
     pub last_update_time: u64,
     pub reward_per_token_stored: Decimal256,
 }

@@ -1,6 +1,6 @@
 use cosmwasm_bignumber::Decimal256;
 use cosmwasm_std::{
-    to_binary, Api, Binary, Env, Extern, HandleResponse, InitResponse, Querier, StdResult, Storage,
+    Api, Binary, Env, Extern, HandleResponse, InitResponse, Querier, StdResult, Storage, Uint128,
 };
 
 use crate::handler_exec as ExecHandler;
@@ -31,6 +31,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     state::store_reward(
         &mut deps.storage,
         &state::Reward {
+            total_deposit: Uint128::zero(),
             last_update_time: 0,
             reward_per_token_stored: Decimal256::zero(),
         },
@@ -45,11 +46,11 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     msg: HandleMsg,
 ) -> StdResult<HandleResponse> {
     match msg {
-        HandleMsg::Receive(msg) => ExecHandler::receive(deps, env, msg),
-        HandleMsg::Update {} => ExecHandler::update(deps, env),
-        HandleMsg::Withdraw {} => ExecHandler::withdraw(deps, env),
-        HandleMsg::Exit {} => ExecHandler::exit(deps, env),
-        HandleMsg::Claim {} => ExecHandler::claim(deps, env),
+        HandleMsg::Receive(msg) => ExecHandler::receive(deps, &env, msg),
+        HandleMsg::Update {} => ExecHandler::update(deps, &env, None),
+        HandleMsg::Withdraw { amount } => ExecHandler::withdraw(deps, &env, amount),
+        HandleMsg::Claim {} => ExecHandler::claim(deps, &env),
+        HandleMsg::Exit {} => ExecHandler::exit(deps, &env),
     }
 }
 
@@ -57,5 +58,12 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     msg: QueryMsg,
 ) -> StdResult<Binary> {
-    match msg {}
+    match msg {
+        QueryMsg::Config {} => QueryHandler::config(deps),
+        QueryMsg::Reward {} => QueryHandler::reward(deps),
+        QueryMsg::BalanceOf { owner } => QueryHandler::balance_of(deps, owner),
+        QueryMsg::ClaimableReward { owner, timestamp } => {
+            QueryHandler::claimable_reward(deps, owner, timestamp)
+        }
+    }
 }

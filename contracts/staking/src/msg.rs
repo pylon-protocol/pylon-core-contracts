@@ -1,9 +1,8 @@
-use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::HumanAddr;
+use cosmwasm_bignumber::Decimal256;
+use cosmwasm_std::{HumanAddr, Uint128};
+use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
-use cw20::Cw20ReceiveMsg;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InitMsg {
@@ -16,9 +15,9 @@ pub struct InitMsg {
 pub enum HandleMsg {
     Receive(Cw20ReceiveMsg),
     Update {},
-    Withdraw {},
-    Exit {},
+    Withdraw { amount: Uint128 },
     Claim {},
+    Exit {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -38,12 +37,13 @@ pub enum Cw20HookMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    BalanceOf { owner: HumanAddr },       // -> Uint128
-    TotalSupply {},                       // -> Uint128
-    StartTime {},                         // -> u64
-    FinishTime {},                        // -> u64
-    RewardRate {},                        // -> Uint256
-    DPToken {},                           // -> HumanAddr (contract)
-    RewardToken {},                       // -> HumanAddr (contract)
-    ClaimableReward { owner: HumanAddr }, // -> Uint128
+    Config {}, // state::Config
+    Reward {}, // state::Reward
+    BalanceOf {
+        owner: HumanAddr,
+    }, // -> Uint128
+    ClaimableReward {
+        owner: HumanAddr,
+        timestamp: Option<u64>,
+    }, // -> Uint128
 }
