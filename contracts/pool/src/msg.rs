@@ -39,3 +39,7 @@ pub enum QueryMsg {
     GetClaimableReward {},                // -> Uint128
     GetDPToken {},                        // -> HumanAddr (contract)
 }
+
+/// We currently take no arguments for migrations
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct MigrateMsg {}

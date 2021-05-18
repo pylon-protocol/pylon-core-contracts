@@ -44,7 +44,7 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
     let config: config::Config = config::read(&deps.storage)?;
 
     // check deposit
-    let deposit_amount: Uint256 = _env
+    let received: Uint256 = _env
         .message
         .sent_funds
         .iter()
@@ -52,12 +52,21 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
         .map(|c| Uint256::from(c.amount))
         .unwrap_or_else(Uint256::zero);
 
-    if deposit_amount.is_zero() {
+    if received.is_zero() {
         return Err(StdError::generic_err(format!(
             "Pool: insufficient token amount {}",
             config.stable_denom,
         )));
     }
+
+    let deposit_amount = deduct_tax(
+        deps,
+        Coin {
+            denom: config.stable_denom.clone(),
+            amount: received.into(),
+        },
+    )?
+    .amount;
 
     Ok(HandleResponse {
         messages: [

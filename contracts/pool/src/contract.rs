@@ -1,6 +1,6 @@
 use cosmwasm_std::{
     to_binary, Api, Binary, CanonicalAddr, CosmosMsg, Env, Extern, HandleResponse, InitResponse,
-    Querier, StdResult, Storage, WasmMsg,
+    MigrateResponse, MigrateResult, Querier, StdResult, Storage, WasmMsg,
 };
 
 use cw20::MinterResponse;
@@ -11,7 +11,7 @@ use crate::config;
 use crate::handler_exec as ExecHandler;
 use crate::handler_query as QueryHandler;
 use crate::lib_anchor as anchor;
-use crate::msg::{HandleMsg, InitMsg, QueryMsg};
+use crate::msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
@@ -89,4 +89,12 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
         QueryMsg::GetDPToken {} => QueryHandler::dp_token(deps),
         QueryMsg::GetClaimableReward {} => QueryHandler::claimable_reward(deps), // config.strategy.reward()
     }
+}
+
+pub fn migrate<S: Storage, A: Api, Q: Querier>(
+    _deps: &mut Extern<S, A, Q>,
+    _env: Env,
+    _msg: MigrateMsg,
+) -> MigrateResult {
+    Ok(MigrateResponse::default())
 }
