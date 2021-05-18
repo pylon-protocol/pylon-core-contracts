@@ -26,70 +26,10 @@ pub fn receive<S: Storage, A: Api, Q: Querier>(
 
                 deposit(deps, env, &cw20_msg.sender, cw20_msg.amount)
             }
-            Cw20HookMsg::Configure {
-                start_time,
-                period,
-                open_deposit,
-                open_withdraw,
-                open_claim,
-                reward_rate,
-            } => {
-                let config: state::Config = state::read_config(&deps.storage)?;
-                if deps.api.canonical_address(&sender)? != config.reward_token {
-                    return Err(StdError::unauthorized());
-                }
-                if env.block.time.gt(&config.start_time) {
-                    return Err(StdError::unauthorized());
-                }
-                if Uint256::from(cw20_msg.amount) < Uint256::from(period) * reward_rate {
-                    return Err(StdError::generic_err("Staking: insufficient amount"));
-                }
-
-                configure(
-                    deps,
-                    env,
-                    start_time,
-                    period,
-                    open_deposit,
-                    open_withdraw,
-                    open_claim,
-                    reward_rate,
-                )
-            }
         }
     } else {
         Err(StdError::generic_err("Staking: unsupported message"))
     }
-}
-
-pub fn configure<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
-    _: &Env,
-    start_time: u64,
-    period: u64,
-    open_deposit: bool,
-    open_withdraw: bool,
-    open_claim: bool,
-    reward_rate: Decimal256,
-) -> StdResult<HandleResponse> {
-    let config: state::Config = state::read_config(&deps.storage)?;
-
-    state::store_config(
-        &mut deps.storage,
-        &state::Config {
-            owner: config.owner.clone(),
-            dp_token: config.dp_token.clone(),
-            reward_token: config.reward_token.clone(),
-            start_time: start_time.clone(),
-            finish_time: start_time.add(period),
-            open_deposit,
-            open_withdraw,
-            open_claim,
-            reward_rate,
-        },
-    )?;
-
-    Ok(HandleResponse::default())
 }
 
 pub fn update<S: Storage, A: Api, Q: Querier>(
@@ -107,15 +47,15 @@ pub fn update<S: Storage, A: Api, Q: Querier>(
     };
 
     // reward
-    reward.last_update_time = applicable_reward_time.clone();
     reward.reward_per_token_stored =
         reward
             .reward_per_token_stored
             .add(staking::calculate_reward_per_token(
                 deps,
                 &reward,
-                env.block.time.clone(),
+                &applicable_reward_time,
             )?);
+    reward.last_update_time = applicable_reward_time.clone();
     state::store_reward(&mut deps.storage, &reward)?;
 
     // user
@@ -125,7 +65,7 @@ pub fn update<S: Storage, A: Api, Q: Querier>(
         let mut user: state::User = state::read_user(&deps.storage, &t)?;
 
         user.reward =
-            staking::calculate_rewards(deps, &reward, &user, Option::from(env.block.time))?;
+            staking::calculate_rewards(deps, &reward, &user, Option::from(applicable_reward_time))?;
         user.reward_per_token_paid = reward.reward_per_token_stored;
 
         state::store_user(&mut deps.storage, &t, &user)?;
@@ -149,7 +89,7 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
         }
     }
 
-    update(deps, env, Option::from(&env.message.sender))?;
+    update(deps, env, Option::from(sender))?;
 
     let owner = deps.api.canonical_address(sender)?;
     let mut reward: state::Reward = state::read_reward(&deps.storage)?;
@@ -165,7 +105,7 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
         messages: vec![],
         log: vec![
             log("action", "deposit"),
-            log("operator", env.message.sender.clone()),
+            log("operator", sender.clone()),
             log("deposit_amount", amount.clone()),
         ],
         data: None,
@@ -175,6 +115,7 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
 pub fn withdraw<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: &Env,
+    sender: &HumanAddr,
     amount: Uint128,
 ) -> StdResult<HandleResponse> {
     let config: state::Config = state::read_config(&deps.storage)?;
@@ -186,9 +127,9 @@ pub fn withdraw<S: Storage, A: Api, Q: Querier>(
         }
     }
 
-    update(deps, env, Option::from(&env.message.sender))?;
+    update(deps, env, Option::from(sender))?;
 
-    let owner = deps.api.canonical_address(&env.message.sender)?;
+    let owner = deps.api.canonical_address(sender)?;
     let mut reward: state::Reward = state::read_reward(&deps.storage)?;
     let mut user: state::User = state::read_user(&deps.storage, &owner)?;
 
@@ -202,14 +143,14 @@ pub fn withdraw<S: Storage, A: Api, Q: Querier>(
         messages: vec![CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: deps.api.human_address(&config.dp_token)?,
             msg: to_binary(&Cw20HandleMsg::Transfer {
-                recipient: env.message.sender.clone(),
+                recipient: sender.clone(),
                 amount,
             })?,
             send: vec![],
         })],
         log: vec![
             log("action", "withdraw"),
-            log("operator", env.message.sender.clone()),
+            log("operator", sender.clone()),
             log("withdraw_amount", amount.clone()),
         ],
         data: None,
@@ -218,6 +159,7 @@ pub fn withdraw<S: Storage, A: Api, Q: Querier>(
 
 pub fn claim<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
+    sender: &HumanAddr,
     env: &Env,
 ) -> StdResult<HandleResponse> {
     let config: state::Config = state::read_config(&deps.storage)?;
@@ -229,9 +171,9 @@ pub fn claim<S: Storage, A: Api, Q: Querier>(
         }
     }
 
-    update(deps, env, Option::from(&env.message.sender))?;
+    update(deps, env, Option::from(sender))?;
 
-    let owner = deps.api.canonical_address(&env.message.sender)?;
+    let owner = deps.api.canonical_address(sender)?;
     let mut user: state::User = state::read_user(&deps.storage, &owner)?;
 
     let claim_amount = user.reward.clone();
@@ -245,14 +187,14 @@ pub fn claim<S: Storage, A: Api, Q: Querier>(
         messages: vec![CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: deps.api.human_address(&config.reward_token)?,
             msg: to_binary(&Cw20HandleMsg::Transfer {
-                recipient: env.message.sender.clone(),
+                recipient: sender.clone(),
                 amount: claim_amount,
             })?,
             send: vec![],
         })],
         log: vec![
             log("action", "claim"),
-            log("operator", env.message.sender.clone()),
+            log("operator", sender.clone()),
             log("claim_amount", claim_amount.clone()),
         ],
         data: None,
@@ -261,6 +203,7 @@ pub fn claim<S: Storage, A: Api, Q: Querier>(
 
 pub fn exit<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
+    sender: &HumanAddr,
     env: &Env,
 ) -> StdResult<HandleResponse> {
     let config: state::Config = state::read_config(&deps.storage)?;
@@ -272,9 +215,9 @@ pub fn exit<S: Storage, A: Api, Q: Querier>(
         }
     }
 
-    update(deps, env, Option::from(&env.message.sender))?;
+    update(deps, env, Option::from(sender))?;
 
-    let owner = deps.api.canonical_address(&env.message.sender)?;
+    let owner = deps.api.canonical_address(sender)?;
     let mut reward: state::Reward = state::read_reward(&deps.storage)?;
     let mut user: state::User = state::read_user(&deps.storage, &owner)?;
 
@@ -296,7 +239,7 @@ pub fn exit<S: Storage, A: Api, Q: Querier>(
             CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: deps.api.human_address(&config.dp_token)?,
                 msg: to_binary(&Cw20HandleMsg::Transfer {
-                    recipient: env.message.sender.clone(),
+                    recipient: sender.clone(),
                     amount: withdraw_amount,
                 })?,
                 send: vec![],
@@ -304,7 +247,7 @@ pub fn exit<S: Storage, A: Api, Q: Querier>(
             CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: deps.api.human_address(&config.reward_token)?,
                 msg: to_binary(&Cw20HandleMsg::Transfer {
-                    recipient: env.message.sender.clone(),
+                    recipient: sender.clone(),
                     amount: claim_amount,
                 })?,
                 send: vec![],
@@ -312,7 +255,7 @@ pub fn exit<S: Storage, A: Api, Q: Querier>(
         ],
         log: vec![
             log("action", "exit"),
-            log("operator", env.message.sender.clone()),
+            log("operator", sender.clone()),
             log("claim_amount", claim_amount.clone()),
             log("withdraw_amount", withdraw_amount.clone()),
         ],

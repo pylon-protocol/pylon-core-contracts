@@ -8,17 +8,11 @@ use crate::state;
 pub fn calculate_reward_per_token<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     reward: &state::Reward,
-    timestamp: u64,
+    timestamp: &u64,
 ) -> StdResult<Decimal256> {
     let config: state::Config = state::read_config(&deps.storage)?;
 
-    let applicable_reward_time = if timestamp.gt(&config.finish_time) {
-        config.finish_time.clone()
-    } else {
-        timestamp
-    };
-
-    let period = Uint256::from(applicable_reward_time.sub(reward.last_update_time));
+    let period = Uint256::from(timestamp.sub(reward.last_update_time));
     let total_deposit = Uint256::from(reward.total_deposit);
 
     Ok(Decimal256::from_uint256(period)
@@ -44,7 +38,7 @@ pub fn calculate_rewards<S: Storage, A: Api, Q: Querier>(
         }
 
         if reward.last_update_time.ne(&timestamp) {
-            rpt = rpt.add(calculate_reward_per_token(deps, reward, timestamp)?);
+            rpt = rpt.add(calculate_reward_per_token(deps, reward, &timestamp)?);
         }
     }
 

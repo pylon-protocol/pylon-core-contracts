@@ -6,6 +6,12 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InitMsg {
+    pub start_time: u64,
+    pub period: u64,
+    pub open_deposit: bool,
+    pub open_withdraw: bool,
+    pub open_claim: bool,
+    pub reward_rate: Decimal256,
     pub dp_token: HumanAddr,
     pub reward_token: HumanAddr,
 }
@@ -24,14 +30,6 @@ pub enum HandleMsg {
 #[serde(rename_all = "snake_case")]
 pub enum Cw20HookMsg {
     Deposit {},
-    Configure {
-        start_time: u64,
-        period: u64,
-        open_deposit: bool,
-        open_withdraw: bool,
-        open_claim: bool,
-        reward_rate: Decimal256,
-    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -47,3 +45,7 @@ pub enum QueryMsg {
         timestamp: Option<u64>,
     }, // -> Uint128
 }
+
+/// We currently take no arguments for migrations
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct MigrateMsg {}

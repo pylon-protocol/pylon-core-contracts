@@ -1,11 +1,13 @@
 use cosmwasm_bignumber::Decimal256;
 use cosmwasm_std::{
-    Api, Binary, Env, Extern, HandleResponse, InitResponse, Querier, StdResult, Storage, Uint128,
+    Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResponse, MigrateResult,
+    Querier, StdResult, Storage, Uint128,
 };
+use std::ops::Add;
 
 use crate::handler_exec as ExecHandler;
 use crate::handler_query as QueryHandler;
-use crate::msg::{HandleMsg, InitMsg, QueryMsg};
+use crate::msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 use crate::state;
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
@@ -19,12 +21,12 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
             owner: deps.api.canonical_address(&env.message.sender)?,
             dp_token: deps.api.canonical_address(&msg.dp_token)?,
             reward_token: deps.api.canonical_address(&msg.reward_token)?,
-            start_time: 0,
-            finish_time: 0,
-            open_deposit: false,
-            open_withdraw: false,
-            open_claim: false,
-            reward_rate: Decimal256::zero(),
+            start_time: msg.start_time.clone(),
+            finish_time: msg.start_time.add(msg.period),
+            open_deposit: msg.open_deposit.clone(),
+            open_withdraw: msg.open_withdraw.clone(),
+            open_claim: msg.open_claim.clone(),
+            reward_rate: msg.reward_rate.clone(),
         },
     )?;
 
@@ -48,9 +50,11 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     match msg {
         HandleMsg::Receive(msg) => ExecHandler::receive(deps, &env, msg),
         HandleMsg::Update {} => ExecHandler::update(deps, &env, None),
-        HandleMsg::Withdraw { amount } => ExecHandler::withdraw(deps, &env, amount),
-        HandleMsg::Claim {} => ExecHandler::claim(deps, &env),
-        HandleMsg::Exit {} => ExecHandler::exit(deps, &env),
+        HandleMsg::Withdraw { amount } => {
+            ExecHandler::withdraw(deps, &env, &env.message.sender, amount)
+        }
+        HandleMsg::Claim {} => ExecHandler::claim(deps, &env.message.sender, &env),
+        HandleMsg::Exit {} => ExecHandler::exit(deps, &env.message.sender, &env),
     }
 }
 
@@ -66,4 +70,12 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
             QueryHandler::claimable_reward(deps, owner, timestamp)
         }
     }
+}
+
+pub fn migrate<S: Storage, A: Api, Q: Querier>(
+    _deps: &mut Extern<S, A, Q>,
+    _env: Env,
+    _msg: MigrateMsg,
+) -> MigrateResult {
+    Ok(MigrateResponse::default())
 }
