@@ -103,17 +103,8 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<HandleResponse> {
     let config: config::Config = config::read(&deps.storage)?;
 
-    let epoch_state = anchor::epoch_state(deps, &config.moneymarket)?;
-
-    let market_redeem_amount = Uint256::from(amount) / epoch_state.exchange_rate; // calculate
-    let pool_redeem_amount = deduct_tax(
-        deps,
-        Coin {
-            denom: config.stable_denom.clone(),
-            amount: market_redeem_amount.into(),
-        },
-    )?;
-    let return_amount = deduct_tax(deps, pool_redeem_amount)?;
+    let (market_redeem_amount, pool_redeem_amount, _) =
+        pool::calculate_return_amount(deps, Uint256::from(amount).clone())?;
 
     Ok(HandleResponse {
         messages: [
@@ -131,14 +122,14 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
             vec![CosmosMsg::Bank(BankMsg::Send {
                 from_address: _env.contract.address,
                 to_address: sender,
-                amount: vec![return_amount.clone()],
+                amount: vec![pool_redeem_amount.clone()],
             })],
         ]
         .concat(),
         log: vec![
             log("action", "redeem"),
             log("operator", _env.message.sender.clone()),
-            log("amount", return_amount.amount.clone()),
+            log("amount", pool_redeem_amount.amount.clone()),
         ],
         data: None,
     })
@@ -155,7 +146,7 @@ pub fn claim_reward<S: Storage, A: Api, Q: Querier>(
     }
 
     let reward_amount = pool::calculate_reward_amount(deps)?;
-    let (market_redeem_amount, _, return_amount) =
+    let (market_redeem_amount, pool_redeem_amount, _) =
         pool::calculate_return_amount(deps, reward_amount.clone())?;
 
     Ok(HandleResponse {
@@ -169,14 +160,14 @@ pub fn claim_reward<S: Storage, A: Api, Q: Querier>(
             vec![CosmosMsg::Bank(BankMsg::Send {
                 from_address: _env.contract.address.clone(),
                 to_address: _env.message.sender.clone(),
-                amount: vec![return_amount.clone()],
+                amount: vec![pool_redeem_amount.clone()],
             })],
         ]
         .concat(),
         log: vec![
             log("action", "claim_reward"),
             log("operator", _env.message.sender.clone()),
-            log("amount", return_amount.clone().amount),
+            log("amount", pool_redeem_amount.clone().amount),
         ],
         data: None,
     })
