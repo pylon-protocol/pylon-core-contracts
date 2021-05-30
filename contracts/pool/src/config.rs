@@ -11,6 +11,8 @@ pub struct Config {
     pub this: CanonicalAddr,
     pub owner: CanonicalAddr,
     pub beneficiary: CanonicalAddr,
+    pub fee_collector: CanonicalAddr,
+    pub exchange_rate_feeder: CanonicalAddr,
     pub moneymarket: CanonicalAddr,
     pub atoken: CanonicalAddr,
     pub stable_denom: String,

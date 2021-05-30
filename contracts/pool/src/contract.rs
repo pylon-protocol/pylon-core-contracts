@@ -25,6 +25,8 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
         this: deps.api.canonical_address(&env.contract.address)?,
         owner: raw_sender,
         beneficiary: deps.api.canonical_address(&msg.beneficiary)?,
+        fee_collector: deps.api.canonical_address(&msg.fee_collector)?,
+        exchange_rate_feeder: deps.api.canonical_address(&msg.exchange_rate_feeder)?,
         moneymarket: deps.api.canonical_address(&msg.moneymarket)?,
         stable_denom: String::default(),
         atoken: CanonicalAddr::default(),

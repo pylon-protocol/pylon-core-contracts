@@ -1,10 +1,11 @@
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{Api, Coin, Extern, Querier, StdResult, Storage};
-
 use moneymarket::querier::deduct_tax;
+use std::ops::Sub;
 
 use crate::config;
 use crate::lib_anchor as anchor;
+use crate::lib_er_feeder as feeder;
 use crate::lib_token as token;
 
 pub fn calculate_return_amount<S: Storage, A: Api, Q: Querier>(
@@ -29,7 +30,8 @@ pub fn calculate_return_amount<S: Storage, A: Api, Q: Querier>(
 
 pub fn calculate_reward_amount<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
-) -> StdResult<Uint256> {
+    blocktime: Option<u64>,
+) -> StdResult<(Uint256, Uint256)> {
     let config: config::Config = config::read(&deps.storage)?;
 
     let epoch_state = anchor::epoch_state(deps, &config.moneymarket)?;
@@ -37,8 +39,17 @@ pub fn calculate_reward_amount<S: Storage, A: Api, Q: Querier>(
     let atoken_balance =
         token::balance_of(deps, &config.atoken, deps.api.human_address(&config.this)?)?;
 
-    let reward_amount = (epoch_state.exchange_rate * Uint256::from(atoken_balance))
-        - Uint256::from(dp_total_supply);
+    let v_er = feeder::fetch(
+        &deps,
+        &config.exchange_rate_feeder,
+        blocktime,
+        &deps.api.human_address(&config.dp_token)?,
+    )?;
 
-    Ok(reward_amount)
+    let total_reward_amount = (epoch_state.exchange_rate * Uint256::from(atoken_balance))
+        - Uint256::from(dp_total_supply);
+    let reward_amount = (v_er * Uint256::from(atoken_balance)) - Uint256::from(dp_total_supply);
+    let fee_amount = total_reward_amount.sub(reward_amount);
+
+    Ok((reward_amount, fee_amount))
 }

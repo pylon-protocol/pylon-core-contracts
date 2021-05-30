@@ -16,10 +16,10 @@
     {
       "type": "object",
       "required": [
-        "update"
+        "deposit"
       ],
       "properties": {
-        "update": {
+        "deposit": {
           "type": "object"
         }
       }
@@ -27,29 +27,10 @@
     {
       "type": "object",
       "required": [
-        "withdraw"
+        "claim_reward"
       ],
       "properties": {
-        "withdraw": {
-          "type": "object",
-          "required": [
-            "amount"
-          ],
-          "properties": {
-            "amount": {
-              "$ref": "#/definitions/Uint128"
-            }
-          }
-        }
-      }
-    },
-    {
-      "type": "object",
-      "required": [
-        "claim"
-      ],
-      "properties": {
-        "claim": {
+        "claim_reward": {
           "type": "object"
         }
       }
@@ -57,10 +38,10 @@
     {
       "type": "object",
       "required": [
-        "exit"
+        "register_d_p_token"
       ],
       "properties": {
-        "exit": {
+        "register_d_p_token": {
           "type": "object"
         }
       }

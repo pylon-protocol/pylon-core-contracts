@@ -72,7 +72,7 @@ pub fn dp_token<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdRe
 pub fn claimable_reward<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
 ) -> StdResult<Binary> {
-    let reward_amount = pool::calculate_reward_amount(deps)?;
+    let (reward_amount, _) = pool::calculate_reward_amount(deps, None)?;
 
     Ok(to_binary(&ClaimableRewardResponse {
         claimable_reward: reward_amount.into(),
