@@ -9,6 +9,7 @@ use moneymarket::querier::deduct_tax;
 
 use crate::config;
 use crate::lib_anchor as anchor;
+use crate::lib_er_feeder as feeder;
 use crate::lib_pool as pool;
 use crate::msg::Cw20HookMsg;
 use std::ops::Add;
@@ -71,6 +72,7 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
 
     Ok(HandleResponse {
         messages: [
+            feeder::update_msg(deps, &config.exchange_rate_feeder, &config.dp_token)?,
             anchor::deposit_stable_msg(
                 deps,
                 &config.moneymarket,
@@ -109,6 +111,7 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
 
     Ok(HandleResponse {
         messages: [
+            feeder::update_msg(deps, &config.exchange_rate_feeder, &config.dp_token)?,
             vec![CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: deps.api.human_address(&config.dp_token)?,
                 msg: to_binary(&Cw20HandleMsg::Burn { amount })?,
@@ -155,6 +158,7 @@ pub fn claim_reward<S: Storage, A: Api, Q: Querier>(
 
     Ok(HandleResponse {
         messages: [
+            feeder::update_msg(deps, &config.exchange_rate_feeder, &config.dp_token)?,
             anchor::redeem_stable_msg(
                 deps,
                 &config.moneymarket,
