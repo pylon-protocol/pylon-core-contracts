@@ -1,6 +1,5 @@
 use std::ops::{Add, Sub};
 
-use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::{from_binary, log, to_binary, CosmosMsg, HumanAddr, StdError, Uint128, WasmMsg};
 use cosmwasm_std::{Api, Env, Extern, HandleResponse, Querier, StdResult, Storage};
 use cw20::{Cw20HandleMsg, Cw20ReceiveMsg};
@@ -20,7 +19,7 @@ pub fn receive<S: Storage, A: Api, Q: Querier>(
         match from_binary(&msg)? {
             Cw20HookMsg::Deposit {} => {
                 let config: state::Config = state::read_config(&deps.storage)?;
-                if deps.api.canonical_address(&sender)? != config.dp_token {
+                if deps.api.canonical_address(&sender)? != config.share_token {
                     return Err(StdError::unauthorized());
                 }
 
@@ -141,7 +140,7 @@ pub fn withdraw<S: Storage, A: Api, Q: Querier>(
 
     Ok(HandleResponse {
         messages: vec![CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: deps.api.human_address(&config.dp_token)?,
+            contract_addr: deps.api.human_address(&config.share_token)?,
             msg: to_binary(&Cw20HandleMsg::Transfer {
                 recipient: sender.clone(),
                 amount,
@@ -237,7 +236,7 @@ pub fn exit<S: Storage, A: Api, Q: Querier>(
     Ok(HandleResponse {
         messages: vec![
             CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: deps.api.human_address(&config.dp_token)?,
+                contract_addr: deps.api.human_address(&config.share_token)?,
                 msg: to_binary(&Cw20HandleMsg::Transfer {
                     recipient: sender.clone(),
                     amount: withdraw_amount,

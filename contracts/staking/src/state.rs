@@ -11,7 +11,7 @@ pub static PREFIX_USER: &[u8] = b"user";
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Config {
     pub owner: CanonicalAddr,
-    pub dp_token: CanonicalAddr,
+    pub share_token: CanonicalAddr,
     pub reward_token: CanonicalAddr,
     pub start_time: u64,
     pub finish_time: u64,

@@ -19,7 +19,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
         &mut deps.storage,
         &state::Config {
             owner: deps.api.canonical_address(&env.message.sender)?,
-            dp_token: deps.api.canonical_address(&msg.dp_token)?,
+            share_token: deps.api.canonical_address(&msg.share_token)?,
             reward_token: deps.api.canonical_address(&msg.reward_token)?,
             start_time: msg.start_time.clone(),
             finish_time: msg.start_time.add(msg.period),

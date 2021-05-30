@@ -12,7 +12,7 @@ pub struct InitMsg {
     pub open_withdraw: bool,
     pub open_claim: bool,
     pub reward_rate: Decimal256,
-    pub dp_token: HumanAddr,
+    pub share_token: HumanAddr,
     pub reward_token: HumanAddr,
 }
 

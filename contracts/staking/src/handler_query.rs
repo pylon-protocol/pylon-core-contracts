@@ -9,7 +9,7 @@ pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResu
 
     Ok(to_binary(&resp::ConfigResponse {
         owner: deps.api.human_address(&config.owner)?,
-        dp_token: deps.api.human_address(&config.dp_token)?,
+        share_token: deps.api.human_address(&config.share_token)?,
         reward_token: deps.api.human_address(&config.reward_token)?,
         start_time: config.start_time.clone(),
         finish_time: config.finish_time.clone(),
