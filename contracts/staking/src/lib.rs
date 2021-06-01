@@ -1,17 +1,15 @@
-// router
+// core
 pub mod contract;
-
-// handlers
-pub mod handler_exec;
-pub mod handler_query;
-
-// libs
-pub mod lib_staking;
-
-// config / data structures
 pub mod msg;
 pub mod resp;
 pub mod state;
+
+// handlers
+mod handler_exec;
+mod handler_query;
+
+// libs
+mod lib_staking;
 
 #[cfg(target_arch = "wasm32")]
 cosmwasm_std::create_entry_points_with_migration!(contract);

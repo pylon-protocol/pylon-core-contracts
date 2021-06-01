@@ -3,7 +3,6 @@
   "title": "Config",
   "type": "object",
   "required": [
-    "dp_token",
     "finish_time",
     "open_claim",
     "open_deposit",
@@ -11,12 +10,10 @@
     "owner",
     "reward_rate",
     "reward_token",
+    "share_token",
     "start_time"
   ],
   "properties": {
-    "dp_token": {
-      "$ref": "#/definitions/CanonicalAddr"
-    },
     "finish_time": {
       "type": "integer",
       "format": "uint64",
@@ -38,6 +35,9 @@
       "$ref": "#/definitions/Decimal256"
     },
     "reward_token": {
+      "$ref": "#/definitions/CanonicalAddr"
+    },
+    "share_token": {
       "$ref": "#/definitions/CanonicalAddr"
     },
     "start_time": {
