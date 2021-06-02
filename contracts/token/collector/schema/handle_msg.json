@@ -27,7 +27,7 @@
       }
     },
     {
-      "description": "Public Message Sweep all given denom balance to ANC token and execute Distribute message",
+      "description": "Public Message Sweep all given denom balance to MINE token and execute Distribute message",
       "type": "object",
       "required": [
         "sweep"
@@ -47,7 +47,7 @@
       }
     },
     {
-      "description": "Internal Message Distribute all ANC token to gov_contract",
+      "description": "Internal Message Distribute all MINE token to gov_contract",
       "type": "object",
       "required": [
         "distribute"

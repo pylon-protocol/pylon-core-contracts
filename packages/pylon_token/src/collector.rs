@@ -7,7 +7,7 @@ use cosmwasm_std::{Decimal, HumanAddr};
 pub struct InitMsg {
     pub gov_contract: HumanAddr, // collected rewards receiver
     pub terraswap_factory: HumanAddr,
-    pub anchor_token: HumanAddr,
+    pub pylon_token: HumanAddr,
     pub distributor_contract: HumanAddr,
     pub reward_factor: Decimal,
 }
@@ -17,9 +17,7 @@ pub struct InitMsg {
 pub enum HandleMsg {
     /// Update config interface
     /// to enable reward_factor update
-    UpdateConfig {
-        reward_factor: Option<Decimal>,
-    },
+    UpdateConfig { reward_factor: Option<Decimal> },
     /// Public Message
     /// Sweep all given denom balance to ANC token
     /// and execute Distribute message
@@ -41,7 +39,7 @@ pub enum QueryMsg {
 pub struct ConfigResponse {
     pub gov_contract: HumanAddr, // collected rewards receiver
     pub terraswap_factory: HumanAddr,
-    pub anchor_token: HumanAddr,
+    pub pylon_token: HumanAddr,
     pub distributor_contract: HumanAddr,
     pub reward_factor: Decimal,
 }

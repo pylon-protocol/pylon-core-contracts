@@ -13,7 +13,7 @@ static PREFIX_CLAIM_INDEX: &[u8] = b"claim_index";
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Config {
     pub owner: CanonicalAddr,
-    pub anchor_token: CanonicalAddr,
+    pub pylon_token: CanonicalAddr,
 }
 
 pub fn store_config<S: Storage>(storage: &mut S, config: &Config) -> StdResult<()> {

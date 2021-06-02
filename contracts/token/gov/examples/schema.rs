@@ -2,7 +2,7 @@ use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 use std::env::current_dir;
 use std::fs::create_dir_all;
 
-use anchor_token::gov::{
+use pylon_token::gov::{
     ConfigResponse, Cw20HookMsg, HandleMsg, InitMsg, PollResponse, QueryMsg, StakerResponse,
 };
 

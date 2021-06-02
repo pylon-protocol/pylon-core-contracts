@@ -6,12 +6,12 @@ use cosmwasm_std::{
 use crate::state::{
     read_config, read_vesting_info, read_vesting_infos, store_config, store_vesting_info, Config,
 };
-use anchor_token::common::OrderBy;
-use anchor_token::vesting::{
+use cw20::Cw20HandleMsg;
+use pylon_token::common::OrderBy;
+use pylon_token::vesting::{
     ConfigResponse, HandleMsg, InitMsg, QueryMsg, VestingAccount, VestingAccountResponse,
     VestingAccountsResponse, VestingInfo,
 };
-use cw20::Cw20HandleMsg;
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
@@ -22,7 +22,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
         &mut deps.storage,
         &Config {
             owner: deps.api.canonical_address(&msg.owner)?,
-            anchor_token: deps.api.canonical_address(&msg.anchor_token)?,
+            pylon_token: deps.api.canonical_address(&msg.pylon_token)?,
             genesis_time: msg.genesis_time,
         },
     )?;
@@ -42,9 +42,9 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
             match msg {
                 HandleMsg::UpdateConfig {
                     owner,
-                    anchor_token,
+                    pylon_token,
                     genesis_time,
-                } => update_config(deps, owner, anchor_token, genesis_time),
+                } => update_config(deps, owner, pylon_token, genesis_time),
                 HandleMsg::RegisterVestingAccounts { vesting_accounts } => {
                     register_vesting_accounts(deps, vesting_accounts)
                 }
@@ -68,7 +68,7 @@ fn assert_owner_privilege<S: Storage, A: Api, Q: Querier>(
 pub fn update_config<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     owner: Option<HumanAddr>,
-    anchor_token: Option<HumanAddr>,
+    pylon_token: Option<HumanAddr>,
     genesis_time: Option<u64>,
 ) -> HandleResult {
     let mut config = read_config(&deps.storage)?;
@@ -76,8 +76,8 @@ pub fn update_config<S: Storage, A: Api, Q: Querier>(
         config.owner = deps.api.canonical_address(&owner)?;
     }
 
-    if let Some(anchor_token) = anchor_token {
-        config.anchor_token = deps.api.canonical_address(&anchor_token)?;
+    if let Some(pylon_token) = pylon_token {
+        config.pylon_token = deps.api.canonical_address(&pylon_token)?;
     }
 
     if let Some(genesis_time) = genesis_time {
@@ -144,7 +144,7 @@ pub fn claim<S: Storage, A: Api, Q: Querier>(deps: &mut Extern<S, A, Q>, env: En
         vec![]
     } else {
         vec![CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: deps.api.human_address(&config.anchor_token)?,
+            contract_addr: deps.api.human_address(&config.pylon_token)?,
             send: vec![],
             msg: to_binary(&Cw20HandleMsg::Transfer {
                 recipient: address.clone(),
@@ -217,7 +217,7 @@ pub fn query_config<S: Storage, A: Api, Q: Querier>(
     let state = read_config(&deps.storage)?;
     let resp = ConfigResponse {
         owner: deps.api.human_address(&state.owner)?,
-        anchor_token: deps.api.human_address(&state.anchor_token)?,
+        pylon_token: deps.api.human_address(&state.pylon_token)?,
         genesis_time: state.genesis_time,
     };
 

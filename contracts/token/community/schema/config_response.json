@@ -3,12 +3,12 @@
   "title": "ConfigResponse",
   "type": "object",
   "required": [
-    "anchor_token",
+    "pylon_token",
     "gov_contract",
     "spend_limit"
   ],
   "properties": {
-    "anchor_token": {
+    "pylon_token": {
       "$ref": "#/definitions/HumanAddr"
     },
     "gov_contract": {

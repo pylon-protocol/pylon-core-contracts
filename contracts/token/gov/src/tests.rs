@@ -6,18 +6,18 @@ use crate::state::{
 };
 
 use crate::querier::load_token_balance;
-use anchor_token::common::OrderBy;
-use anchor_token::gov::{
-    ConfigResponse, Cw20HookMsg, ExecuteMsg, HandleMsg, InitMsg, PollResponse, PollStatus,
-    PollsResponse, QueryMsg, StakerResponse, VoteOption, VoterInfo, VotersResponse,
-    VotersResponseItem,
-};
 use cosmwasm_std::testing::{mock_env, MockApi, MockStorage, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{
     coins, from_binary, log, to_binary, Api, CanonicalAddr, Coin, CosmosMsg, Decimal, Env, Extern,
     HandleResponse, HumanAddr, StdError, Uint128, WasmMsg,
 };
 use cw20::{Cw20HandleMsg, Cw20ReceiveMsg};
+use pylon_token::common::OrderBy;
+use pylon_token::gov::{
+    ConfigResponse, Cw20HookMsg, ExecuteMsg, HandleMsg, InitMsg, PollResponse, PollStatus,
+    PollsResponse, QueryMsg, StakerResponse, VoteOption, VoterInfo, VotersResponse,
+    VotersResponseItem,
+};
 
 const VOTING_TOKEN: &str = "voting_token";
 const TEST_CREATOR: &str = "creator";
@@ -47,7 +47,7 @@ fn mock_init(mut deps: &mut Extern<MockStorage, MockApi, WasmMockQuerier>) {
     let _res = init(&mut deps, env.clone(), msg).expect("contract successfully handles InitMsg");
 
     let msg = HandleMsg::RegisterContracts {
-        anchor_token: HumanAddr::from(VOTING_TOKEN),
+        pylon_token: HumanAddr::from(VOTING_TOKEN),
     };
     let _res =
         handle(&mut deps, env, msg).expect("contract successfully handles RegisterContracts");
@@ -85,7 +85,7 @@ fn proper_initialization() {
     assert_eq!(
         config,
         Config {
-            anchor_token: CanonicalAddr::default(),
+            pylon_token: CanonicalAddr::default(),
             owner: deps
                 .api
                 .canonical_address(&HumanAddr::from(TEST_CREATOR))
@@ -101,12 +101,12 @@ fn proper_initialization() {
     );
 
     let msg = HandleMsg::RegisterContracts {
-        anchor_token: HumanAddr::from(VOTING_TOKEN),
+        pylon_token: HumanAddr::from(VOTING_TOKEN),
     };
     let _res = handle(&mut deps, env, msg).unwrap();
     let config: Config = config_read(&mut deps.storage).load().unwrap();
     assert_eq!(
-        config.anchor_token,
+        config.pylon_token,
         deps.api
             .canonical_address(&HumanAddr::from(VOTING_TOKEN))
             .unwrap()
@@ -204,7 +204,7 @@ fn fails_contract_already_registered() {
     let _res = init(&mut deps, env.clone(), msg).unwrap();
 
     let msg = HandleMsg::RegisterContracts {
-        anchor_token: HumanAddr::from(VOTING_TOKEN),
+        pylon_token: HumanAddr::from(VOTING_TOKEN),
     };
     let _res = handle(&mut deps, env.clone(), msg.clone()).unwrap();
     let res = handle(&mut deps, env.clone(), msg.clone());

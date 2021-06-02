@@ -14,7 +14,7 @@ pub struct InitMsg {
     pub timelock_period: u64,
     pub expiration_period: u64,
     pub proposal_deposit: Uint128,
-    pub snapshot_period:u64,
+    pub snapshot_period: u64,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -22,7 +22,7 @@ pub struct InitMsg {
 pub enum HandleMsg {
     Receive(Cw20ReceiveMsg),
     RegisterContracts {
-        anchor_token: HumanAddr,
+        pylon_token: HumanAddr,
     },
     UpdateConfig {
         owner: Option<HumanAddr>,
@@ -53,7 +53,7 @@ pub enum HandleMsg {
     },
     SnapshotPoll {
         poll_id: u64,
-    }
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -107,7 +107,7 @@ pub enum QueryMsg {
 #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema)]
 pub struct ConfigResponse {
     pub owner: HumanAddr,
-    pub anchor_token: HumanAddr,
+    pub pylon_token: HumanAddr,
     pub quorum: Decimal,
     pub threshold: Decimal,
     pub voting_period: u64,
@@ -169,7 +169,6 @@ pub struct VotersResponseItem {
 pub struct VotersResponse {
     pub voters: Vec<VotersResponseItem>,
 }
-
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct VoterInfo {

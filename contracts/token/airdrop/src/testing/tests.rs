@@ -1,11 +1,11 @@
 use crate::contract::{handle, init, query};
-use anchor_token::airdrop::{
-    ConfigResponse, HandleMsg, InitMsg, IsClaimedResponse, LatestStageResponse, MerkleRootResponse,
-    QueryMsg,
-};
 use cosmwasm_std::testing::{mock_dependencies, mock_env};
 use cosmwasm_std::{from_binary, log, to_binary, CosmosMsg, HumanAddr, StdError, Uint128, WasmMsg};
 use cw20::Cw20HandleMsg;
+use pylon_token::airdrop::{
+    ConfigResponse, HandleMsg, InitMsg, IsClaimedResponse, LatestStageResponse, MerkleRootResponse,
+    QueryMsg,
+};
 
 #[test]
 fn proper_initialization() {
@@ -13,7 +13,7 @@ fn proper_initialization() {
 
     let msg = InitMsg {
         owner: HumanAddr("owner0000".to_string()),
-        anchor_token: HumanAddr("anchor0000".to_string()),
+        pylon_token: HumanAddr("anchor0000".to_string()),
     };
 
     let env = mock_env("addr0000", &[]);
@@ -25,7 +25,7 @@ fn proper_initialization() {
     let res = query(&deps, QueryMsg::Config {}).unwrap();
     let config: ConfigResponse = from_binary(&res).unwrap();
     assert_eq!("owner0000", config.owner.as_str());
-    assert_eq!("anchor0000", config.anchor_token.as_str());
+    assert_eq!("anchor0000", config.pylon_token.as_str());
 
     let res = query(&deps, QueryMsg::LatestStage {}).unwrap();
     let latest_stage: LatestStageResponse = from_binary(&res).unwrap();
@@ -38,7 +38,7 @@ fn update_config() {
 
     let msg = InitMsg {
         owner: HumanAddr::from("owner0000"),
-        anchor_token: HumanAddr::from("anchor0000"),
+        pylon_token: HumanAddr::from("anchor0000"),
     };
 
     let env = mock_env("addr0000", &[]);
@@ -75,7 +75,7 @@ fn register_merkle_root() {
 
     let msg = InitMsg {
         owner: HumanAddr::from("owner0000"),
-        anchor_token: HumanAddr::from("anchor0000"),
+        pylon_token: HumanAddr::from("anchor0000"),
     };
 
     let env = mock_env("addr0000", &[]);
@@ -124,7 +124,7 @@ fn claim() {
 
     let msg = InitMsg {
         owner: HumanAddr::from("owner0000"),
-        anchor_token: HumanAddr::from("anchor0000"),
+        pylon_token: HumanAddr::from("anchor0000"),
     };
 
     let env = mock_env("addr0000", &[]);

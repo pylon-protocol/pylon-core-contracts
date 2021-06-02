@@ -6,8 +6,8 @@ use cosmwasm_std::{
 
 use crate::state::{read_config, store_config, Config};
 
-use anchor_token::collector::{ConfigResponse, HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 use cw20::Cw20HandleMsg;
+use pylon_token::collector::{ConfigResponse, HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 use terraswap::asset::{Asset, AssetInfo, PairInfo};
 use terraswap::pair::HandleMsg as TerraswapHandleMsg;
 use terraswap::querier::{query_balance, query_pair_info, query_token_balance};
@@ -22,7 +22,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
         &Config {
             gov_contract: deps.api.canonical_address(&msg.gov_contract)?,
             terraswap_factory: deps.api.canonical_address(&msg.terraswap_factory)?,
-            anchor_token: deps.api.canonical_address(&msg.anchor_token)?,
+            pylon_token: deps.api.canonical_address(&msg.pylon_token)?,
             distributor_contract: deps.api.canonical_address(&msg.distributor_contract)?,
             reward_factor: msg.reward_factor,
         },
@@ -61,15 +61,15 @@ pub fn update_config<S: Storage, A: Api, Q: Querier>(
 }
 /// Sweep
 /// Anyone can execute sweep function to swap
-/// asset token => ANC token and distribute
-/// result ANC token to gov contract
+/// asset token => MINE token and distribute
+/// result MINE token to gov contract
 pub fn sweep<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
     denom: String,
 ) -> HandleResult {
     let config: Config = read_config(&deps.storage)?;
-    let anchor_token = deps.api.human_address(&config.anchor_token)?;
+    let pylon_token = deps.api.human_address(&config.pylon_token)?;
     let terraswap_factory_raw = deps.api.human_address(&config.terraswap_factory)?;
 
     let pair_info: PairInfo = query_pair_info(
@@ -80,7 +80,7 @@ pub fn sweep<S: Storage, A: Api, Q: Querier>(
                 denom: denom.to_string(),
             },
             AssetInfo::Token {
-                contract_addr: anchor_token.clone(),
+                contract_addr: pylon_token.clone(),
             },
         ],
     )?;
@@ -142,7 +142,7 @@ pub fn distribute<S: Storage, A: Api, Q: Querier>(
     let config: Config = read_config(&deps.storage)?;
     let amount = query_token_balance(
         &deps,
-        &deps.api.human_address(&config.anchor_token)?,
+        &deps.api.human_address(&config.pylon_token)?,
         &env.contract.address,
     )?;
 
@@ -153,7 +153,7 @@ pub fn distribute<S: Storage, A: Api, Q: Querier>(
 
     if !distribute_amount.is_zero() {
         messages.push(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: deps.api.human_address(&config.anchor_token)?,
+            contract_addr: deps.api.human_address(&config.pylon_token)?,
             msg: to_binary(&Cw20HandleMsg::Transfer {
                 recipient: deps.api.human_address(&config.gov_contract)?,
                 amount: distribute_amount,
@@ -164,7 +164,7 @@ pub fn distribute<S: Storage, A: Api, Q: Querier>(
 
     if !left_amount.is_zero() {
         messages.push(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: deps.api.human_address(&config.anchor_token)?,
+            contract_addr: deps.api.human_address(&config.pylon_token)?,
             msg: to_binary(&Cw20HandleMsg::Transfer {
                 recipient: deps.api.human_address(&config.distributor_contract)?,
                 amount: left_amount,
@@ -200,7 +200,7 @@ pub fn query_config<S: Storage, A: Api, Q: Querier>(
     let resp = ConfigResponse {
         gov_contract: deps.api.human_address(&state.gov_contract)?,
         terraswap_factory: deps.api.human_address(&state.terraswap_factory)?,
-        anchor_token: deps.api.human_address(&state.anchor_token)?,
+        pylon_token: deps.api.human_address(&state.pylon_token)?,
         distributor_contract: deps.api.human_address(&state.distributor_contract)?,
         reward_factor: state.reward_factor,
     };

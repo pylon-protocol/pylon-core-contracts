@@ -7,7 +7,7 @@ use cosmwasm_std::{HumanAddr, Uint128};
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InitMsg {
     pub owner: HumanAddr,
-    pub anchor_token: HumanAddr,
+    pub pylon_token: HumanAddr,
     pub genesis_time: u64,
 }
 
@@ -16,7 +16,7 @@ pub struct InitMsg {
 pub enum HandleMsg {
     UpdateConfig {
         owner: Option<HumanAddr>,
-        anchor_token: Option<HumanAddr>,
+        pylon_token: Option<HumanAddr>,
         genesis_time: Option<u64>,
     },
     RegisterVestingAccounts {
@@ -25,7 +25,7 @@ pub enum HandleMsg {
     Claim {},
 }
 
-/// CONTRACT: end_time > start_time 
+/// CONTRACT: end_time > start_time
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct VestingAccount {
     pub address: HumanAddr,
@@ -56,7 +56,7 @@ pub enum QueryMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ConfigResponse {
     pub owner: HumanAddr,
-    pub anchor_token: HumanAddr,
+    pub pylon_token: HumanAddr,
     pub genesis_time: u64,
 }
 

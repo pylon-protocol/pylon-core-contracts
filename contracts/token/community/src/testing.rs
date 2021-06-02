@@ -1,9 +1,9 @@
 use crate::contract::{handle, init, query};
 
-use anchor_token::community::{ConfigResponse, HandleMsg, InitMsg, QueryMsg};
 use cosmwasm_std::testing::{mock_dependencies, mock_env};
 use cosmwasm_std::{from_binary, to_binary, CosmosMsg, HumanAddr, StdError, Uint128, WasmMsg};
 use cw20::Cw20HandleMsg;
+use pylon_token::community::{ConfigResponse, HandleMsg, InitMsg, QueryMsg};
 
 #[test]
 fn proper_initialization() {
@@ -11,7 +11,7 @@ fn proper_initialization() {
 
     let msg = InitMsg {
         gov_contract: HumanAddr("gov".to_string()),
-        anchor_token: HumanAddr("anchor".to_string()),
+        pylon_token: HumanAddr("pylon".to_string()),
         spend_limit: Uint128::from(1000000u128),
     };
 
@@ -23,7 +23,7 @@ fn proper_initialization() {
     // it worked, let's query the state
     let config: ConfigResponse = from_binary(&query(&deps, QueryMsg::Config {}).unwrap()).unwrap();
     assert_eq!("gov", config.gov_contract.as_str());
-    assert_eq!("anchor", config.anchor_token.as_str());
+    assert_eq!("pylon", config.pylon_token.as_str());
     assert_eq!(Uint128::from(1000000u128), config.spend_limit);
 }
 
@@ -33,7 +33,7 @@ fn update_config() {
 
     let msg = InitMsg {
         gov_contract: HumanAddr("gov".to_string()),
-        anchor_token: HumanAddr("anchor".to_string()),
+        pylon_token: HumanAddr("pylon".to_string()),
         spend_limit: Uint128::from(1000000u128),
     };
 
@@ -45,7 +45,7 @@ fn update_config() {
     // it worked, let's query the state
     let config: ConfigResponse = from_binary(&query(&deps, QueryMsg::Config {}).unwrap()).unwrap();
     assert_eq!("gov", config.gov_contract.as_str());
-    assert_eq!("anchor", config.anchor_token.as_str());
+    assert_eq!("pylon", config.pylon_token.as_str());
     assert_eq!(Uint128::from(1000000u128), config.spend_limit);
 
     let msg = HandleMsg::UpdateConfig {
@@ -66,7 +66,7 @@ fn update_config() {
         config,
         ConfigResponse {
             gov_contract: HumanAddr::from("gov"),
-            anchor_token: HumanAddr::from("anchor"),
+            pylon_token: HumanAddr::from("pylon"),
             spend_limit: Uint128::from(500000u128),
         }
     );
@@ -78,7 +78,7 @@ fn test_spend() {
 
     let msg = InitMsg {
         gov_contract: HumanAddr("gov".to_string()),
-        anchor_token: HumanAddr("anchor".to_string()),
+        pylon_token: HumanAddr("pylon".to_string()),
         spend_limit: Uint128::from(1000000u128),
     };
 
@@ -125,7 +125,7 @@ fn test_spend() {
     assert_eq!(
         res.messages,
         vec![CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: HumanAddr::from("anchor"),
+            contract_addr: HumanAddr::from("pylon"),
             send: vec![],
             msg: to_binary(&Cw20HandleMsg::Transfer {
                 recipient: HumanAddr::from("addr0000"),

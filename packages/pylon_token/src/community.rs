@@ -5,8 +5,8 @@ use cosmwasm_std::{HumanAddr, Uint128};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InitMsg {
-    pub gov_contract: HumanAddr, // anchor gov contract
-    pub anchor_token: HumanAddr, // anchor token address
+    pub gov_contract: HumanAddr, // pylon gov contract
+    pub pylon_token: HumanAddr,  // pylon token address
     pub spend_limit: Uint128,    // spend limit per each `spend` request
 }
 
@@ -36,6 +36,6 @@ pub enum QueryMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ConfigResponse {
     pub gov_contract: HumanAddr,
-    pub anchor_token: HumanAddr,
+    pub pylon_token: HumanAddr,
     pub spend_limit: Uint128,
 }

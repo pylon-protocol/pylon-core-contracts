@@ -1,6 +1,6 @@
 use crate::contract::{handle, init, query};
-use anchor_token::common::OrderBy;
-use anchor_token::vesting::{
+use pylon_token::common::OrderBy;
+use pylon_token::vesting::{
     ConfigResponse, HandleMsg, InitMsg, QueryMsg, VestingAccount, VestingAccountResponse,
     VestingAccountsResponse, VestingInfo,
 };
@@ -15,7 +15,7 @@ fn proper_initialization() {
 
     let msg = InitMsg {
         owner: HumanAddr::from("owner"),
-        anchor_token: HumanAddr::from("pylon_token"),
+        pylon_token: HumanAddr::from("pylon_token"),
         genesis_time: 12345u64,
     };
 
@@ -26,7 +26,7 @@ fn proper_initialization() {
         from_binary::<ConfigResponse>(&query(&deps, QueryMsg::Config {}).unwrap()).unwrap(),
         ConfigResponse {
             owner: HumanAddr::from("owner"),
-            anchor_token: HumanAddr::from("pylon_token"),
+            pylon_token: HumanAddr::from("pylon_token"),
             genesis_time: 12345u64,
         }
     );
@@ -38,7 +38,7 @@ fn update_config() {
 
     let msg = InitMsg {
         owner: HumanAddr::from("owner"),
-        anchor_token: HumanAddr::from("pylon_token"),
+        pylon_token: HumanAddr::from("pylon_token"),
         genesis_time: 12345u64,
     };
 
@@ -47,7 +47,7 @@ fn update_config() {
 
     let msg = HandleMsg::UpdateConfig {
         owner: Some(HumanAddr::from("owner2")),
-        anchor_token: None,
+        pylon_token: None,
         genesis_time: None,
     };
     let env = mock_env("owner", &vec![]);
@@ -57,14 +57,14 @@ fn update_config() {
         from_binary::<ConfigResponse>(&query(&deps, QueryMsg::Config {}).unwrap()).unwrap(),
         ConfigResponse {
             owner: HumanAddr::from("owner2"),
-            anchor_token: HumanAddr::from("pylon_token"),
+            pylon_token: HumanAddr::from("pylon_token"),
             genesis_time: 12345u64,
         }
     );
 
     let msg = HandleMsg::UpdateConfig {
         owner: Some(HumanAddr::from("owner")),
-        anchor_token: None,
+        pylon_token: None,
         genesis_time: None,
     };
     let env = mock_env("owner", &vec![]);
@@ -76,7 +76,7 @@ fn update_config() {
 
     let msg = HandleMsg::UpdateConfig {
         owner: None,
-        anchor_token: Some(HumanAddr::from("anchor_token2")),
+        pylon_token: Some(HumanAddr::from("pylon_token2")),
         genesis_time: Some(1u64),
     };
     let env = mock_env("owner2", &vec![]);
@@ -86,7 +86,7 @@ fn update_config() {
         from_binary::<ConfigResponse>(&query(&deps, QueryMsg::Config {}).unwrap()).unwrap(),
         ConfigResponse {
             owner: HumanAddr::from("owner2"),
-            anchor_token: HumanAddr::from("anchor_token2"),
+            pylon_token: HumanAddr::from("pylon_token2"),
             genesis_time: 1u64,
         }
     );
@@ -98,7 +98,7 @@ fn register_vesting_accounts() {
 
     let msg = InitMsg {
         owner: HumanAddr::from("owner"),
-        anchor_token: HumanAddr::from("pylon_token"),
+        pylon_token: HumanAddr::from("pylon_token"),
         genesis_time: 100u64,
     };
 
@@ -209,7 +209,7 @@ fn claim() {
 
     let msg = InitMsg {
         owner: HumanAddr::from("owner"),
-        anchor_token: HumanAddr::from("pylon_token"),
+        pylon_token: HumanAddr::from("pylon_token"),
         genesis_time: 100u64,
     };
 

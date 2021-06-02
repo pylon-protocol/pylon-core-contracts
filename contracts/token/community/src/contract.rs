@@ -6,7 +6,7 @@ use cosmwasm_std::{
     WasmMsg,
 };
 
-use anchor_token::community::{ConfigResponse, HandleMsg, InitMsg, MigrateMsg, QueryMsg};
+use pylon_token::community::{ConfigResponse, HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 
 use cw20::Cw20HandleMsg;
 
@@ -19,7 +19,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
         &mut deps.storage,
         &Config {
             gov_contract: deps.api.canonical_address(&msg.gov_contract)?,
-            anchor_token: deps.api.canonical_address(&msg.anchor_token)?,
+            pylon_token: deps.api.canonical_address(&msg.pylon_token)?,
             spend_limit: msg.spend_limit,
         },
     )?;
@@ -79,10 +79,10 @@ pub fn spend<S: Storage, A: Api, Q: Querier>(
         return Err(StdError::generic_err("Cannot spend more than spend_limit"));
     }
 
-    let anchor_token = deps.api.human_address(&config.anchor_token)?;
+    let pylon_token = deps.api.human_address(&config.pylon_token)?;
     Ok(HandleResponse {
         messages: vec![CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: anchor_token,
+            contract_addr: pylon_token,
             send: vec![],
             msg: to_binary(&Cw20HandleMsg::Transfer {
                 recipient: recipient.clone(),
@@ -113,7 +113,7 @@ pub fn query_config<S: Storage, A: Api, Q: Querier>(
     let state = read_config(&deps.storage)?;
     let resp = ConfigResponse {
         gov_contract: deps.api.human_address(&state.gov_contract)?,
-        anchor_token: deps.api.human_address(&state.anchor_token)?,
+        pylon_token: deps.api.human_address(&state.pylon_token)?,
         spend_limit: state.spend_limit,
     };
 

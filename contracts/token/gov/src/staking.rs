@@ -4,12 +4,12 @@ use crate::state::{
     state_store, Config, Poll, State, TokenManager,
 };
 
-use anchor_token::gov::{PollStatus, StakerResponse};
 use cosmwasm_std::{
     log, to_binary, Api, CanonicalAddr, CosmosMsg, Env, Extern, HandleResponse, HandleResult,
     HumanAddr, Querier, StdError, StdResult, Storage, Uint128, WasmMsg,
 };
 use cw20::Cw20HandleMsg;
+use pylon_token::gov::{PollStatus, StakerResponse};
 
 pub fn stake_voting_tokens<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
@@ -31,7 +31,7 @@ pub fn stake_voting_tokens<S: Storage, A: Api, Q: Querier>(
     // balance already increased, so subtract deposit amount
     let total_balance = (load_token_balance(
         &deps,
-        &deps.api.human_address(&config.anchor_token)?,
+        &deps.api.human_address(&config.pylon_token)?,
         &state.contract_addr,
     )? - (state.total_deposit + amount))?;
 
@@ -76,7 +76,7 @@ pub fn withdraw_voting_tokens<S: Storage, A: Api, Q: Querier>(
         let total_share = state.total_share.u128();
         let total_balance = (load_token_balance(
             &deps,
-            &deps.api.human_address(&config.anchor_token)?,
+            &deps.api.human_address(&config.pylon_token)?,
             &state.contract_addr,
         )? - state.total_deposit)?
             .u128();
@@ -107,7 +107,7 @@ pub fn withdraw_voting_tokens<S: Storage, A: Api, Q: Querier>(
 
             send_tokens(
                 &deps.api,
-                &config.anchor_token,
+                &config.pylon_token,
                 &sender_address_raw,
                 withdraw_amount,
                 "withdraw",
@@ -199,7 +199,7 @@ pub fn query_staker<S: Storage, A: Api, Q: Querier>(
 
     let total_balance = (load_token_balance(
         &deps,
-        &deps.api.human_address(&config.anchor_token)?,
+        &deps.api.human_address(&config.pylon_token)?,
         &state.contract_addr,
     )? - state.total_deposit)?;
 

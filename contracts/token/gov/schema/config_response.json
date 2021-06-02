@@ -3,7 +3,7 @@
   "title": "ConfigResponse",
   "type": "object",
   "required": [
-    "anchor_token",
+    "pylon_token",
     "expiration_period",
     "owner",
     "proposal_deposit",
@@ -14,7 +14,7 @@
     "voting_period"
   ],
   "properties": {
-    "anchor_token": {
+    "pylon_token": {
       "$ref": "#/definitions/HumanAddr"
     },
     "expiration_period": {

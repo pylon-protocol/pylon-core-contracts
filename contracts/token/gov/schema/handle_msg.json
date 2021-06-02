@@ -22,10 +22,10 @@
         "register_contracts": {
           "type": "object",
           "required": [
-            "anchor_token"
+            "pylon_token"
           ],
           "properties": {
-            "anchor_token": {
+            "pylon_token": {
               "$ref": "#/definitions/HumanAddr"
             }
           }

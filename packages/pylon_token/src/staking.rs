@@ -6,7 +6,7 @@ use cw20::Cw20ReceiveMsg;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InitMsg {
-    pub anchor_token: HumanAddr,
+    pub pylon_token: HumanAddr,
     pub staking_token: HumanAddr, // lp token of ANC-UST pair contract
     pub distribution_schedule: Vec<(u64, u64, Uint128)>,
 }
@@ -48,7 +48,7 @@ pub enum QueryMsg {
 // We define a custom struct for each query response
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ConfigResponse {
-    pub anchor_token: HumanAddr,
+    pub pylon_token: HumanAddr,
     pub staking_token: HumanAddr,
     pub distribution_schedule: Vec<(u64, u64, Uint128)>,
 }

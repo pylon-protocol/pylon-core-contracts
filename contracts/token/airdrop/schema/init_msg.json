@@ -3,11 +3,11 @@
   "title": "InitMsg",
   "type": "object",
   "required": [
-    "anchor_token",
+    "pylon_token",
     "owner"
   ],
   "properties": {
-    "anchor_token": {
+    "pylon_token": {
       "$ref": "#/definitions/HumanAddr"
     },
     "owner": {

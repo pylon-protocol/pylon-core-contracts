@@ -1,9 +1,9 @@
 use crate::contract::{handle, init, query_config};
 use crate::mock_querier::mock_dependencies;
-use anchor_token::collector::{ConfigResponse, HandleMsg, InitMsg};
 use cosmwasm_std::testing::{mock_env, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{to_binary, Coin, CosmosMsg, Decimal, HumanAddr, StdError, Uint128, WasmMsg};
 use cw20::Cw20HandleMsg;
+use pylon_token::collector::{ConfigResponse, HandleMsg, InitMsg};
 use terraswap::asset::{Asset, AssetInfo};
 use terraswap::pair::HandleMsg as TerraswapHandleMsg;
 
@@ -14,7 +14,7 @@ fn proper_initialization() {
     let msg = InitMsg {
         terraswap_factory: HumanAddr("terraswapfactory".to_string()),
         gov_contract: HumanAddr("gov".to_string()),
-        anchor_token: HumanAddr("tokenANC".to_string()),
+        pylon_token: HumanAddr("tokenANC".to_string()),
         distributor_contract: HumanAddr::from("distributor"),
         reward_factor: Decimal::percent(90),
     };
@@ -36,7 +36,7 @@ fn update_config() {
     let msg = InitMsg {
         terraswap_factory: HumanAddr("terraswapfactory".to_string()),
         gov_contract: HumanAddr("gov".to_string()),
-        anchor_token: HumanAddr("tokenANC".to_string()),
+        pylon_token: HumanAddr("tokenANC".to_string()),
         distributor_contract: HumanAddr::from("distributor"),
         reward_factor: Decimal::percent(90),
     };
@@ -91,7 +91,7 @@ fn test_sweep() {
     let msg = InitMsg {
         terraswap_factory: HumanAddr("terraswapfactory".to_string()),
         gov_contract: HumanAddr("gov".to_string()),
-        anchor_token: HumanAddr("tokenANC".to_string()),
+        pylon_token: HumanAddr("tokenANC".to_string()),
         distributor_contract: HumanAddr::from("distributor"),
         reward_factor: Decimal::percent(90),
     };
@@ -149,7 +149,7 @@ fn test_distribute() {
     let msg = InitMsg {
         terraswap_factory: HumanAddr("terraswapfactory".to_string()),
         gov_contract: HumanAddr("gov".to_string()),
-        anchor_token: HumanAddr("tokenANC".to_string()),
+        pylon_token: HumanAddr("tokenANC".to_string()),
         distributor_contract: HumanAddr::from("distributor"),
         reward_factor: Decimal::percent(90),
     };

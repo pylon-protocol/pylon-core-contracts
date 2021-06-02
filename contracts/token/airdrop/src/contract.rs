@@ -9,7 +9,7 @@ use crate::state::{
     store_latest_stage, store_merkle_root, Config,
 };
 
-use anchor_token::airdrop::{
+use pylon_token::airdrop::{
     ConfigResponse, HandleMsg, InitMsg, IsClaimedResponse, LatestStageResponse, MerkleRootResponse,
     MigrateMsg, QueryMsg,
 };
@@ -28,7 +28,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
         &mut deps.storage,
         &Config {
             owner: deps.api.canonical_address(&msg.owner)?,
-            anchor_token: deps.api.canonical_address(&msg.anchor_token)?,
+            pylon_token: deps.api.canonical_address(&msg.pylon_token)?,
         },
     )?;
 
@@ -165,7 +165,7 @@ pub fn claim<S: Storage, A: Api, Q: Querier>(
 
     Ok(HandleResponse {
         messages: vec![CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: deps.api.human_address(&config.anchor_token)?,
+            contract_addr: deps.api.human_address(&config.pylon_token)?,
             send: vec![],
             msg: to_binary(&Cw20HandleMsg::Transfer {
                 recipient: env.message.sender.clone(),
@@ -217,7 +217,7 @@ pub fn query_config<S: Storage, A: Api, Q: Querier>(
     let state = read_config(&deps.storage)?;
     let resp = ConfigResponse {
         owner: deps.api.human_address(&state.owner)?,
-        anchor_token: deps.api.human_address(&state.anchor_token)?,
+        pylon_token: deps.api.human_address(&state.pylon_token)?,
     };
 
     Ok(resp)

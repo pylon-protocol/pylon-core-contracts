@@ -1,10 +1,10 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use anchor_token::common::OrderBy;
-use anchor_token::vesting::VestingInfo;
 use cosmwasm_std::{CanonicalAddr, ReadonlyStorage, StdResult, Storage};
 use cosmwasm_storage::{bucket, bucket_read, singleton, singleton_read, ReadonlyBucket};
+use pylon_token::common::OrderBy;
+use pylon_token::vesting::VestingInfo;
 
 const KEY_CONFIG: &[u8] = b"config";
 const PREFIX_KEY_VESTING_INFO: &[u8] = b"vesting_info";
@@ -12,7 +12,7 @@ const PREFIX_KEY_VESTING_INFO: &[u8] = b"vesting_info";
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Config {
     pub owner: CanonicalAddr,
-    pub anchor_token: CanonicalAddr,
+    pub pylon_token: CanonicalAddr,
     pub genesis_time: u64,
 }
 

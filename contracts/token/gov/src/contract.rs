@@ -13,8 +13,8 @@ use cosmwasm_std::{
 };
 use cw20::{Cw20HandleMsg, Cw20ReceiveMsg};
 
-use anchor_token::common::OrderBy;
-use anchor_token::gov::{
+use pylon_token::common::OrderBy;
+use pylon_token::gov::{
     ConfigResponse, Cw20HookMsg, ExecuteMsg, HandleMsg, InitMsg, PollResponse, PollStatus,
     PollsResponse, QueryMsg, StateResponse, VoteOption, VoterInfo, VotersResponse,
     VotersResponseItem,
@@ -36,7 +36,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     validate_threshold(msg.threshold)?;
 
     let config = Config {
-        anchor_token: CanonicalAddr::default(),
+        pylon_token: CanonicalAddr::default(),
         owner: deps.api.canonical_address(&env.message.sender)?,
         quorum: msg.quorum,
         threshold: msg.threshold,
@@ -67,7 +67,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<HandleResponse> {
     match msg {
         HandleMsg::Receive(msg) => receive_cw20(deps, env, msg),
-        HandleMsg::RegisterContracts { anchor_token } => register_contracts(deps, anchor_token),
+        HandleMsg::RegisterContracts { pylon_token } => register_contracts(deps, pylon_token),
         HandleMsg::UpdateConfig {
             owner,
             quorum,
@@ -104,14 +104,14 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
 
 pub fn register_contracts<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
-    anchor_token: HumanAddr,
+    pylon_token: HumanAddr,
 ) -> HandleResult {
     let mut config: Config = config_read(&deps.storage).load()?;
-    if config.anchor_token != CanonicalAddr::default() {
+    if config.pylon_token != CanonicalAddr::default() {
         return Err(StdError::unauthorized());
     }
 
-    config.anchor_token = deps.api.canonical_address(&anchor_token)?;
+    config.pylon_token = deps.api.canonical_address(&pylon_token)?;
     config_store(&mut deps.storage).save(&config)?;
 
     Ok(HandleResponse::default())
@@ -124,7 +124,7 @@ pub fn receive_cw20<S: Storage, A: Api, Q: Querier>(
 ) -> HandleResult {
     // only asset contract can execute this message
     let config: Config = config_read(&deps.storage).load()?;
-    if config.anchor_token != deps.api.canonical_address(&env.message.sender)? {
+    if config.pylon_token != deps.api.canonical_address(&env.message.sender)? {
         return Err(StdError::unauthorized());
     }
 
@@ -393,7 +393,7 @@ pub fn end_poll<S: Storage, A: Api, Q: Querier>(
     } else {
         let staked_weight = (load_token_balance(
             &deps,
-            &deps.api.human_address(&config.anchor_token)?,
+            &deps.api.human_address(&config.pylon_token)?,
             &state.contract_addr,
         )? - state.total_deposit)?;
 
@@ -420,7 +420,7 @@ pub fn end_poll<S: Storage, A: Api, Q: Querier>(
         // Refunds deposit only when quorum is reached
         if !a_poll.deposit_amount.is_zero() {
             messages.push(CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: deps.api.human_address(&config.anchor_token)?,
+                contract_addr: deps.api.human_address(&config.pylon_token)?,
                 send: vec![],
                 msg: to_binary(&Cw20HandleMsg::Transfer {
                     recipient: deps.api.human_address(&a_poll.creator)?,
@@ -574,7 +574,7 @@ pub fn snapshot_poll<S: Storage, A: Api, Q: Querier>(
 
     let staked_amount = (load_token_balance(
         &deps,
-        &deps.api.human_address(&config.anchor_token)?,
+        &deps.api.human_address(&config.pylon_token)?,
         &state.contract_addr,
     )? - state.total_deposit)?;
 
@@ -627,7 +627,7 @@ pub fn cast_vote<S: Storage, A: Api, Q: Querier>(
     let total_share = state.total_share;
     let total_balance = (load_token_balance(
         &deps,
-        &deps.api.human_address(&config.anchor_token)?,
+        &deps.api.human_address(&config.pylon_token)?,
         &state.contract_addr,
     )? - state.total_deposit)?;
 
@@ -716,7 +716,7 @@ fn query_config<S: Storage, A: Api, Q: Querier>(
     let config: Config = config_read(&deps.storage).load()?;
     Ok(ConfigResponse {
         owner: deps.api.human_address(&config.owner)?,
-        anchor_token: deps.api.human_address(&config.anchor_token)?,
+        pylon_token: deps.api.human_address(&config.pylon_token)?,
         quorum: config.quorum,
         threshold: config.threshold,
         voting_period: config.voting_period,

@@ -11,7 +11,7 @@
         "update_config": {
           "type": "object",
           "properties": {
-            "anchor_token": {
+            "pylon_token": {
               "anyOf": [
                 {
                   "$ref": "#/definitions/HumanAddr"

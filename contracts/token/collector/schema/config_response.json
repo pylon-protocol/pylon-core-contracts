@@ -3,14 +3,14 @@
   "title": "ConfigResponse",
   "type": "object",
   "required": [
-    "anchor_token",
+    "pylon_token",
     "distributor_contract",
     "gov_contract",
     "reward_factor",
     "terraswap_factory"
   ],
   "properties": {
-    "anchor_token": {
+    "pylon_token": {
       "$ref": "#/definitions/HumanAddr"
     },
     "distributor_contract": {
