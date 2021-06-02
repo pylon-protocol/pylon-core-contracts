@@ -1,8 +1,6 @@
 // core
 pub mod config;
 pub mod contract;
-pub mod msg;
-pub mod resp;
 
 // querier
 mod handler;

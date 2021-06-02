@@ -2,10 +2,10 @@ use cosmwasm_std::{
     Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResponse, MigrateResult,
     Querier, StdResult, Storage,
 };
+use pylon_core::exchange_rate_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 
 use crate::handler_exec as ExecHandler;
 use crate::handler_query as QueryHandler;
-use crate::msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 use crate::state;
 
 pub fn init<S: Storage, A: Api, Q: Querier>(

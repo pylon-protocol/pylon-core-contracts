@@ -1,7 +1,5 @@
 // core
 pub mod contract;
-pub mod msg;
-pub mod resp;
 pub mod state;
 
 // handlers

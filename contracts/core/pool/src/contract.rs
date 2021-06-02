@@ -9,8 +9,8 @@ use terraswap::token::InitMsg as Cw20InitMsg;
 
 use crate::handler::core as CoreHandler;
 use crate::handler::query as QueryHandler;
-use crate::msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 use crate::{config, querier};
+use pylon_core::pool_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,

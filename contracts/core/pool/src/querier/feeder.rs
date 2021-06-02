@@ -1,11 +1,10 @@
+use cosmwasm_bignumber::Decimal256;
 use cosmwasm_std::{
     to_binary, Api, CanonicalAddr, CosmosMsg, Extern, HumanAddr, Querier, QueryRequest, StdResult,
     Storage, WasmMsg, WasmQuery,
 };
-
-use core_exchange_rate::msg::{HandleMsg, QueryMsg};
-use core_exchange_rate::resp::ExchangeRateResponse;
-use cosmwasm_bignumber::Decimal256;
+use pylon_core::exchange_rate_msg::{HandleMsg, QueryMsg};
+use pylon_core::exchange_rate_resp::ExchangeRateResponse;
 
 pub fn update_msg<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,

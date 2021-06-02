@@ -2,7 +2,7 @@ use cosmwasm_std::{to_binary, Api, Binary, Extern, HumanAddr, Querier, StdResult
 
 use crate::config;
 use crate::querier;
-use crate::resp;
+use pylon_core::pool_resp as resp;
 
 pub fn deposit_amount<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,

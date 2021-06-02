@@ -1,10 +1,10 @@
 use cosmwasm_std::{
     to_binary, Api, Binary, CanonicalAddr, Extern, HumanAddr, Querier, StdError, StdResult, Storage,
 };
-
-use crate::resp;
-use crate::state;
+use pylon_core::exchange_rate_resp as resp;
 use std::ops::{Div, Mul, Sub};
+
+use crate::state;
 
 pub fn exchange_rate_of<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,

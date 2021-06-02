@@ -35,6 +35,7 @@ backtraces = ["cosmwasm-std/backtraces"]
 
 [dependencies]
 cw20 = "0.2.3"
+pylon-core = { version = "1.0.0", path = "../../../packages/pylon_core" }
 core_exchange_rate = { path = "../exchange_rate", default-features = false, version = "0.1.0"}
 moneymarket = "0.1.0"
 terraswap = "1.1.0"

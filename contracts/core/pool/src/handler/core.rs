@@ -5,10 +5,10 @@ use cosmwasm_std::{
 };
 use cw20::{Cw20HandleMsg, Cw20ReceiveMsg};
 use moneymarket::querier::deduct_tax;
+use pylon_core::pool_msg::Cw20HookMsg;
 use std::ops::Add;
 
 use crate::config;
-use crate::msg::Cw20HookMsg;
 use crate::querier;
 
 pub fn receive<S: Storage, A: Api, Q: Querier>(
