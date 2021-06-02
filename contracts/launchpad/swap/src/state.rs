@@ -5,13 +5,14 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 pub static KEY_CONFIG: &[u8] = b"config";
+pub static KEY_VPOOL: &[u8] = b"vpool";
 pub static PREFIX_USER: &[u8] = b"user";
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Config {
+    pub this: HumanAddr,
     pub owner: HumanAddr,
-    pub liq_x: Uint256,
-    pub liq_y: Uint256,
+    pub beneficiary: HumanAddr,
     pub start: u64,
     pub finish: u64,
 }
@@ -22,6 +23,22 @@ pub fn store_config<S: Storage>(storage: &mut S, data: &Config) -> StdResult<()>
 
 pub fn read_config<S: Storage>(storage: &S) -> StdResult<Config> {
     ReadonlySingleton::new(storage, KEY_CONFIG).load()
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct VirtualPool {
+    pub x_denom: String,
+    pub y_addr: CanonicalAddr,
+    pub liq_x: Uint256,
+    pub liq_y: Uint256,
+}
+
+pub fn store_vpool<S: Storage>(storage: &mut S, data: &VirtualPool) -> StdResult<()> {
+    Singleton::new(storage, KEY_VPOOL).save(data)
+}
+
+pub fn read_vpool<S: Storage>(storage: &S) -> StdResult<VirtualPool> {
+    ReadonlySingleton::new(storage, KEY_VPOOL).load()
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
