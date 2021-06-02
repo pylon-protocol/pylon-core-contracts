@@ -3,16 +3,13 @@ use cosmwasm_std::{
     from_binary, log, to_binary, Api, BankMsg, CanonicalAddr, Coin, CosmosMsg, Env, Extern,
     HandleResponse, HumanAddr, Querier, StdError, StdResult, Storage, Uint128, WasmMsg,
 };
-
 use cw20::{Cw20HandleMsg, Cw20ReceiveMsg};
 use moneymarket::querier::deduct_tax;
+use std::ops::Add;
 
 use crate::config;
-use crate::lib_anchor as anchor;
-use crate::lib_er_feeder as feeder;
-use crate::lib_pool as pool;
 use crate::msg::Cw20HookMsg;
-use std::ops::Add;
+use crate::querier;
 
 pub fn receive<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
@@ -72,8 +69,8 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
 
     Ok(HandleResponse {
         messages: [
-            feeder::update_msg(deps, &config.exchange_rate_feeder, &config.dp_token)?,
-            anchor::deposit_stable_msg(
+            querier::feeder::update_msg(deps, &config.exchange_rate_feeder, &config.dp_token)?,
+            querier::anchor::deposit_stable_msg(
                 deps,
                 &config.moneymarket,
                 &config.stable_denom,
@@ -107,17 +104,17 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
     let config: config::Config = config::read(&deps.storage)?;
 
     let (market_redeem_amount, pool_redeem_amount, _) =
-        pool::calculate_return_amount(deps, Uint256::from(amount).clone())?;
+        querier::pool::calculate_return_amount(deps, Uint256::from(amount).clone())?;
 
     Ok(HandleResponse {
         messages: [
-            feeder::update_msg(deps, &config.exchange_rate_feeder, &config.dp_token)?,
+            querier::feeder::update_msg(deps, &config.exchange_rate_feeder, &config.dp_token)?,
             vec![CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: deps.api.human_address(&config.dp_token)?,
                 msg: to_binary(&Cw20HandleMsg::Burn { amount })?,
                 send: vec![],
             })],
-            anchor::redeem_stable_msg(
+            querier::anchor::redeem_stable_msg(
                 deps,
                 &config.moneymarket,
                 &config.atoken,
@@ -150,16 +147,17 @@ pub fn claim_reward<S: Storage, A: Api, Q: Querier>(
     }
 
     let (reward_amount, fee_amount) =
-        pool::calculate_reward_amount(deps, Option::from(env.block.time))?;
+        querier::pool::calculate_reward_amount(deps, Option::from(env.block.time))?;
     let (market_redeem_amount, _, _) =
-        pool::calculate_return_amount(deps, reward_amount.add(fee_amount))?;
-    let (_, beneficiary_redeem_amount, _) = pool::calculate_return_amount(deps, reward_amount)?;
-    let (_, collector_redeem_amount, _) = pool::calculate_return_amount(deps, fee_amount)?;
+        querier::pool::calculate_return_amount(deps, reward_amount.add(fee_amount))?;
+    let (_, beneficiary_redeem_amount, _) =
+        querier::pool::calculate_return_amount(deps, reward_amount)?;
+    let (_, collector_redeem_amount, _) = querier::pool::calculate_return_amount(deps, fee_amount)?;
 
     Ok(HandleResponse {
         messages: [
-            feeder::update_msg(deps, &config.exchange_rate_feeder, &config.dp_token)?,
-            anchor::redeem_stable_msg(
+            querier::feeder::update_msg(deps, &config.exchange_rate_feeder, &config.dp_token)?,
+            querier::anchor::redeem_stable_msg(
                 deps,
                 &config.moneymarket,
                 &config.atoken,

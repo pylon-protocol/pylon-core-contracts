@@ -1,8 +1,9 @@
 [workspace]
-members = [ "contracts/*", "contracts/launchpad/*" ]
-exclude = [ "contracts/launchpad"]
+members = [ "contracts/core/*", "contracts/launchpad/*" ]
+exclude = [ "contracts/core", "contracts/launchpad"]
 
 [profile.release]
 rpath = false
 lto = true
 overflow-checks = true
+

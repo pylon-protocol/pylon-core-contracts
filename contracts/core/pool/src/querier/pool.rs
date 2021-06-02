@@ -4,16 +4,14 @@ use moneymarket::querier::deduct_tax;
 use std::ops::Sub;
 
 use crate::config;
-use crate::lib_anchor as anchor;
-use crate::lib_er_feeder as feeder;
-use crate::lib_token as token;
+use crate::querier;
 
 pub fn calculate_return_amount<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     amount: Uint256,
 ) -> StdResult<(Uint256, Coin, Coin)> {
     let config: config::Config = config::read(&deps.storage)?;
-    let epoch_state = anchor::epoch_state(deps, &config.moneymarket)?;
+    let epoch_state = querier::anchor::epoch_state(deps, &config.moneymarket)?;
 
     let market_redeem_amount = amount / epoch_state.exchange_rate; // calculate
     let pool_redeem_amount = deduct_tax(
@@ -34,12 +32,12 @@ pub fn calculate_reward_amount<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<(Uint256, Uint256)> {
     let config: config::Config = config::read(&deps.storage)?;
 
-    let epoch_state = anchor::epoch_state(deps, &config.moneymarket)?;
-    let dp_total_supply = token::total_supply(deps, &config.dp_token)?;
+    let epoch_state = querier::anchor::epoch_state(deps, &config.moneymarket)?;
+    let dp_total_supply = querier::token::total_supply(deps, &config.dp_token)?;
     let atoken_balance =
-        token::balance_of(deps, &config.atoken, deps.api.human_address(&config.this)?)?;
+        querier::token::balance_of(deps, &config.atoken, deps.api.human_address(&config.this)?)?;
 
-    let v_er = feeder::fetch(
+    let v_er = querier::feeder::fetch(
         &deps,
         &config.exchange_rate_feeder,
         blocktime,

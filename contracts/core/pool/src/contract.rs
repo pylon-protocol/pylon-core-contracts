@@ -7,11 +7,10 @@ use cw20::MinterResponse;
 use terraswap::hook::InitHook as Cw20InitHook;
 use terraswap::token::InitMsg as Cw20InitMsg;
 
-use crate::config;
-use crate::handler_exec as ExecHandler;
-use crate::handler_query as QueryHandler;
-use crate::lib_anchor as anchor;
+use crate::handler::core as CoreHandler;
+use crate::handler::query as QueryHandler;
 use crate::msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
+use crate::{config, querier};
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
@@ -33,7 +32,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
         dp_token: CanonicalAddr::default(),
     };
 
-    let market_config = anchor::config(deps, &config.moneymarket)?;
+    let market_config = querier::anchor::config(deps, &config.moneymarket)?;
 
     config.stable_denom = market_config.stable_denom.clone();
     config.atoken = deps.api.canonical_address(&market_config.aterra_contract)?;
@@ -70,10 +69,10 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     msg: HandleMsg,
 ) -> StdResult<HandleResponse> {
     match msg {
-        HandleMsg::Receive(msg) => ExecHandler::receive(deps, env, msg),
-        HandleMsg::Deposit {} => ExecHandler::deposit(deps, env),
-        HandleMsg::ClaimReward {} => ExecHandler::claim_reward(deps, env),
-        HandleMsg::RegisterDPToken {} => ExecHandler::register_dp_token(deps, env),
+        HandleMsg::Receive(msg) => CoreHandler::receive(deps, env, msg),
+        HandleMsg::Deposit {} => CoreHandler::deposit(deps, env),
+        HandleMsg::ClaimReward {} => CoreHandler::claim_reward(deps, env),
+        HandleMsg::RegisterDPToken {} => CoreHandler::register_dp_token(deps, env),
     }
 }
 

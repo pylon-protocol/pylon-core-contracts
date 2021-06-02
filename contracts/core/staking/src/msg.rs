@@ -39,11 +39,11 @@ pub enum QueryMsg {
     Reward {}, // state::Reward
     BalanceOf {
         owner: HumanAddr,
-    }, // -> Uint128
+    }, // -> Uint256
     ClaimableReward {
         owner: HumanAddr,
         timestamp: Option<u64>,
-    }, // -> Uint128
+    }, // -> Uint256
 }
 
 /// We currently take no arguments for migrations

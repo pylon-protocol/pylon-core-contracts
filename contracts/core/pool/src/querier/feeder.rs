@@ -3,9 +3,9 @@ use cosmwasm_std::{
     Storage, WasmMsg, WasmQuery,
 };
 
+use core_exchange_rate::msg::{HandleMsg, QueryMsg};
+use core_exchange_rate::resp::ExchangeRateResponse;
 use cosmwasm_bignumber::Decimal256;
-use exchange_rate::msg::{HandleMsg, QueryMsg};
-use exchange_rate::resp::ExchangeRateResponse;
 
 pub fn update_msg<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
