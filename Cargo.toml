@@ -1,5 +1,10 @@
 [workspace]
-members = [ "contracts/core/*", "contracts/launchpad/*" ]
+members = [
+    "packages/*",
+    "contracts/core/*",
+    "contracts/launchpad/*",
+    "contracts/token/*",
+]
 
 [profile.release]
 rpath = false
