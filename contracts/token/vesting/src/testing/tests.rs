@@ -15,7 +15,7 @@ fn proper_initialization() {
 
     let msg = InitMsg {
         owner: HumanAddr::from("owner"),
-        anchor_token: HumanAddr::from("anchor_token"),
+        anchor_token: HumanAddr::from("pylon_token"),
         genesis_time: 12345u64,
     };
 
@@ -26,7 +26,7 @@ fn proper_initialization() {
         from_binary::<ConfigResponse>(&query(&deps, QueryMsg::Config {}).unwrap()).unwrap(),
         ConfigResponse {
             owner: HumanAddr::from("owner"),
-            anchor_token: HumanAddr::from("anchor_token"),
+            anchor_token: HumanAddr::from("pylon_token"),
             genesis_time: 12345u64,
         }
     );
@@ -38,7 +38,7 @@ fn update_config() {
 
     let msg = InitMsg {
         owner: HumanAddr::from("owner"),
-        anchor_token: HumanAddr::from("anchor_token"),
+        anchor_token: HumanAddr::from("pylon_token"),
         genesis_time: 12345u64,
     };
 
@@ -57,7 +57,7 @@ fn update_config() {
         from_binary::<ConfigResponse>(&query(&deps, QueryMsg::Config {}).unwrap()).unwrap(),
         ConfigResponse {
             owner: HumanAddr::from("owner2"),
-            anchor_token: HumanAddr::from("anchor_token"),
+            anchor_token: HumanAddr::from("pylon_token"),
             genesis_time: 12345u64,
         }
     );
@@ -98,7 +98,7 @@ fn register_vesting_accounts() {
 
     let msg = InitMsg {
         owner: HumanAddr::from("owner"),
-        anchor_token: HumanAddr::from("anchor_token"),
+        anchor_token: HumanAddr::from("pylon_token"),
         genesis_time: 100u64,
     };
 
@@ -209,7 +209,7 @@ fn claim() {
 
     let msg = InitMsg {
         owner: HumanAddr::from("owner"),
-        anchor_token: HumanAddr::from("anchor_token"),
+        anchor_token: HumanAddr::from("pylon_token"),
         genesis_time: 100u64,
     };
 
@@ -259,7 +259,7 @@ fn claim() {
     assert_eq!(
         res.messages,
         vec![CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: HumanAddr::from("anchor_token"),
+            contract_addr: HumanAddr::from("pylon_token"),
             msg: to_binary(&Cw20HandleMsg::Transfer {
                 recipient: HumanAddr::from("addr0000"),
                 amount: Uint128::from(111u128),
@@ -283,7 +283,7 @@ fn claim() {
     assert_eq!(
         res.messages,
         vec![CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: HumanAddr::from("anchor_token"),
+            contract_addr: HumanAddr::from("pylon_token"),
             msg: to_binary(&Cw20HandleMsg::Transfer {
                 recipient: HumanAddr::from("addr0000"),
                 amount: Uint128::from(11u128),
