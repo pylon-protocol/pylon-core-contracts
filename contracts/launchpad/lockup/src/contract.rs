@@ -5,10 +5,11 @@ use cosmwasm_std::{
 };
 use std::ops::Add;
 
+use pylon_launchpad::lockup_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
+
 use crate::handler::core as CoreHandler;
 use crate::handler::governance as GovHandler;
 use crate::handler::query as QueryHandler;
-use crate::msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 use crate::state;
 
 pub fn init<S: Storage, A: Api, Q: Querier>(

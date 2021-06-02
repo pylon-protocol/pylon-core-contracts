@@ -4,8 +4,9 @@ use cosmwasm_std::{Api, Env, Extern, HandleResponse, Querier, StdResult, Storage
 use cw20::{Cw20HandleMsg, Cw20ReceiveMsg};
 use std::ops::{Add, Sub};
 
+use pylon_launchpad::lockup_msg::Cw20HookMsg;
+
 use crate::lib_staking as staking;
-use crate::msg::Cw20HookMsg;
 use crate::state;
 
 pub fn receive<S: Storage, A: Api, Q: Querier>(

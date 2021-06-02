@@ -1,7 +1,8 @@
 use cosmwasm_std::{to_binary, Api, Binary, Extern, HumanAddr, Querier, StdResult, Storage};
 
+use pylon_launchpad::lockup_resp as resp;
+
 use crate::lib_staking as staking;
-use crate::resp;
 use crate::state;
 
 pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
