@@ -1,7 +1,7 @@
 [package]
 name = "pylon-collector"
 version = "1.0.0"
-authors = ["Terraform Labs, PTE."]
+authors = ["carter <carter@pylon.money>", "Terraform Labs, PTE."]
 edition = "2018"
 description = "A Collector contract for Pylon Protocol - collect all rewards and send it to staking contract"
 license = "Apache-2.0"

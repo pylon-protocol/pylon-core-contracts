@@ -1,7 +1,7 @@
 [package]
 name = "launchpad_swap"
 version = "0.1.0"
-authors = ["frostornge <frostornge@gmail.com>"]
+authors = ["carter <carter@pylon.money>"]
 edition = "2018"
 
 exclude = [

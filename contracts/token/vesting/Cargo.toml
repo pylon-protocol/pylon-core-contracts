@@ -1,8 +1,10 @@
 [package]
 name = "pylon-vesting"
 version = "1.0.0"
-authors = ["Terraform Labs, PTE."]
+authors = ["carter <carter@pylon.money>", "Terraform Labs, PTE."]
 edition = "2018"
+license = "Apache-2.0"
+description = "A Vesting contract for Pylon Protocol"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
