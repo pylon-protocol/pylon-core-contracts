@@ -2,13 +2,6 @@ use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::{Api, Coin, Extern, Querier, StdResult, Storage};
 use terra_cosmwasm::TerraQuerier;
 
-pub fn query_tax_rate<S: Storage, A: Api, Q: Querier>(
-    deps: &Extern<S, A, Q>,
-) -> StdResult<Decimal256> {
-    let terra_querier = TerraQuerier::new(&deps.querier);
-    Ok(terra_querier.query_tax_rate()?.rate.into())
-}
-
 pub fn compute_tax<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     coin: &Coin,

@@ -3,14 +3,13 @@ use cosmwasm_std::{
     log, to_binary, Api, BankMsg, Coin, CosmosMsg, Env, Extern, HandleResponse, Querier, StdError,
     StdResult, Storage, WasmMsg,
 };
+use cw20::Cw20HandleMsg;
+use std::ops::{Add, Sub};
+use terraswap::querier::query_balance;
 
 use crate::querier::tax::deduct_tax;
 use crate::querier::vpool::calculate_withdraw_amount;
 use crate::state;
-use cw20::Cw20HandleMsg;
-use pylon_launchpad::swap_msg;
-use std::ops::{Add, Sub};
-use terraswap::querier::query_balance;
 
 pub fn deposit<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
@@ -85,7 +84,7 @@ fn withdraw_with_penalty<S: Storage, A: Api, Q: Querier>(
                 amount: vec![deduct_tax(
                     deps,
                     Coin {
-                        denom: vpool.x_denom,
+                        denom: vpool.x_denom.clone(),
                         amount: withdraw_amount.into(),
                     },
                 )?],

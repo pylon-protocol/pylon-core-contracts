@@ -2,9 +2,8 @@ use cosmwasm_std::{to_binary, Api, Binary, Extern, HumanAddr, Querier, StdResult
 
 use crate::querier::vpool::calculate_current_price;
 use crate::state;
-use cosmwasm_bignumber::{Decimal256, Uint256};
+use cosmwasm_bignumber::Uint256;
 use pylon_launchpad::swap_resp as resp;
-use std::ops::Div;
 use terraswap::querier::query_balance;
 
 pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
