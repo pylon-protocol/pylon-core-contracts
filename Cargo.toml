@@ -1,6 +1,5 @@
 [workspace]
 members = [ "contracts/core/*", "contracts/launchpad/*" ]
-exclude = [ "contracts/core", "contracts/launchpad"]
 
 [profile.release]
 rpath = false
