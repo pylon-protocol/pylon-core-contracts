@@ -40,7 +40,7 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     env: Env,
 ) -> StdResult<HandleResponse> {
-    let config: config::Config = config::read(&deps.storage)?;
+    let config = config::read(&deps.storage)?;
 
     // check deposit
     let received: Uint256 = env
@@ -101,10 +101,10 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
     sender: HumanAddr,
     amount: Uint128,
 ) -> StdResult<HandleResponse> {
-    let config: config::Config = config::read(&deps.storage)?;
+    let config = config::read(&deps.storage)?;
 
     let (market_redeem_amount, pool_redeem_amount, _) =
-        querier::pool::calculate_return_amount(deps, Uint256::from(amount).clone())?;
+        querier::pool::calculate_return_amount(deps, &config, Uint256::from(amount).clone())?;
 
     Ok(HandleResponse {
         messages: [
@@ -141,18 +141,19 @@ pub fn claim_reward<S: Storage, A: Api, Q: Querier>(
     env: Env,
 ) -> StdResult<HandleResponse> {
     // calculate (total_aust_amount * exchange_rate) - (total_dp_balance)
-    let config: config::Config = config::read(&deps.storage)?;
+    let config = config::read(&deps.storage)?;
     if config.beneficiary != deps.api.canonical_address(&env.message.sender)? {
         return Err(StdError::unauthorized());
     }
 
     let (reward_amount, fee_amount) =
-        querier::pool::calculate_reward_amount(deps, Option::from(env.block.time))?;
+        querier::pool::calculate_reward_amount(deps, &config, Option::from(env.block.time))?;
     let (market_redeem_amount, _, _) =
-        querier::pool::calculate_return_amount(deps, reward_amount.add(fee_amount))?;
+        querier::pool::calculate_return_amount(deps, &config, reward_amount.add(fee_amount))?;
     let (_, beneficiary_redeem_amount, _) =
-        querier::pool::calculate_return_amount(deps, reward_amount)?;
-    let (_, collector_redeem_amount, _) = querier::pool::calculate_return_amount(deps, fee_amount)?;
+        querier::pool::calculate_return_amount(deps, &config, reward_amount)?;
+    let (_, collector_redeem_amount, _) =
+        querier::pool::calculate_return_amount(deps, &config, fee_amount)?;
 
     Ok(HandleResponse {
         messages: [
@@ -191,7 +192,7 @@ pub fn register_dp_token<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
 ) -> StdResult<HandleResponse> {
-    let mut config: config::Config = config::read(&deps.storage)?;
+    let mut config = config::read(&deps.storage)?;
     if config.dp_token != CanonicalAddr::default() {
         return Err(StdError::unauthorized());
     }

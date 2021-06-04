@@ -34,12 +34,8 @@ pub enum Cw20HookMsg {
 pub enum QueryMsg {
     DepositAmountOf { owner: HumanAddr }, // -> Uint128
     TotalDepositAmount {},                // -> Uint128
-    GetBeneficiary {},                    // -> HumanAddr (contract)
-    GetMoneyMarket {},                    // -> HumanAddr (contract)
-    GetAToken {},                         // -> HumanAddr (contract)
-    GetStableDenom {},                    // -> String
+    Config {},                            // -> Config
     GetClaimableReward {},                // -> Uint128
-    GetDPToken {},                        // -> HumanAddr (contract)
 }
 
 /// We currently take no arguments for migrations

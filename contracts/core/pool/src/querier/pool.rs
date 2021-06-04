@@ -8,9 +8,9 @@ use crate::querier;
 
 pub fn calculate_return_amount<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
+    config: &config::Config,
     amount: Uint256,
 ) -> StdResult<(Uint256, Coin, Coin)> {
-    let config: config::Config = config::read(&deps.storage)?;
     let epoch_state = querier::anchor::epoch_state(deps, &config.moneymarket)?;
 
     let market_redeem_amount = amount / epoch_state.exchange_rate; // calculate
@@ -28,10 +28,9 @@ pub fn calculate_return_amount<S: Storage, A: Api, Q: Querier>(
 
 pub fn calculate_reward_amount<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
+    config: &config::Config,
     blocktime: Option<u64>,
 ) -> StdResult<(Uint256, Uint256)> {
-    let config: config::Config = config::read(&deps.storage)?;
-
     let epoch_state = querier::anchor::epoch_state(deps, &config.moneymarket)?;
     let dp_total_supply = querier::token::total_supply(deps, &config.dp_token)?;
     let atoken_balance =

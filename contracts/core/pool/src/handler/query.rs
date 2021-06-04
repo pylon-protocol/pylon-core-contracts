@@ -25,42 +25,14 @@ pub fn total_deposit_amount<S: Storage, A: Api, Q: Querier>(
     })?)
 }
 
-pub fn beneficiary<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
+pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
     let config: config::Config = config::read(&deps.storage)?;
 
-    Ok(to_binary(&resp::BeneficiaryResponse {
+    Ok(to_binary(&resp::ConfigResponse {
         beneficiary: deps.api.human_address(&config.beneficiary)?,
-    })?)
-}
-
-pub fn money_market<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
-    let config: config::Config = config::read(&deps.storage)?;
-
-    Ok(to_binary(&resp::MoneyMarketResponse {
         moneymarket: deps.api.human_address(&config.moneymarket)?,
-    })?)
-}
-
-pub fn stable_denom<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
-    let config: config::Config = config::read(&deps.storage)?;
-
-    Ok(to_binary(&resp::StableDenomResponse {
-        stable_denom: config.stable_denom.clone(),
-    })?)
-}
-
-pub fn anchor_token<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
-    let config: config::Config = config::read(&deps.storage)?;
-
-    Ok(to_binary(&resp::ATokenResponse {
+        stable_denom: config.stable_denom,
         anchor_token: deps.api.human_address(&config.atoken)?,
-    })?)
-}
-
-pub fn dp_token<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
-    let config: config::Config = config::read(&deps.storage)?;
-
-    Ok(to_binary(&resp::DPTokenResponse {
         dp_token: deps.api.human_address(&config.dp_token)?,
     })?)
 }
@@ -68,7 +40,8 @@ pub fn dp_token<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdRe
 pub fn claimable_reward<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
 ) -> StdResult<Binary> {
-    let (reward_amount, _) = querier::pool::calculate_reward_amount(deps, None)?;
+    let config = config::read(&deps.storage)?;
+    let (reward_amount, _) = querier::pool::calculate_reward_amount(deps, &config, None)?;
 
     Ok(to_binary(&resp::ClaimableRewardResponse {
         claimable_reward: reward_amount.into(),
