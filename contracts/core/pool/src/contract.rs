@@ -84,7 +84,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
         QueryMsg::DepositAmountOf { owner } => QueryHandler::deposit_amount(deps, owner), // dp_token.balanceOf(msg.sender)
         QueryMsg::TotalDepositAmount {} => QueryHandler::total_deposit_amount(deps), // dp_token.totalSupply()
         QueryMsg::Config {} => QueryHandler::config(deps),                           // config
-        QueryMsg::GetClaimableReward {} => QueryHandler::claimable_reward(deps), // config.strategy.reward()
+        QueryMsg::ClaimableReward {} => QueryHandler::claimable_reward(deps), // config.strategy.reward()
     }
 }
 

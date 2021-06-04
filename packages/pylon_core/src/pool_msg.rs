@@ -35,7 +35,7 @@ pub enum QueryMsg {
     DepositAmountOf { owner: HumanAddr }, // -> Uint128
     TotalDepositAmount {},                // -> Uint128
     Config {},                            // -> Config
-    GetClaimableReward {},                // -> Uint128
+    ClaimableReward {},                   // -> Uint128
 }
 
 /// We currently take no arguments for migrations
