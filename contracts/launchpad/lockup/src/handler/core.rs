@@ -105,7 +105,7 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
         messages: vec![],
         log: vec![
             log("action", "deposit"),
-            log("operator", sender.clone()),
+            log("sender", sender.clone()),
             log("deposit_amount", amount.clone()),
         ],
         data: None,
@@ -150,7 +150,7 @@ pub fn withdraw<S: Storage, A: Api, Q: Querier>(
         })],
         log: vec![
             log("action", "withdraw"),
-            log("operator", sender),
+            log("sender", sender),
             log("withdraw_amount", amount),
         ],
         data: None,
@@ -194,7 +194,7 @@ pub fn claim<S: Storage, A: Api, Q: Querier>(
         })],
         log: vec![
             log("action", "claim"),
-            log("operator", sender.clone()),
+            log("sender", sender.clone()),
             log("claim_amount", claim_amount.clone()),
         ],
         data: None,
@@ -255,7 +255,7 @@ pub fn exit<S: Storage, A: Api, Q: Querier>(
         ],
         log: vec![
             log("action", "exit"),
-            log("operator", sender.clone()),
+            log("sender", sender.clone()),
             log("claim_amount", claim_amount.clone()),
             log("withdraw_amount", withdraw_amount.clone()),
         ],

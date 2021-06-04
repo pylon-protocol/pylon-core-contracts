@@ -38,7 +38,7 @@ pub fn update<S: Storage, A: Api, Q: Querier>(
         messages: vec![],
         log: vec![
             log("action", "update"),
-            log("operator", env.message.sender.clone()),
+            log("sender", env.message.sender.clone()),
             log("er_before", exchange_rate_before.clone()),
             log("er_after", token.exchange_rate.clone()),
         ],
@@ -84,7 +84,7 @@ pub fn stop<S: Storage, A: Api, Q: Querier>(
         messages: vec![],
         log: vec![
             log("action", "stop"),
-            log("operator", env.message.sender.clone()),
+            log("sender", env.message.sender.clone()),
         ],
         data: None,
     })

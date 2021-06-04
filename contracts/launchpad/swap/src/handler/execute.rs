@@ -53,7 +53,7 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
         messages: vec![],
         log: vec![
             log("action", "deposit"),
-            log("operator", env.message.sender),
+            log("sender", env.message.sender),
             log("amount", deposit_amount),
         ],
         data: None,
@@ -103,7 +103,7 @@ fn withdraw_with_penalty<S: Storage, A: Api, Q: Querier>(
         ],
         log: vec![
             log("action", "withdraw"),
-            log("operator", env.message.sender),
+            log("sender", env.message.sender),
             log("amount", withdraw_amount),
             log("penalty", penalty),
         ],
@@ -129,7 +129,7 @@ fn withdraw_without_penalty<S: Storage, A: Api, Q: Querier>(
         })],
         log: vec![
             log("action", "withdraw"),
-            log("operator", env.message.sender),
+            log("sender", env.message.sender),
             log("amount", amount),
         ],
         data: None,
@@ -200,7 +200,7 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
         })],
         log: vec![
             log("action", "earn"),
-            log("operator", env.message.sender),
+            log("sender", env.message.sender),
             log("amount", earn_amount),
         ],
         data: None,

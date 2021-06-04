@@ -88,7 +88,7 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
         .concat(),
         log: vec![
             log("action", "deposit"),
-            log("operator", env.message.sender.clone()),
+            log("sender", env.message.sender.clone()),
             log("amount", deposit_amount.to_string()),
         ],
         data: None,
@@ -129,7 +129,7 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
         .concat(),
         log: vec![
             log("action", "redeem"),
-            log("operator", env.message.sender.clone()),
+            log("sender", env.message.sender.clone()),
             log("amount", pool_redeem_amount.amount.clone()),
         ],
         data: None,
@@ -179,7 +179,7 @@ pub fn claim_reward<S: Storage, A: Api, Q: Querier>(
         .concat(),
         log: vec![
             log("action", "claim_reward"),
-            log("operator", env.message.sender.clone()),
+            log("sender", env.message.sender.clone()),
             log("amount", beneficiary_redeem_amount.amount),
             log("fee", collector_redeem_amount.amount),
         ],
