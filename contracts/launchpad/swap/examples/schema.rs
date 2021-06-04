@@ -3,10 +3,8 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use core_exchange_rate::state::Config;
-use core_exchange_rate::state::Status;
-use core_exchange_rate::state::Token;
-use pylon_core::exchange_rate_msg::{HandleMsg, InitMsg, QueryMsg};
+use launchpad_swap::state::{Config, User};
+use pylon_launchpad::swap_msg::{HandleMsg, InitMsg, QueryMsg};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();
@@ -18,6 +16,5 @@ fn main() {
     export_schema(&schema_for!(HandleMsg), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
     export_schema(&schema_for!(Config), &out_dir);
-    export_schema(&schema_for!(Status), &out_dir);
-    export_schema(&schema_for!(Token), &out_dir);
+    export_schema(&schema_for!(User), &out_dir);
 }

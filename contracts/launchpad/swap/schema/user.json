@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "User",
+  "type": "object",
+  "required": [
+    "amount"
+  ],
+  "properties": {
+    "amount": {
+      "$ref": "#/definitions/Uint256"
+    }
+  },
+  "definitions": {
+    "Uint256": {
+      "type": "string"
+    }
+  }
+}
