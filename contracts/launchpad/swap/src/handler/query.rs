@@ -24,7 +24,7 @@ pub fn balance_of<S: Storage, A: Api, Q: Querier>(
     let user = state::read_user(&deps.storage, &deps.api.canonical_address(&owner)?)?;
 
     Ok(to_binary(&resp::BalanceOfResponse {
-        balance: user.amount,
+        amount: user.amount,
     })?)
 }
 
