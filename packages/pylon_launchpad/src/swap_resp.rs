@@ -18,7 +18,7 @@ pub struct BalanceOfResponse {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct TotalSupplyResponse {
-    pub total_supply: Uint256,
+    pub amount: Uint256,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

@@ -35,7 +35,7 @@ pub fn total_supply<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> S
     let balance = query_balance(deps, &config.this, vpool.x_denom)?;
 
     Ok(to_binary(&resp::TotalSupplyResponse {
-        total_supply: Uint256::from(balance),
+        amount: Uint256::from(balance),
     })?)
 }
 
