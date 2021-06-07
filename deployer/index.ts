@@ -87,8 +87,8 @@ async function main(): Promise<void> {
       }
       const [{ value: sender }, { value: codeId }] = events[0].attributes;
 
-      console.log(`sender: ${sender}`);
-      console.log(`codeId: ${codeId}`);
+      console.log(`=> sender: ${sender}`);
+      console.log(`=> codeId: ${codeId}`);
 
       codeIds[fileName.replace(/\.[^/.]+$/, "")] = codeId;
     }
