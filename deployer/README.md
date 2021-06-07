@@ -15,7 +15,8 @@ $ yarn start # with default settings
 export const Accounts: { [network: string]: any } = {
   local: {
     accounts: {
-      mnemonic: ""
+      mnemonic:
+        "satisfy adjust timber high purchase tuition stool faith fine install that you unaware feed domain license impose boss human eager hat rent enjoy dawn",
     },
   },
   // define aother networks
