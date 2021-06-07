@@ -3,8 +3,8 @@
   "title": "Status",
   "type": "string",
   "enum": [
-    "NEUTRAL",
-    "RUNNING",
-    "STOPPED"
+    "Neutral",
+    "Running",
+    "Stopped"
   ]
 }

@@ -1,5 +1,5 @@
 [package]
-name = "pylon-staking"
+name = "token-staking"
 version = "1.0.0"
 authors = ["Terraform Labs, PTE."]
 edition = "2018"

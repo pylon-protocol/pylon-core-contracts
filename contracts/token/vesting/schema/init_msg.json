@@ -3,20 +3,20 @@
   "title": "InitMsg",
   "type": "object",
   "required": [
-    "pylon_token",
     "genesis_time",
-    "owner"
+    "owner",
+    "pylon_token"
   ],
   "properties": {
-    "pylon_token": {
-      "$ref": "#/definitions/HumanAddr"
-    },
     "genesis_time": {
       "type": "integer",
       "format": "uint64",
       "minimum": 0.0
     },
     "owner": {
+      "$ref": "#/definitions/HumanAddr"
+    },
+    "pylon_token": {
       "$ref": "#/definitions/HumanAddr"
     }
   },

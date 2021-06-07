@@ -11,16 +11,6 @@
         "update_config": {
           "type": "object",
           "properties": {
-            "pylon_token": {
-              "anyOf": [
-                {
-                  "$ref": "#/definitions/HumanAddr"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
             "genesis_time": {
               "type": [
                 "integer",
@@ -30,6 +20,16 @@
               "minimum": 0.0
             },
             "owner": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/HumanAddr"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "pylon_token": {
               "anyOf": [
                 {
                   "$ref": "#/definitions/HumanAddr"

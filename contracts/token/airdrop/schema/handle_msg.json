@@ -28,31 +28,6 @@
     {
       "type": "object",
       "required": [
-        "update_merkle_root"
-      ],
-      "properties": {
-        "update_merkle_root": {
-          "type": "object",
-          "required": [
-            "merkle_root",
-            "stage"
-          ],
-          "properties": {
-            "merkle_root": {
-              "type": "string"
-            },
-            "stage": {
-              "type": "integer",
-              "format": "uint8",
-              "minimum": 0.0
-            }
-          }
-        }
-      }
-    },
-    {
-      "type": "object",
-      "required": [
         "register_merkle_root"
       ],
       "properties": {

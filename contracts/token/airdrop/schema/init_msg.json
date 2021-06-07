@@ -3,14 +3,14 @@
   "title": "InitMsg",
   "type": "object",
   "required": [
-    "pylon_token",
-    "owner"
+    "owner",
+    "pylon_token"
   ],
   "properties": {
-    "pylon_token": {
+    "owner": {
       "$ref": "#/definitions/HumanAddr"
     },
-    "owner": {
+    "pylon_token": {
       "$ref": "#/definitions/HumanAddr"
     }
   },

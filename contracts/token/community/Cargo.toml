@@ -1,5 +1,5 @@
 [package]
-name = "pylon-community"
+name = "token-community"
 version = "1.0.0"
 authors = ["carter <carter@pylon.money>", "Terraform Labs, PTE."]
 edition = "2018"
