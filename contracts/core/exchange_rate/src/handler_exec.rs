@@ -15,7 +15,7 @@ pub fn update<S: Storage, A: Api, Q: Querier>(
     let token_addr: CanonicalAddr = deps.api.canonical_address(&token)?;
 
     let mut token: state::Token = state::read_token(&deps.storage, &token_addr)?;
-    if token.status.ne(&state::Status::RUNNING) {
+    if token.status.ne(&state::Status::Running) {
         return Err(StdError::unauthorized());
     }
 
@@ -24,13 +24,13 @@ pub fn update<S: Storage, A: Api, Q: Querier>(
         return Ok(HandleResponse::default());
     }
 
-    let exchange_rate_before = token.exchange_rate.clone();
+    let exchange_rate_before = token.exchange_rate;
     let pow_count = elapsed.div(token.epoch_period);
     for _ in 0..pow_count {
         token.exchange_rate = token.exchange_rate.mul(token.weight);
     }
 
-    token.last_updated_at = env.block.time.clone();
+    token.last_updated_at = env.block.time;
 
     state::store_token(&mut deps.storage, &token_addr, &token)?;
 
@@ -38,9 +38,9 @@ pub fn update<S: Storage, A: Api, Q: Querier>(
         messages: vec![],
         log: vec![
             log("action", "update"),
-            log("sender", env.message.sender.clone()),
-            log("er_before", exchange_rate_before.clone()),
-            log("er_after", token.exchange_rate.clone()),
+            log("sender", env.message.sender),
+            log("er_before", exchange_rate_before),
+            log("er_after", token.exchange_rate),
         ],
         data: None,
     })
@@ -65,7 +65,7 @@ fn _stop<S: Storage, A: Api, Q: Querier>(
     let token_addr: CanonicalAddr = deps.api.canonical_address(&token)?;
     let mut token: state::Token = state::read_token(&deps.storage, &token_addr)?;
 
-    token.status = state::Status::STOPPED;
+    token.status = state::Status::Stopped;
 
     Ok(())
 }
@@ -82,10 +82,7 @@ pub fn stop<S: Storage, A: Api, Q: Querier>(
 
     Ok(HandleResponse {
         messages: vec![],
-        log: vec![
-            log("action", "stop"),
-            log("sender", env.message.sender.clone()),
-        ],
+        log: vec![log("action", "stop"), log("sender", env.message.sender)],
         data: None,
     })
 }
@@ -98,8 +95,8 @@ fn _start<S: Storage, A: Api, Q: Querier>(
     let token_addr: CanonicalAddr = deps.api.canonical_address(&token)?;
     let mut token: state::Token = state::read_token(&deps.storage, &token_addr)?;
 
-    token.status = state::Status::RUNNING;
-    token.last_updated_at = block_time.clone();
+    token.status = state::Status::Running;
+    token.last_updated_at = *block_time;
 
     Ok(())
 }
@@ -163,11 +160,11 @@ pub fn add_token<S: Storage, A: Api, Q: Querier>(
         &mut deps.storage,
         &token_addr,
         &state::Token {
-            exchange_rate: base_rate.clone(),
-            epoch_period: period.clone(),
-            status: state::Status::NEUTRAL,
-            weight: weight.clone(),
-            last_updated_at: env.block.time.clone(),
+            exchange_rate: base_rate,
+            epoch_period: period,
+            status: state::Status::Neutral,
+            weight,
+            last_updated_at: env.block.time,
         },
     )?;
 

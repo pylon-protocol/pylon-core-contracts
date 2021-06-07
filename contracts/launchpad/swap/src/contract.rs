@@ -18,7 +18,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
         &mut deps.storage,
         &state::Config {
             this: env.contract.address.clone(),
-            owner: env.message.sender.clone(),
+            owner: env.message.sender,
             beneficiary: msg.beneficiary,
             start: msg.start,
             finish: msg.start.add(msg.period),

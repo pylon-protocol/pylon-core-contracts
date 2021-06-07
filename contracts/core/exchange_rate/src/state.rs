@@ -23,9 +23,9 @@ pub fn read_config<S: Storage>(storage: &S) -> StdResult<Config> {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub enum Status {
-    NEUTRAL,
-    RUNNING,
-    STOPPED,
+    Neutral,
+    Running,
+    Stopped,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -41,7 +41,7 @@ pub fn read_token<S: ReadonlyStorage>(storage: &S, token: &CanonicalAddr) -> Std
     match ReadonlyBucket::new(PREFIX_TOKEN, storage).may_load(token.as_slice())? {
         Some(token) => Ok(token),
         None => Ok(Token {
-            status: Status::NEUTRAL,
+            status: Status::Neutral,
             exchange_rate: Decimal256::zero(),
             epoch_period: 0,
             weight: Decimal256::zero(),

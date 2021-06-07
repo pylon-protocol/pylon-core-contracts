@@ -16,7 +16,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     state::store_config(
         &mut deps.storage,
         &state::Config {
-            owner: env.message.sender.clone(),
+            owner: env.message.sender,
         },
     )?;
 

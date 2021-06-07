@@ -36,7 +36,7 @@ pub fn epoch_state<S: Storage, A: Api, Q: Querier>(
 pub fn deposit_stable_msg<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     market: &CanonicalAddr,
-    denom: &String,
+    denom: &str,
     amount: Uint128,
 ) -> StdResult<Vec<CosmosMsg>> {
     Ok(vec![CosmosMsg::Wasm(WasmMsg::Execute {
@@ -45,7 +45,7 @@ pub fn deposit_stable_msg<S: Storage, A: Api, Q: Querier>(
         send: vec![deduct_tax(
             deps,
             Coin {
-                denom: denom.clone(),
+                denom: denom.to_string(),
                 amount,
             },
         )?],

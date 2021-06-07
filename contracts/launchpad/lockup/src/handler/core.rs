@@ -83,10 +83,11 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
     let config: state::Config = state::read_config(&deps.storage)?;
 
     // check time range // open_deposit flag
-    if env.block.time.gt(&config.start_time) && env.block.time.lt(&config.finish_time) {
-        if !config.open_deposit {
-            return Err(StdError::unauthorized());
-        }
+    if env.block.time.gt(&config.start_time)
+        && env.block.time.lt(&config.finish_time)
+        && !config.open_deposit
+    {
+        return Err(StdError::unauthorized());
     }
 
     update(deps, &env, Option::from(&sender))?;
@@ -105,8 +106,8 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
         messages: vec![],
         log: vec![
             log("action", "deposit"),
-            log("sender", sender.clone()),
-            log("deposit_amount", amount.clone()),
+            log("sender", sender),
+            log("deposit_amount", amount),
         ],
         data: None,
     })
@@ -120,10 +121,11 @@ pub fn withdraw<S: Storage, A: Api, Q: Querier>(
     let config: state::Config = state::read_config(&deps.storage)?;
 
     // check time range // open_withdraw flag
-    if env.block.time.gt(&config.start_time) && env.block.time.lt(&config.finish_time) {
-        if !config.open_withdraw {
-            return Err(StdError::unauthorized());
-        }
+    if env.block.time.gt(&config.start_time)
+        && env.block.time.lt(&config.finish_time)
+        && !config.open_withdraw
+    {
+        return Err(StdError::unauthorized());
     }
 
     let sender = &env.message.sender;
@@ -164,10 +166,11 @@ pub fn claim<S: Storage, A: Api, Q: Querier>(
     let config: state::Config = state::read_config(&deps.storage)?;
 
     // check time range // open_claim flag
-    if env.block.time.gt(&config.start_time) && env.block.time.lt(&config.finish_time) {
-        if !config.open_claim {
-            return Err(StdError::unauthorized());
-        }
+    if env.block.time.gt(&config.start_time)
+        && env.block.time.lt(&config.finish_time)
+        && !config.open_claim
+    {
+        return Err(StdError::unauthorized());
     }
 
     let sender = &env.message.sender;
@@ -176,7 +179,7 @@ pub fn claim<S: Storage, A: Api, Q: Querier>(
     let owner = deps.api.canonical_address(sender)?;
     let mut user: state::User = state::read_user(&deps.storage, &owner)?;
 
-    let claim_amount = user.reward.clone();
+    let claim_amount = user.reward;
     user.reward = Uint256::zero();
 
     state::store_user(&mut deps.storage, &owner, &user)?;
@@ -194,8 +197,8 @@ pub fn claim<S: Storage, A: Api, Q: Querier>(
         })],
         log: vec![
             log("action", "claim"),
-            log("sender", sender.clone()),
-            log("claim_amount", claim_amount.clone()),
+            log("sender", sender),
+            log("claim_amount", claim_amount),
         ],
         data: None,
     })
@@ -208,10 +211,11 @@ pub fn exit<S: Storage, A: Api, Q: Querier>(
     let config: state::Config = state::read_config(&deps.storage)?;
 
     // check time range // open_claim flag
-    if env.block.time.gt(&config.start_time) && env.block.time.lt(&config.finish_time) {
-        if !config.open_withdraw || !config.open_claim {
-            return Err(StdError::unauthorized());
-        }
+    if env.block.time.gt(&config.start_time)
+        && env.block.time.lt(&config.finish_time)
+        && (!config.open_withdraw || !config.open_claim)
+    {
+        return Err(StdError::unauthorized());
     }
 
     let sender = &env.message.sender;
@@ -221,10 +225,10 @@ pub fn exit<S: Storage, A: Api, Q: Querier>(
     let mut reward: state::Reward = state::read_reward(&deps.storage)?;
     let mut user: state::User = state::read_user(&deps.storage, &owner)?;
 
-    let withdraw_amount = user.amount.clone();
+    let withdraw_amount = user.amount;
     user.amount = Uint256::zero();
 
-    let claim_amount = user.reward.clone();
+    let claim_amount = user.reward;
     user.reward = Uint256::zero();
 
     reward.total_deposit = reward.total_deposit.sub(withdraw_amount);
@@ -255,9 +259,9 @@ pub fn exit<S: Storage, A: Api, Q: Querier>(
         ],
         log: vec![
             log("action", "exit"),
-            log("sender", sender.clone()),
-            log("claim_amount", claim_amount.clone()),
-            log("withdraw_amount", withdraw_amount.clone()),
+            log("sender", sender),
+            log("claim_amount", claim_amount),
+            log("withdraw_amount", withdraw_amount),
         ],
         data: None,
     })

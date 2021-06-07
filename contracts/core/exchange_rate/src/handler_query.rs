@@ -14,11 +14,11 @@ pub fn exchange_rate_of<S: Storage, A: Api, Q: Querier>(
     let token_addr: CanonicalAddr = deps.api.canonical_address(token)?;
 
     let token: state::Token = state::read_token(&deps.storage, &token_addr)?;
-    if token.status.ne(&state::Status::RUNNING) {
+    if token.status.ne(&state::Status::Running) {
         return Err(StdError::unauthorized());
     }
 
-    let mut exchange_rate = token.exchange_rate.clone();
+    let mut exchange_rate = token.exchange_rate;
 
     if let Some(t) = blocktime {
         let elapsed = t.sub(token.last_updated_at);
@@ -30,7 +30,7 @@ pub fn exchange_rate_of<S: Storage, A: Api, Q: Querier>(
         }
     }
 
-    Ok(to_binary(&resp::ExchangeRateResponse {
-        exchange_rate: token.exchange_rate.clone(),
-    })?)
+    to_binary(&resp::ExchangeRateResponse {
+        exchange_rate: token.exchange_rate,
+    })
 }

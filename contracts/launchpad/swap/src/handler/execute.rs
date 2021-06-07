@@ -95,7 +95,7 @@ fn withdraw_with_penalty<S: Storage, A: Api, Q: Querier>(
                 amount: vec![deduct_tax(
                     deps,
                     Coin {
-                        denom: vpool.x_denom.clone(),
+                        denom: vpool.x_denom,
                         amount: penalty.into(),
                     },
                 )?],

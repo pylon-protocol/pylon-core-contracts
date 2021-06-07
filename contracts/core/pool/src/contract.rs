@@ -54,7 +54,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
                     cap: None,
                 }),
                 init_hook: Some(Cw20InitHook {
-                    contract_addr: env.contract.address.clone(),
+                    contract_addr: env.contract.address,
                     msg: to_binary(&HandleMsg::RegisterDPToken {})?,
                 }),
             })?,

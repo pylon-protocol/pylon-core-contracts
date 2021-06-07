@@ -9,12 +9,12 @@ use terraswap::querier::query_balance;
 pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
     let config = state::read_config(&deps.storage)?;
 
-    Ok(to_binary(&resp::ConfigResponse {
+    to_binary(&resp::ConfigResponse {
         owner: config.owner,
         beneficiary: config.beneficiary,
         start: config.start,
         finish: config.finish,
-    })?)
+    })
 }
 
 pub fn balance_of<S: Storage, A: Api, Q: Querier>(
@@ -23,9 +23,9 @@ pub fn balance_of<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<Binary> {
     let user = state::read_user(&deps.storage, &deps.api.canonical_address(&owner)?)?;
 
-    Ok(to_binary(&resp::BalanceOfResponse {
+    to_binary(&resp::BalanceOfResponse {
         amount: user.amount,
-    })?)
+    })
 }
 
 pub fn total_supply<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
@@ -34,15 +34,15 @@ pub fn total_supply<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> S
 
     let balance = query_balance(deps, &config.this, vpool.x_denom)?;
 
-    Ok(to_binary(&resp::TotalSupplyResponse {
+    to_binary(&resp::TotalSupplyResponse {
         amount: Uint256::from(balance),
-    })?)
+    })
 }
 
 pub fn current_price<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
     let vpool = state::read_vpool(&deps.storage)?;
 
-    Ok(to_binary(&resp::CurrentPriceResponse {
+    to_binary(&resp::CurrentPriceResponse {
         price: calculate_current_price(&vpool.liq_x, &vpool.liq_y)?,
-    })?)
+    })
 }

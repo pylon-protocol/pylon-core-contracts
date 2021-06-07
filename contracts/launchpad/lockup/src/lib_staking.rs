@@ -13,7 +13,7 @@ pub fn calculate_reward_per_token<S: Storage, A: Api, Q: Querier>(
     let config: state::Config = state::read_config(&deps.storage)?;
 
     let period = Uint256::from(timestamp.sub(reward.last_update_time));
-    let total_deposit = Uint256::from(reward.total_deposit);
+    let total_deposit = reward.total_deposit;
 
     Ok(Decimal256::from_uint256(period)
         .mul(config.reward_rate)
@@ -42,5 +42,5 @@ pub fn calculate_rewards<S: Storage, A: Api, Q: Querier>(
         }
     }
 
-    Ok(Uint256::from(user.reward).add(rpt * user.amount).into())
+    Ok(user.reward.add(rpt * user.amount))
 }

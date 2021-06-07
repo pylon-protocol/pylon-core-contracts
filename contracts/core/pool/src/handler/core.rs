@@ -74,13 +74,13 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
                 deps,
                 &config.moneymarket,
                 &config.stable_denom,
-                deposit_amount.into(),
+                deposit_amount,
             )?,
             vec![CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: deps.api.human_address(&config.dp_token)?,
                 msg: to_binary(&Cw20HandleMsg::Mint {
                     recipient: env.message.sender.clone(),
-                    amount: deposit_amount.into(),
+                    amount: deposit_amount,
                 })?,
                 send: vec![],
             })],
@@ -88,7 +88,7 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
         .concat(),
         log: vec![
             log("action", "deposit"),
-            log("sender", env.message.sender.clone()),
+            log("sender", env.message.sender),
             log("amount", deposit_amount.to_string()),
         ],
         data: None,
@@ -104,7 +104,7 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
     let config = config::read(&deps.storage)?;
 
     let (market_redeem_amount, pool_redeem_amount, _) =
-        querier::pool::calculate_return_amount(deps, &config, Uint256::from(amount).clone())?;
+        querier::pool::calculate_return_amount(deps, &config, Uint256::from(amount))?;
 
     Ok(HandleResponse {
         messages: [
@@ -129,8 +129,8 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
         .concat(),
         log: vec![
             log("action", "redeem"),
-            log("sender", env.message.sender.clone()),
-            log("amount", pool_redeem_amount.amount.clone()),
+            log("sender", env.message.sender),
+            log("amount", pool_redeem_amount.amount),
         ],
         data: None,
     })
@@ -180,7 +180,7 @@ pub fn claim_reward<S: Storage, A: Api, Q: Querier>(
         .concat(),
         log: vec![
             log("action", "claim_reward"),
-            log("sender", env.message.sender.clone()),
+            log("sender", env.message.sender),
             log("amount", beneficiary_redeem_amount.amount),
             log("fee", collector_redeem_amount.amount),
         ],
