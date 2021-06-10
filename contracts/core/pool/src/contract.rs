@@ -45,8 +45,8 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
             send: vec![],
             label: None,
             msg: to_binary(&Cw20InitMsg {
-                name: format!("Pylon Deposit Token {}", msg.pool_name),
-                symbol: "DP".to_string(),
+                name: format!("Deposit Token - {}", msg.pool_name),
+                symbol: "PylonDP".to_string(),
                 decimals: 6u8,
                 initial_balances: vec![],
                 mint: Some(MinterResponse {
