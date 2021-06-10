@@ -5,6 +5,8 @@ use cosmwasm_std::{
 };
 use cw20::Cw20HandleMsg;
 use moneymarket::querier::deduct_tax;
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
