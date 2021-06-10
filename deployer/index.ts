@@ -19,6 +19,7 @@ import * as path from "path";
 import * as util from "util";
 
 import { Network } from "./network.config";
+import { exit } from "process";
 
 const network = Network[networkType];
 const lcdClient = new LCDClient({
@@ -117,7 +118,8 @@ async function main(): Promise<void> {
     `../code_id_${networkType}.json`,
     JSON.stringify(codeIds, null, 2)
   );
-  return;
+
+  exit(0);
 }
 
 main().catch(console.error);
