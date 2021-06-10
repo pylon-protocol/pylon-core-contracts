@@ -11,6 +11,7 @@ import {
   LCDClient,
   MnemonicKey,
   MsgStoreCode,
+  TxInfo,
   Wallet,
 } from "@terra-money/terra.js";
 import * as fs from "fs";
@@ -24,7 +25,7 @@ const lcdClient = new LCDClient({
   URL: network.URL,
   chainID: network.chainID,
   gasAdjustment: 2,
-  gasPrices: { uluna: 0.015 },
+  gasPrices: { uluna: 0.15 },
 });
 
 const key = new MnemonicKey({ mnemonic: network.accounts.mnemonic });
@@ -54,36 +55,49 @@ async function main(): Promise<void> {
   const accInfo = await lcdClient.auth.accountInfo(wallet.key.accAddress);
 
   let sequence = accInfo.sequence;
-  const codeIds: {[contract: string]: string} = {};
+  const codeIds: { [contract: string]: string } = {};
   for (const fileName of fileNames) {
     console.log(`reading ${fileName}`);
     const file = fs.readFileSync(path.join(source, fileName));
 
     let result: BlockTxBroadcastResult;
-    for (;;){
+    for (;;) {
       const tx = await wallet.createAndSignTx({
-        msgs: [new MsgStoreCode(wallet.key.accAddress, file.toString("base64"))],
+        msgs: [
+          new MsgStoreCode(wallet.key.accAddress, file.toString("base64")),
+        ],
         sequence: sequence,
       });
       sequence += 1;
 
       result = await lcdClient.tx.broadcast(tx);
-      if(isTxError(result)) {
+      if (isTxError(result)) {
         await sleep(1000);
         console.log(result.raw_log);
-        ({ sequence } = await lcdClient.auth.accountInfo(wallet.key.accAddress));
+        ({ sequence } = await lcdClient.auth.accountInfo(
+          wallet.key.accAddress
+        ));
         continue;
       }
       break;
     }
 
     console.log(`${fileName} ${result.txhash}`);
-    const txInfo = await lcdClient.tx.txInfo(result.txhash);
+
+    let txInfo: TxInfo;
+    for (;;) {
+      try {
+        txInfo = await lcdClient.tx.txInfo(result.txhash);
+        break;
+      } catch (e) {
+        console.error(e);
+      }
+    }
     for (const log of txInfo.logs || []) {
       const events = log.events.filter((v) => v.type == "store_code");
       if (events.length == 0) {
         console.log(util.inspect(log, { depth: null }));
-        throw new Error('?');
+        throw new Error("?");
       }
       const [{ value: sender }, { value: codeId }] = events[0].attributes;
 
@@ -94,7 +108,7 @@ async function main(): Promise<void> {
     }
   }
 
-  fs.writeFileSync('./code_id.json', JSON.stringify(codeIds, null, 2));
+  fs.writeFileSync(`./code_id_${network}.json`, JSON.stringify(codeIds, null, 2));
   return;
 }
 
