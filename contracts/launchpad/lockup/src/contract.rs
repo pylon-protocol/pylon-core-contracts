@@ -23,8 +23,8 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
             owner: deps.api.canonical_address(&env.message.sender)?,
             share_token: deps.api.canonical_address(&msg.share_token)?,
             reward_token: deps.api.canonical_address(&msg.reward_token)?,
-            start_time: msg.start_time,
-            finish_time: msg.start_time.add(msg.period),
+            start_time: msg.start,
+            finish_time: msg.start.add(msg.period),
             open_deposit: msg.open_deposit,
             open_withdraw: msg.open_withdraw,
             open_claim: msg.open_claim,
@@ -36,7 +36,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
         &mut deps.storage,
         &state::Reward {
             total_deposit: Uint256::zero(),
-            last_update_time: msg.start_time,
+            last_update_time: msg.start,
             reward_per_token_stored: Decimal256::zero(),
         },
     )?;

@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InitMsg {
-    pub start_time: u64,
+    pub start: u64,
     pub period: u64,
     pub open_deposit: bool,
     pub open_withdraw: bool,
