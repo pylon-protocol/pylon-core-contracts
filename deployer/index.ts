@@ -90,7 +90,12 @@ async function main(): Promise<void> {
         txInfo = await lcdClient.tx.txInfo(result.txhash);
         break;
       } catch (e) {
-        console.error(e);
+        if (e?.isAxiosError) {
+          console.error(e.response.data.error);
+        } else {
+          console.error(`Unexpected error: ${e.toString()}`);
+        }
+        await sleep(1000);
       }
     }
     for (const log of txInfo.logs || []) {
