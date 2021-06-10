@@ -109,7 +109,7 @@ async function main(): Promise<void> {
   }
 
   fs.writeFileSync(
-    `./code_id_${networkType}.json`,
+    `../code_id_${networkType}.json`,
     JSON.stringify(codeIds, null, 2)
   );
   return;
