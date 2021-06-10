@@ -108,7 +108,10 @@ async function main(): Promise<void> {
     }
   }
 
-  fs.writeFileSync(`./code_id_${network}.json`, JSON.stringify(codeIds, null, 2));
+  fs.writeFileSync(
+    `./code_id_${networkType}.json`,
+    JSON.stringify(codeIds, null, 2)
+  );
   return;
 }
 
