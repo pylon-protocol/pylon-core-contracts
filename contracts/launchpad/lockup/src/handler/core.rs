@@ -40,11 +40,7 @@ pub fn update<S: Storage, A: Api, Q: Querier>(
     let config: state::Config = state::read_config(&deps.storage)?;
     let mut reward: state::Reward = state::read_reward(&deps.storage)?;
 
-    let applicable_reward_time = if env.block.time.gt(&config.finish_time) {
-        config.finish_time
-    } else {
-        env.block.time
-    };
+    let applicable_reward_time = std::cmp::min(config.finish_time, env.block.time);
 
     // reward
     reward.reward_per_token_stored =
@@ -134,6 +130,12 @@ pub fn withdraw<S: Storage, A: Api, Q: Querier>(
     let owner = deps.api.canonical_address(sender)?;
     let mut reward: state::Reward = state::read_reward(&deps.storage)?;
     let mut user: state::User = state::read_user(&deps.storage, &owner)?;
+
+    if amount > user.amount {
+        return Err(StdError::generic_err(
+            "Staking: amount must be smaller than user.amount",
+        ));
+    }
 
     reward.total_deposit = reward.total_deposit.sub(amount);
     user.amount = user.amount.sub(amount);

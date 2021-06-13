@@ -58,13 +58,13 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
         HandleMsg::Exit {} => CoreHandler::exit(deps, env),
         // governance
         HandleMsg::SetDepositAvailability { availability } => {
-            GovHandler::set_deposit_availability(deps, availability)
+            GovHandler::set_deposit_availability(deps, env, availability)
         }
         HandleMsg::SetWithdrawAvailability { availability } => {
-            GovHandler::set_withdraw_availability(deps, availability)
+            GovHandler::set_withdraw_availability(deps, env, availability)
         }
         HandleMsg::SetClaimAvailability { availability } => {
-            GovHandler::set_claim_availability(deps, availability)
+            GovHandler::set_claim_availability(deps, env, availability)
         }
     }
 }

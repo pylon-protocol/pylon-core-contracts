@@ -167,7 +167,7 @@ pub fn claim_reward<S: Storage, A: Api, Q: Querier>(
             vec![
                 CosmosMsg::Bank(BankMsg::Send {
                     from_address: env.contract.address.clone(),
-                    to_address: env.message.sender.clone(),
+                    to_address: deps.api.human_address(&config.beneficiary)?,
                     amount: vec![beneficiary_redeem_amount.clone()],
                 }),
                 CosmosMsg::Bank(BankMsg::Send {
