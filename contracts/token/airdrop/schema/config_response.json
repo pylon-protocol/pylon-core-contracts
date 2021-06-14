@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ConfigResponse",
+  "type": "object",
+  "required": [
+    "owner",
+    "pylon_token"
+  ],
+  "properties": {
+    "owner": {
+      "$ref": "#/definitions/HumanAddr"
+    },
+    "pylon_token": {
+      "$ref": "#/definitions/HumanAddr"
+    }
+  },
+  "definitions": {
+    "HumanAddr": {
+      "type": "string"
+    }
+  }
+}

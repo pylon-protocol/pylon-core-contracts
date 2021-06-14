@@ -1,7 +1,13 @@
 [workspace]
-members = [ "contracts/*" ]
+members = [
+    "packages/*",
+    "contracts/core/*",
+    "contracts/launchpad/*",
+    "contracts/token/*",
+]
 
 [profile.release]
 rpath = false
 lto = true
 overflow-checks = true
+
