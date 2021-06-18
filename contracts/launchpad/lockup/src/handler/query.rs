@@ -13,10 +13,8 @@ pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResu
         share_token: deps.api.human_address(&config.share_token)?,
         reward_token: deps.api.human_address(&config.reward_token)?,
         start_time: config.start_time,
+        cliff_time: config.cliff_time,
         finish_time: config.finish_time,
-        open_deposit: config.open_deposit,
-        open_withdraw: config.open_withdraw,
-        open_claim: config.open_claim,
         reward_rate: config.reward_rate,
     })
 }

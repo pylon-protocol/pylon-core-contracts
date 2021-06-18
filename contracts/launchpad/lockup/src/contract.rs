@@ -8,7 +8,6 @@ use std::ops::Add;
 use pylon_launchpad::lockup_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 
 use crate::handler::core as CoreHandler;
-use crate::handler::governance as GovHandler;
 use crate::handler::query as QueryHandler;
 use crate::state;
 
@@ -24,10 +23,8 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
             share_token: deps.api.canonical_address(&msg.share_token)?,
             reward_token: deps.api.canonical_address(&msg.reward_token)?,
             start_time: msg.start,
+            cliff_time: msg.start.add(msg.cliff),
             finish_time: msg.start.add(msg.period),
-            open_deposit: msg.open_deposit,
-            open_withdraw: msg.open_withdraw,
-            open_claim: msg.open_claim,
             reward_rate: msg.reward_rate,
         },
     )?;
@@ -55,17 +52,6 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
         HandleMsg::Update {} => CoreHandler::update(deps, &env, None),
         HandleMsg::Withdraw { amount } => CoreHandler::withdraw(deps, env, amount),
         HandleMsg::Claim {} => CoreHandler::claim(deps, env),
-        HandleMsg::Exit {} => CoreHandler::exit(deps, env),
-        // governance
-        HandleMsg::SetDepositAvailability { availability } => {
-            GovHandler::set_deposit_availability(deps, env, availability)
-        }
-        HandleMsg::SetWithdrawAvailability { availability } => {
-            GovHandler::set_withdraw_availability(deps, env, availability)
-        }
-        HandleMsg::SetClaimAvailability { availability } => {
-            GovHandler::set_claim_availability(deps, env, availability)
-        }
     }
 }
 
