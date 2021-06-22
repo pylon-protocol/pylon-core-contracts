@@ -22,7 +22,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
             beneficiary: msg.beneficiary,
             start: msg.start,
             finish: msg.start.add(msg.period),
-            total_sale_amount: msg.liq_y.clone(),
+            total_sale_amount: msg.liq_x.clone(),
         },
     )?;
 
