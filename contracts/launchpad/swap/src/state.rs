@@ -15,6 +15,7 @@ pub struct Config {
     pub beneficiary: HumanAddr,
     pub start: u64,
     pub finish: u64,
+    pub total_sale_amount: Uint256,
 }
 
 pub fn store_config<S: Storage>(storage: &mut S, data: &Config) -> StdResult<()> {
