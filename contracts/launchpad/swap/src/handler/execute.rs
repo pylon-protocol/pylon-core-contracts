@@ -32,6 +32,12 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
             vpool.x_denom,
         )));
     }
+    if env.message.sent_funds.len() > 1 {
+        return Err(StdError::generic_err(format!(
+            "Pool: this contract only accepts {}",
+            vpool.x_denom,
+        )));
+    }
 
     let deposit_amount = deduct_tax(
         deps,
