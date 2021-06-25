@@ -27,3 +27,8 @@ pub struct TotalSupplyResponse {
 pub struct CurrentPriceResponse {
     pub price: Decimal256,
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct SimulateWithdrawResponse {
+    pub amount: Uint256,
+}

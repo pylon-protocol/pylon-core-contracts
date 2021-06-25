@@ -23,7 +23,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
             start: msg.start,
             finish: msg.start.add(msg.period),
             price: msg.price,
-            total_sale_amount: msg.liq_y.clone(),
+            total_sale_amount,
         },
     )?;
 
@@ -61,6 +61,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
         QueryMsg::BalanceOf { owner } => QueryHandler::balance_of(deps, owner),
         QueryMsg::TotalSupply {} => QueryHandler::total_supply(deps),
         QueryMsg::CurrentPrice {} => QueryHandler::current_price(deps),
+        QueryMsg::SimulateWithdraw { amount } => QueryHandler::simulate_withdraw(deps, amount),
     }
 }
 

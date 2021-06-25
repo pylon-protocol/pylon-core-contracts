@@ -11,6 +11,7 @@ pub struct InitMsg {
     pub liq_x: Uint256,
     pub liq_y: Uint256, // is also a maximum cap of this pool
     pub price: Decimal256,
+    pub total_sale_amount: Uint256,
     pub start: u64,
     pub period: u64,
 }
@@ -30,6 +31,7 @@ pub enum QueryMsg {
     BalanceOf { owner: HumanAddr },
     TotalSupply {},
     CurrentPrice {},
+    SimulateWithdraw { amount: Uint256 },
 }
 
 /// We currently take no arguments for migrations

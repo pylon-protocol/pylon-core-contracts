@@ -1,6 +1,6 @@
 use cosmwasm_std::{to_binary, Api, Binary, Extern, HumanAddr, Querier, StdResult, Storage};
 
-use crate::querier::vpool::calculate_current_price;
+use crate::querier::vpool::{calculate_current_price, calculate_withdraw_amount};
 use crate::state;
 use cosmwasm_bignumber::Uint256;
 use pylon_launchpad::swap_resp as resp;
@@ -46,5 +46,16 @@ pub fn current_price<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> 
 
     to_binary(&resp::CurrentPriceResponse {
         price: calculate_current_price(&vpool.liq_x, &vpool.liq_y)?,
+    })
+}
+
+pub fn simulate_withdraw<S: Storage, A: Api, Q: Querier>(
+    deps: &Extern<S, A, Q>,
+    amount: Uint256,
+) -> StdResult<Binary> {
+    let vpool = state::read_vpool(&deps.storage)?;
+
+    to_binary(&resp::SimulateWithdrawResponse {
+        amount: calculate_withdraw_amount(&vpool.liq_x, &vpool.liq_y, &amount)?,
     })
 }
