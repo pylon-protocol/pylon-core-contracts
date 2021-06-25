@@ -8,11 +8,7 @@ use std::ops::{Add, Div, Mul};
 // return => UST amount to receive
 pub fn calculate_withdraw_amount(x: &Uint256, y: &Uint256, dy: &Uint256) -> StdResult<Uint256> {
     let k = x.mul(*y);
-    let dx = k.div(Decimal256::from_uint256(y.add(*dy)));
-    if x.lt(&dx) {
-        return Err(StdError::generic_err("VPool: insufficient UST amount"));
-    }
-    Ok(k.div(Decimal256::from_uint256(x.add(dx))))
+    Ok(k.div(Decimal256::from_uint256(y.add(*dy))))
 }
 
 pub fn calculate_current_price(x: &Uint256, y: &Uint256) -> StdResult<Decimal256> {

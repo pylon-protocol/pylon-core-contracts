@@ -1,5 +1,6 @@
-use cosmwasm_std::{to_binary, Api, Binary, Extern, HumanAddr, Querier, StdResult, Storage};
+use cosmwasm_std::{to_binary, Api, Binary, Coin, Extern, HumanAddr, Querier, StdResult, Storage};
 
+use crate::querier::tax::deduct_tax;
 use crate::querier::vpool::{calculate_current_price, calculate_withdraw_amount};
 use crate::state;
 use cosmwasm_bignumber::Uint256;
@@ -56,6 +57,15 @@ pub fn simulate_withdraw<S: Storage, A: Api, Q: Querier>(
     let vpool = state::read_vpool(&deps.storage)?;
 
     to_binary(&resp::SimulateWithdrawResponse {
-        amount: calculate_withdraw_amount(&vpool.liq_x, &vpool.liq_y, &amount)?,
+        amount: Uint256::from(
+            deduct_tax(
+                deps,
+                Coin {
+                    denom: "uusd".parse().unwrap(),
+                    amount: calculate_withdraw_amount(&vpool.liq_x, &vpool.liq_y, &amount)?.into(),
+                },
+            )?
+            .amount,
+        ),
     })
 }
