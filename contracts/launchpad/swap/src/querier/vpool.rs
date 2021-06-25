@@ -1,17 +1,17 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::{StdError, StdResult};
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, Div, Mul};
 
 // x => UST amount
 // y => MINE amount
 // dx => UST amount to withdraw
 // return => UST amount to receive
 pub fn calculate_withdraw_amount(x: &Uint256, y: &Uint256, dy: &Uint256) -> StdResult<Uint256> {
+    let k = x.mul(*y);
+    let dx = k.div(Decimal256::from_uint256(y.add(*dy)));
     if x.lt(&dx) {
         return Err(StdError::generic_err("VPool: insufficient UST amount"));
     }
-    let k = x.mul(*y);
-    let dx = k.div(Decimal256::from_uint256(y.add(*dy)));
     Ok(k.div(Decimal256::from_uint256(x.add(dx))))
 }
 
