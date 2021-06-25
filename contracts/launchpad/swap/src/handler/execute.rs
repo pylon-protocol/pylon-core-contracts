@@ -4,7 +4,7 @@ use cosmwasm_std::{
     StdResult, Storage, WasmMsg,
 };
 use cw20::Cw20HandleMsg;
-use std::ops::{Add, Div, Sub};
+use std::ops::{Add, Div, Mul, Sub};
 use terraswap::querier::query_balance;
 
 use crate::querier::tax::deduct_tax;
@@ -40,21 +40,10 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
         )));
     }
 
-    let deposit_amount = deduct_tax(
-        deps,
-        Coin {
-            denom: vpool.x_denom,
-            amount: received.into(),
-        },
-    )?
-    .amount;
-
     let sender = &deps.api.canonical_address(&env.message.sender)?;
     let mut user = state::read_user(&deps.storage, sender)?;
 
-    user.amount = user
-        .amount
-        .add(Uint256::from(deposit_amount).div(config.price));
+    user.amount = user.amount.add(received.div(config.price));
 
     state::store_user(&mut deps.storage, sender, &user)?;
 
@@ -63,7 +52,7 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
         log: vec![
             log("action", "deposit"),
             log("sender", env.message.sender),
-            log("amount", deposit_amount),
+            log("amount", received),
         ],
         data: None,
     })
@@ -76,14 +65,14 @@ fn withdraw_with_penalty<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<HandleResponse> {
     let mut vpool = state::read_vpool(&deps.storage)?;
     let withdraw_amount = calculate_withdraw_amount(&vpool.liq_x, &vpool.liq_y, &amount)?;
-    let penalty = amount.sub(withdraw_amount);
 
-    vpool.liq_x = vpool.liq_x.add(withdraw_amount);
-    vpool.liq_y = vpool.liq_y.sub(amount);
+    vpool.liq_x = vpool.liq_x.sub(withdraw_amount);
+    vpool.liq_y = vpool.liq_y.add(amount);
 
     state::store_vpool(&mut deps.storage, &vpool)?;
 
     let config = state::read_config(&deps.storage)?;
+    let penalty = amount.mul(config.price).sub(withdraw_amount);
 
     Ok(HandleResponse {
         messages: vec![

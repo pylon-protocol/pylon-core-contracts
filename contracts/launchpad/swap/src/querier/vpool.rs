@@ -1,6 +1,6 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::{StdError, StdResult};
-use std::ops::{Add, Div, Mul};
+use cosmwasm_std::StdResult;
+use std::ops::{Add, Div, Mul, Sub};
 
 // x => UST amount
 // y => MINE amount
@@ -8,7 +8,8 @@ use std::ops::{Add, Div, Mul};
 // return => UST amount to receive
 pub fn calculate_withdraw_amount(x: &Uint256, y: &Uint256, dy: &Uint256) -> StdResult<Uint256> {
     let k = x.mul(*y);
-    Ok(k.div(Decimal256::from_uint256(y.add(*dy))))
+    let dx = x.sub(k.div(Decimal256::from_uint256(y.add(*dy))));
+    Ok(dx)
 }
 
 pub fn calculate_current_price(x: &Uint256, y: &Uint256) -> StdResult<Decimal256> {
