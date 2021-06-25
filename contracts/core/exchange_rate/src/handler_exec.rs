@@ -67,6 +67,8 @@ fn _stop<S: Storage, A: Api, Q: Querier>(
 
     token.status = state::Status::Stopped;
 
+    state::store_token(&mut deps.storage, &token_addr, &token)?;
+
     Ok(())
 }
 
@@ -97,6 +99,8 @@ fn _start<S: Storage, A: Api, Q: Querier>(
 
     token.status = state::Status::Running;
     token.last_updated_at = *block_time;
+
+    state::store_token(&mut deps.storage, &token_addr, &token)?;
 
     Ok(())
 }
