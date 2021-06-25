@@ -1,4 +1,4 @@
-use cosmwasm_bignumber::Uint256;
+use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::{CanonicalAddr, HumanAddr, ReadonlyStorage, StdResult, Storage};
 use cosmwasm_storage::{Bucket, ReadonlyBucket, ReadonlySingleton, Singleton};
 use schemars::JsonSchema;
@@ -15,6 +15,7 @@ pub struct Config {
     pub beneficiary: HumanAddr,
     pub start: u64,
     pub finish: u64,
+    pub price: Decimal256,
     pub total_sale_amount: Uint256,
 }
 

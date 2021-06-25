@@ -14,6 +14,7 @@ pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResu
         beneficiary: config.beneficiary,
         start: config.start,
         finish: config.finish,
+        price: config.price,
         total_sale_amount: config.total_sale_amount,
     })
 }

@@ -9,6 +9,7 @@ pub struct ConfigResponse {
     pub beneficiary: HumanAddr,
     pub start: u64,
     pub finish: u64,
+    pub price: Decimal256,
     pub total_sale_amount: Uint256,
 }
 

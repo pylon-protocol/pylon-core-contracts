@@ -1,4 +1,4 @@
-use cosmwasm_bignumber::Uint256;
+use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::HumanAddr;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -10,6 +10,7 @@ pub struct InitMsg {
     pub y_addr: HumanAddr,
     pub liq_x: Uint256,
     pub liq_y: Uint256, // is also a maximum cap of this pool
+    pub price: Decimal256,
     pub start: u64,
     pub period: u64,
 }

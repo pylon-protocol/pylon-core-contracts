@@ -4,7 +4,7 @@ use cosmwasm_std::{
     StdResult, Storage, WasmMsg,
 };
 use cw20::Cw20HandleMsg;
-use std::ops::{Add, Sub};
+use std::ops::{Add, Div, Sub};
 use terraswap::querier::query_balance;
 
 use crate::querier::tax::deduct_tax;
@@ -15,6 +15,7 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
 ) -> StdResult<HandleResponse> {
+    let config = state::read_config(&deps.storage)?;
     let vpool = state::read_vpool(&deps.storage)?;
 
     // 1:1
@@ -51,7 +52,9 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
     let sender = &deps.api.canonical_address(&env.message.sender)?;
     let mut user = state::read_user(&deps.storage, sender)?;
 
-    user.amount = user.amount.add(Uint256::from(deposit_amount));
+    user.amount = user
+        .amount
+        .add(Uint256::from(deposit_amount).div(config.price));
 
     state::store_user(&mut deps.storage, sender, &user)?;
 
