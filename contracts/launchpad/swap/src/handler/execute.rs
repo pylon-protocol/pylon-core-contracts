@@ -78,8 +78,8 @@ fn withdraw_with_penalty<S: Storage, A: Api, Q: Querier>(
     let withdraw_amount = calculate_withdraw_amount(&vpool.liq_x, &vpool.liq_y, &amount)?;
     let penalty = amount.sub(withdraw_amount);
 
-    vpool.liq_x = vpool.liq_x.sub(withdraw_amount);
-    vpool.liq_y = vpool.liq_y.add(amount);
+    vpool.liq_x = vpool.liq_x.add(withdraw_amount);
+    vpool.liq_y = vpool.liq_y.sub(amount);
 
     state::store_vpool(&mut deps.storage, &vpool)?;
 
