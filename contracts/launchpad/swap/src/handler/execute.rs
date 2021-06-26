@@ -42,10 +42,14 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
 
     let sender = &deps.api.canonical_address(&env.message.sender)?;
     let mut user = state::read_user(&deps.storage, sender)?;
+    let mut reward = state::read_reward(&deps.storage)?;
 
-    user.amount = user.amount.add(received.div(config.price));
+    let deposit_amount = received.div(config.price);
+    user.amount = user.amount.add(deposit_amount);
+    reward.total_supply = reward.total_supply.add(deposit_amount);
 
     state::store_user(&mut deps.storage, sender, &user)?;
+    state::store_reward(&mut deps.storage, &reward)?;
 
     Ok(HandleResponse {
         messages: vec![],
@@ -53,6 +57,7 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
             log("action", "deposit"),
             log("sender", env.message.sender),
             log("amount", received),
+            log("allocated", deposit_amount),
         ],
         data: None,
     })
@@ -142,6 +147,7 @@ pub fn withdraw<S: Storage, A: Api, Q: Querier>(
     // xyk
     let sender = &deps.api.canonical_address(&env.message.sender)?;
     let mut user = state::read_user(&deps.storage, sender)?;
+    let mut reward = state::read_reward(&deps.storage)?;
 
     if user.amount.lt(&amount) {
         return Err(StdError::generic_err(format!(
@@ -151,8 +157,10 @@ pub fn withdraw<S: Storage, A: Api, Q: Querier>(
     }
 
     user.amount = user.amount.sub(amount);
+    reward.total_supply = reward.total_supply.sub(amount);
 
     state::store_user(&mut deps.storage, sender, &user)?;
+    state::store_reward(&mut deps.storage, &reward)?;
 
     let config: state::Config = state::read_config(&deps.storage)?;
     if config.finish.gt(&env.block.time) {

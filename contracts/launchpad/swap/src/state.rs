@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 
 pub static KEY_CONFIG: &[u8] = b"config";
 pub static KEY_VPOOL: &[u8] = b"vpool";
+pub static KEY_REWARD: &[u8] = b"reward";
 pub static PREFIX_USER: &[u8] = b"user";
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -41,6 +42,19 @@ pub fn store_vpool<S: Storage>(storage: &mut S, data: &VirtualPool) -> StdResult
 
 pub fn read_vpool<S: Storage>(storage: &S) -> StdResult<VirtualPool> {
     ReadonlySingleton::new(storage, KEY_VPOOL).load()
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct Reward {
+    pub total_supply: Uint256,
+}
+
+pub fn store_reward<S: Storage>(storage: &mut S, data: &Reward) -> StdResult<()> {
+    Singleton::new(storage, KEY_REWARD).save(data)
+}
+
+pub fn read_reward<S: Storage>(storage: &S) -> StdResult<Reward> {
+    ReadonlySingleton::new(storage, KEY_REWARD).load()
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

@@ -5,7 +5,6 @@ use crate::querier::vpool::{calculate_current_price, calculate_withdraw_amount};
 use crate::state;
 use cosmwasm_bignumber::Uint256;
 use pylon_launchpad::swap_resp as resp;
-use terraswap::querier::query_balance;
 
 pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
     let config = state::read_config(&deps.storage)?;
@@ -32,13 +31,10 @@ pub fn balance_of<S: Storage, A: Api, Q: Querier>(
 }
 
 pub fn total_supply<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
-    let config = state::read_config(&deps.storage)?;
-    let vpool = state::read_vpool(&deps.storage)?;
-
-    let balance = query_balance(deps, &config.this, vpool.x_denom)?;
+    let reward = state::read_reward(&deps.storage)?;
 
     to_binary(&resp::TotalSupplyResponse {
-        amount: Uint256::from(balance),
+        amount: reward.total_supply,
     })
 }
 
