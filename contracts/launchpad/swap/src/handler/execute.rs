@@ -45,6 +45,13 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
     let mut reward = state::read_reward(&deps.storage)?;
 
     let deposit_amount = received.div(config.price);
+    if user.amount.add(deposit_amount).gt(&config.max_cap) {
+        return Err(StdError::generic_err(format!(
+            "Pool: maximum deposit cap exceeded ({})",
+            config.max_cap,
+        )));
+    }
+
     user.amount = user.amount.add(deposit_amount);
     reward.total_supply = reward.total_supply.add(deposit_amount);
 

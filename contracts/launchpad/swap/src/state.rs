@@ -17,6 +17,7 @@ pub struct Config {
     pub start: u64,
     pub finish: u64,
     pub price: Decimal256,
+    pub max_cap: Uint256,
     pub total_sale_amount: Uint256,
 }
 

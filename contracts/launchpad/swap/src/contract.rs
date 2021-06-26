@@ -24,6 +24,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
             start: msg.start,
             finish: msg.start.add(msg.period),
             price: msg.price,
+            max_cap: msg.max_cap,
             total_sale_amount: msg.total_sale_amount,
         },
     )?;
