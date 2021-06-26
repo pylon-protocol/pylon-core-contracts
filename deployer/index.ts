@@ -1,9 +1,10 @@
 import { program } from "commander";
 program.version("0.0.1");
 program.option("-n, --network <type>", "network type to deploy", "local");
-program.option("-s, --source <type>", "source directory", "../artifacts");
+program.option("-s, --source <type>", "source file");
+program.option("-d --directory <type>", "source directory");
 program.parse();
-const { source, network: networkType } = program.opts();
+const { source, directory, network: networkType } = program.opts();
 
 import {
   BlockTxBroadcastResult,
@@ -45,21 +46,50 @@ function extOf(filename: string): string {
   throw new Error("failed to fetch extension from filename");
 }
 
-async function main(): Promise<void> {
-  console.log(lcdClient.config);
+async function deploySource(path: string) {
+  const file = fs.readFileSync(path);
 
-  const balance = await lcdClient.bank.balance(wallet.key.accAddress);
-  console.log(balance);
+  let result: BlockTxBroadcastResult;
 
-  const fileNames = fs.readdirSync(source).filter((v) => extOf(v) == "wasm");
+  const tx = await wallet.createAndSignTx({
+    msgs: [new MsgStoreCode(wallet.key.accAddress, file.toString("base64"))],
+  });
+  result = await lcdClient.tx.broadcast(tx);
 
-  const accInfo = await lcdClient.auth.accountInfo(wallet.key.accAddress);
+  let txInfo: TxInfo;
+  for (;;) {
+    try {
+      txInfo = await lcdClient.tx.txInfo(result.txhash);
+      break;
+    } catch (e) {
+      if (e?.isAxiosError) {
+        console.error(e.response.data.error);
+      } else {
+        console.error(`Unexpected error: ${e.toString()}`);
+      }
+      await sleep(1000);
+    }
+  }
+  for (const log of txInfo.logs || []) {
+    const events = log.events.filter((v) => v.type == "store_code");
+    if (events.length == 0) {
+      console.log(util.inspect(log, { depth: null }));
+      throw new Error("?");
+    }
+    const [{ value: sender }, { value: codeId }] = events[0].attributes;
 
-  let sequence = accInfo.sequence;
+    console.log(`=> sender: ${sender}`);
+    console.log(`=> codeId: ${codeId}`);
+  }
+}
+
+async function deployDirectory() {
+  const fileNames = fs.readdirSync(directory).filter((v) => extOf(v) == "wasm");
+  let { sequence } = await lcdClient.auth.accountInfo(wallet.key.accAddress);
   const codeIds: { [contract: string]: string } = {};
   for (const fileName of fileNames) {
     console.log(`reading ${fileName}`);
-    const file = fs.readFileSync(path.join(source, fileName));
+    const file = fs.readFileSync(path.join(directory, fileName));
 
     let result: BlockTxBroadcastResult;
     for (;;) {
@@ -118,6 +148,19 @@ async function main(): Promise<void> {
     `../code_id_${networkType}.json`,
     JSON.stringify(codeIds, null, 2)
   );
+}
+
+async function main(): Promise<void> {
+  console.log(lcdClient.config);
+
+  const balance = await lcdClient.bank.balance(wallet.key.accAddress);
+  console.log(balance);
+
+  if (directory) {
+    await deployDirectory();
+  } else if (source) {
+    await deploySource(source);
+  }
 
   exit(0);
 }

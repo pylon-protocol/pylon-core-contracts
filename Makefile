@@ -11,9 +11,9 @@ build:
 
 deploy:
 ifndef network
-	yarn --cwd ./deployer start
+	yarn --cwd ./deployer start -d ../artifacts
 else
-	yarn --cwd ./deployer start --network $(network)
+	yarn --cwd ./deployer start -d ../artifacts --network $(network)
 endif
 
 deploy-columbus:
