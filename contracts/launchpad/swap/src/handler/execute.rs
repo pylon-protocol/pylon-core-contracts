@@ -51,6 +51,16 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
             config.max_cap,
         )));
     }
+    if reward
+        .total_supply
+        .add(deposit_amount)
+        .gt(&config.total_sale_amount)
+    {
+        return Err(StdError::generic_err(format!(
+            "Pool: maximum swap cap exceeded ({})",
+            config.total_sale_amount
+        )));
+    }
 
     user.amount = user.amount.add(deposit_amount);
     reward.total_supply = reward.total_supply.add(deposit_amount);
