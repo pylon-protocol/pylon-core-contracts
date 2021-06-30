@@ -1,4 +1,8 @@
+use cosmwasm_bignumber::Uint256;
+use cosmwasm_std::Coin;
 use cosmwasm_std::{to_binary, Api, Binary, Extern, HumanAddr, Querier, StdResult, Storage};
+use moneymarket::querier::deduct_tax;
+use std::ops::{Mul, Sub};
 
 use crate::config;
 use crate::querier;
@@ -41,9 +45,44 @@ pub fn claimable_reward<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
 ) -> StdResult<Binary> {
     let config = config::read(&deps.storage)?;
-    let (reward_amount, _) = querier::pool::calculate_reward_amount(deps, &config, None)?;
+
+    // assets
+    let epoch_state = querier::anchor::epoch_state(deps, &config.moneymarket)?;
+    let virtual_exchange_rate = querier::feeder::fetch(
+        deps,
+        &config.exchange_rate_feeder,
+        Option::None,
+        &deps.api.human_address(&config.dp_token)?,
+    )?;
+
+    // collector
+    let atoken_balance =
+        querier::token::balance_of(deps, &config.atoken, deps.api.human_address(&config.this)?)?;
+    let dp_total_supply = querier::token::total_supply(deps, &config.dp_token)?;
+    let pool_value_locked = Uint256::from(
+        deduct_tax(
+            deps,
+            Coin {
+                denom: config.stable_denom.clone(),
+                amount: (Uint256::from(atoken_balance).mul(epoch_state.exchange_rate)).into(),
+            },
+        )?
+        .amount,
+    );
+    let vpool_value_locked = Uint256::from(
+        deduct_tax(
+            deps,
+            Coin {
+                denom: config.stable_denom.clone(),
+                amount: (Uint256::from(atoken_balance).mul(virtual_exchange_rate)).into(),
+            },
+        )?
+        .amount,
+    );
+    let earnable = pool_value_locked.sub(Uint256::from(dp_total_supply));
+    let fee = pool_value_locked.sub(vpool_value_locked);
 
     to_binary(&resp::ClaimableRewardResponse {
-        claimable_reward: reward_amount.into(),
+        amount: earnable.sub(fee).into(),
     })
 }

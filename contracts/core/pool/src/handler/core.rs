@@ -6,7 +6,7 @@ use cosmwasm_std::{
 use cw20::{Cw20HandleMsg, Cw20ReceiveMsg};
 use moneymarket::querier::deduct_tax;
 use pylon_core::pool_msg::Cw20HookMsg;
-use std::ops::Add;
+use std::ops::{Div, Mul, Sub};
 
 use crate::config;
 use crate::querier;
@@ -109,8 +109,19 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<HandleResponse> {
     let config = config::read(&deps.storage)?;
 
-    let (market_redeem_amount, pool_redeem_amount, _) =
-        querier::pool::calculate_return_amount(deps, &config, Uint256::from(amount))?;
+    let epoch_state = querier::anchor::epoch_state(deps, &config.moneymarket)?;
+    let market_redeem_amount = Uint256::from(amount).div(epoch_state.exchange_rate);
+    let user_redeem_amount = deduct_tax(
+        // double deduction - make sense
+        deps,
+        deduct_tax(
+            deps,
+            Coin {
+                denom: config.stable_denom.clone(),
+                amount: market_redeem_amount.into(),
+            },
+        )?,
+    )?;
 
     Ok(HandleResponse {
         messages: [
@@ -129,37 +140,64 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
             vec![CosmosMsg::Bank(BankMsg::Send {
                 from_address: env.contract.address,
                 to_address: sender,
-                amount: vec![pool_redeem_amount.clone()],
+                amount: vec![user_redeem_amount.clone()],
             })],
         ]
         .concat(),
         log: vec![
             log("action", "redeem"),
             log("sender", env.message.sender),
-            log("amount", pool_redeem_amount.amount),
+            log("amount", user_redeem_amount.amount),
         ],
         data: None,
     })
 }
 
-pub fn claim_reward<S: Storage, A: Api, Q: Querier>(
+pub fn earn<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     env: Env,
 ) -> StdResult<HandleResponse> {
-    // calculate (total_aust_amount * exchange_rate) - (total_dp_balance)
+    // calculate deduct(total_aust_amount * exchange_rate) - (total_dp_balance)
     let config = config::read(&deps.storage)?;
     if config.beneficiary != deps.api.canonical_address(&env.message.sender)? {
         return Err(StdError::unauthorized());
     }
 
-    let (reward_amount, fee_amount) =
-        querier::pool::calculate_reward_amount(deps, &config, Option::from(env.block.time))?;
-    let (market_redeem_amount, _, _) =
-        querier::pool::calculate_return_amount(deps, &config, reward_amount.add(fee_amount))?;
-    let (_, beneficiary_redeem_amount, _) =
-        querier::pool::calculate_return_amount(deps, &config, reward_amount)?;
-    let (_, collector_redeem_amount, _) =
-        querier::pool::calculate_return_amount(deps, &config, fee_amount)?;
+    // assets
+    let epoch_state = querier::anchor::epoch_state(deps, &config.moneymarket)?;
+    let virtual_exchange_rate = querier::feeder::fetch(
+        deps,
+        &config.exchange_rate_feeder,
+        Option::from(env.block.time),
+        &deps.api.human_address(&config.dp_token)?,
+    )?;
+
+    // collector
+    let atoken_balance =
+        querier::token::balance_of(deps, &config.atoken, env.contract.address.clone())?;
+    let dp_total_supply = querier::token::total_supply(deps, &config.dp_token)?;
+    let pool_value_locked = Uint256::from(
+        deduct_tax(
+            deps,
+            Coin {
+                denom: config.stable_denom.clone(),
+                amount: (Uint256::from(atoken_balance).mul(epoch_state.exchange_rate)).into(),
+            },
+        )?
+        .amount,
+    );
+    let vpool_value_locked = Uint256::from(
+        deduct_tax(
+            deps,
+            Coin {
+                denom: config.stable_denom.clone(),
+                amount: (Uint256::from(atoken_balance).mul(virtual_exchange_rate)).into(),
+            },
+        )?
+        .amount,
+    );
+    let earnable = pool_value_locked.sub(Uint256::from(dp_total_supply));
+    let fee = pool_value_locked.sub(vpool_value_locked);
 
     Ok(HandleResponse {
         messages: [
@@ -168,18 +206,24 @@ pub fn claim_reward<S: Storage, A: Api, Q: Querier>(
                 deps,
                 &config.moneymarket,
                 &config.atoken,
-                market_redeem_amount.into(),
+                earnable.mul(epoch_state.exchange_rate).into(),
             )?,
             vec![
                 CosmosMsg::Bank(BankMsg::Send {
                     from_address: env.contract.address.clone(),
                     to_address: deps.api.human_address(&config.beneficiary)?,
-                    amount: vec![beneficiary_redeem_amount.clone()],
+                    amount: vec![Coin {
+                        denom: config.stable_denom.clone(),
+                        amount: earnable.sub(fee).into(),
+                    }],
                 }),
                 CosmosMsg::Bank(BankMsg::Send {
                     from_address: env.contract.address.clone(),
                     to_address: deps.api.human_address(&config.fee_collector)?,
-                    amount: vec![collector_redeem_amount.clone()],
+                    amount: vec![Coin {
+                        denom: config.stable_denom.clone(),
+                        amount: fee.into(),
+                    }],
                 }),
             ],
         ]
@@ -187,8 +231,8 @@ pub fn claim_reward<S: Storage, A: Api, Q: Querier>(
         log: vec![
             log("action", "claim_reward"),
             log("sender", env.message.sender),
-            log("amount", beneficiary_redeem_amount.amount),
-            log("fee", collector_redeem_amount.amount),
+            log("amount", earnable.sub(fee)),
+            log("fee", fee),
         ],
         data: None,
     })
