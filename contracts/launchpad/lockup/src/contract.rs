@@ -7,8 +7,9 @@ use std::ops::Add;
 
 use pylon_launchpad::lockup_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 
-use crate::handler::core as CoreHandler;
-use crate::handler::query as QueryHandler;
+use crate::handler::core as Core;
+use crate::handler::query as Query;
+use crate::handler::router as Router;
 use crate::state;
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
@@ -47,11 +48,19 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     msg: HandleMsg,
 ) -> StdResult<HandleResponse> {
     match msg {
-        // core
-        HandleMsg::Receive(msg) => CoreHandler::receive(deps, env, msg),
-        HandleMsg::Update {} => CoreHandler::update(deps, &env, None),
-        HandleMsg::Withdraw { amount } => CoreHandler::withdraw(deps, env, amount),
-        HandleMsg::Claim {} => CoreHandler::claim(deps, env),
+        // router
+        HandleMsg::Receive(msg) => Router::receive(deps, env, msg),
+        HandleMsg::Withdraw { amount } => Router::withdraw(deps, env, amount),
+        HandleMsg::Claim {} => Router::claim(deps, env),
+        // internal
+        HandleMsg::Update { target } => Core::update(deps, env, target),
+        HandleMsg::DepositInternal { sender, amount } => {
+            Core::deposit_internal(deps, env, sender, amount)
+        }
+        HandleMsg::WithdrawInternal { sender, amount } => {
+            Core::withdraw_internal(deps, env, sender, amount)
+        }
+        HandleMsg::ClaimInternal { sender } => Core::claim_internal(deps, env, sender),
     }
 }
 
@@ -60,11 +69,11 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
     msg: QueryMsg,
 ) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Config {} => QueryHandler::config(deps),
-        QueryMsg::Reward {} => QueryHandler::reward(deps),
-        QueryMsg::BalanceOf { owner } => QueryHandler::balance_of(deps, owner),
+        QueryMsg::Config {} => Query::config(deps),
+        QueryMsg::Reward {} => Query::reward(deps),
+        QueryMsg::BalanceOf { owner } => Query::balance_of(deps, owner),
         QueryMsg::ClaimableReward { owner, timestamp } => {
-            QueryHandler::claimable_reward(deps, owner, timestamp)
+            Query::claimable_reward(deps, owner, timestamp)
         }
     }
 }

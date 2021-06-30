@@ -19,9 +19,13 @@ pub struct InitMsg {
 pub enum HandleMsg {
     // core
     Receive(Cw20ReceiveMsg),
-    Update {},
+    Update { target: Option<HumanAddr> },
     Withdraw { amount: Uint256 },
     Claim {},
+    // internal
+    DepositInternal { sender: HumanAddr, amount: Uint256 },
+    WithdrawInternal { sender: HumanAddr, amount: Uint256 },
+    ClaimInternal { sender: HumanAddr },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

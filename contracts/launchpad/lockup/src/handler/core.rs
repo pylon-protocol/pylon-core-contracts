@@ -1,41 +1,18 @@
 use cosmwasm_bignumber::Uint256;
-use cosmwasm_std::{from_binary, log, to_binary, CosmosMsg, HumanAddr, StdError, WasmMsg};
+use cosmwasm_std::{log, to_binary, CosmosMsg, HumanAddr, StdError, WasmMsg};
 use cosmwasm_std::{Api, Env, Extern, HandleResponse, Querier, StdResult, Storage};
-use cw20::{Cw20HandleMsg, Cw20ReceiveMsg};
+use cw20::Cw20HandleMsg;
 use std::ops::{Add, Sub};
 
-use pylon_launchpad::lockup_msg::Cw20HookMsg;
+use pylon_launchpad::lockup_msg::HandleMsg;
 
 use crate::lib_staking as staking;
 use crate::state;
 
-pub fn receive<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
-    env: Env,
-    cw20_msg: Cw20ReceiveMsg,
-) -> StdResult<HandleResponse> {
-    let sender = env.message.sender.clone();
-
-    if let Some(msg) = cw20_msg.msg {
-        match from_binary(&msg)? {
-            Cw20HookMsg::Deposit {} => {
-                let config: state::Config = state::read_config(&deps.storage)?;
-                if deps.api.canonical_address(&sender)? != config.share_token {
-                    return Err(StdError::unauthorized());
-                }
-
-                deposit(deps, env, cw20_msg.sender, Uint256::from(cw20_msg.amount))
-            }
-        }
-    } else {
-        Err(StdError::generic_err("Staking: unsupported message"))
-    }
-}
-
 pub fn update<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
-    env: &Env,
-    target: Option<&HumanAddr>,
+    env: Env,
+    target: Option<HumanAddr>,
 ) -> StdResult<HandleResponse> {
     let config: state::Config = state::read_config(&deps.storage)?;
     let mut reward: state::Reward = state::read_reward(&deps.storage)?;
@@ -55,8 +32,9 @@ pub fn update<S: Storage, A: Api, Q: Querier>(
     state::store_reward(&mut deps.storage, &reward)?;
 
     // user
+    let mut user_update_logs = vec![];
     if let Some(target) = target {
-        let t = deps.api.canonical_address(target)?;
+        let t = deps.api.canonical_address(&target)?;
 
         let mut user: state::User = state::read_user(&deps.storage, &t)?;
 
@@ -65,50 +43,28 @@ pub fn update<S: Storage, A: Api, Q: Querier>(
         user.reward_per_token_paid = reward.reward_per_token_stored;
 
         state::store_user(&mut deps.storage, &t, &user)?;
+
+        user_update_logs.append(&mut vec![log("target", target), log("reward", user.reward)]);
     }
-
-    Ok(HandleResponse::default())
-}
-
-pub fn deposit<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
-    env: Env,
-    sender: HumanAddr,
-    amount: Uint256,
-) -> StdResult<HandleResponse> {
-    let config: state::Config = state::read_config(&deps.storage)?;
-
-    // check time range // open_deposit flag
-    if env.block.time.gt(&config.start_time) && env.block.time.lt(&config.finish_time) {
-        return Err(StdError::unauthorized());
-    }
-
-    update(deps, &env, Option::from(&sender))?;
-
-    let owner = deps.api.canonical_address(&sender)?;
-    let mut reward: state::Reward = state::read_reward(&deps.storage)?;
-    let mut user: state::User = state::read_user(&deps.storage, &owner)?;
-
-    reward.total_deposit = reward.total_deposit.add(amount);
-    user.amount = user.amount.add(amount);
-
-    state::store_reward(&mut deps.storage, &reward)?;
-    state::store_user(&mut deps.storage, &owner, &user)?;
 
     Ok(HandleResponse {
         messages: vec![],
-        log: vec![
-            log("action", "deposit"),
-            log("sender", sender),
-            log("deposit_amount", amount),
-        ],
+        log: [
+            vec![
+                log("action", "update"),
+                log("sender", env.message.sender.clone()),
+                log("stored_rpt", reward.reward_per_token_stored),
+            ],
+            user_update_logs,
+        ]
+        .concat(),
         data: None,
     })
 }
-
-pub fn withdraw<S: Storage, A: Api, Q: Querier>(
+pub fn withdraw_internal<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
+    sender: HumanAddr,
     amount: Uint256,
 ) -> StdResult<HandleResponse> {
     let config: state::Config = state::read_config(&deps.storage)?;
@@ -118,10 +74,7 @@ pub fn withdraw<S: Storage, A: Api, Q: Querier>(
         return Err(StdError::unauthorized());
     }
 
-    let sender = &env.message.sender;
-    update(deps, &env, Option::from(sender))?;
-
-    let owner = deps.api.canonical_address(sender)?;
+    let owner = deps.api.canonical_address(&sender)?;
     let mut reward: state::Reward = state::read_reward(&deps.storage)?;
     let mut user: state::User = state::read_user(&deps.storage, &owner)?;
 
@@ -155,10 +108,47 @@ pub fn withdraw<S: Storage, A: Api, Q: Querier>(
     })
 }
 
-pub fn claim<S: Storage, A: Api, Q: Querier>(
+pub fn deposit_internal<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
+    sender: HumanAddr,
+    amount: Uint256,
 ) -> StdResult<HandleResponse> {
+    if !env.message.sender.eq(&env.contract.address) {
+        return Err(StdError::unauthorized());
+    }
+    let config: state::Config = state::read_config(&deps.storage)?;
+
+    // check time range // open_deposit flag
+    if env.block.time.gt(&config.start_time) && env.block.time.lt(&config.finish_time) {
+        return Err(StdError::unauthorized());
+    }
+
+    let owner = deps.api.canonical_address(&sender)?;
+    let mut reward: state::Reward = state::read_reward(&deps.storage)?;
+    let mut user: state::User = state::read_user(&deps.storage, &owner)?;
+
+    reward.total_deposit = reward.total_deposit.add(amount);
+    user.amount = user.amount.add(amount);
+
+    state::store_reward(&mut deps.storage, &reward)?;
+    state::store_user(&mut deps.storage, &owner, &user)?;
+
+    Ok(HandleResponse {
+        messages: vec![],
+        log: vec![],
+        data: None,
+    })
+}
+
+pub fn claim_internal<S: Storage, A: Api, Q: Querier>(
+    deps: &mut Extern<S, A, Q>,
+    env: Env,
+    sender: HumanAddr,
+) -> StdResult<HandleResponse> {
+    if !env.message.sender.eq(&env.contract.address) {
+        return Err(StdError::unauthorized());
+    }
     let config: state::Config = state::read_config(&deps.storage)?;
 
     // check time range // open_claim flag
@@ -166,10 +156,7 @@ pub fn claim<S: Storage, A: Api, Q: Querier>(
         return Err(StdError::unauthorized());
     }
 
-    let sender = &env.message.sender;
-    update(deps, &env, Option::from(sender))?;
-
-    let owner = deps.api.canonical_address(sender)?;
+    let owner = deps.api.canonical_address(&sender)?;
     let mut user: state::User = state::read_user(&deps.storage, &owner)?;
 
     let claim_amount = user.reward;
