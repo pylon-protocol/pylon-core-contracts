@@ -61,6 +61,7 @@ pub fn update<S: Storage, A: Api, Q: Querier>(
         data: None,
     })
 }
+
 pub fn withdraw_internal<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
