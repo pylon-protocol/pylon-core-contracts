@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 pub struct InitMsg {}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
 pub enum HandleMsg {
     Update {
         token: HumanAddr,
@@ -32,6 +33,7 @@ pub enum HandleMsg {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     ExchangeRateOf {
         token: HumanAddr,
