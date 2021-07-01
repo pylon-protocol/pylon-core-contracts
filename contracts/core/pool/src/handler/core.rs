@@ -66,10 +66,13 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
 
     let deposit_amount = deduct_tax(
         deps,
-        Coin {
-            denom: config.stable_denom.clone(),
-            amount: received.into(),
-        },
+        deduct_tax(
+            deps,
+            Coin {
+                denom: config.stable_denom.clone(),
+                amount: received.into(),
+            },
+        )?,
     )?
     .amount;
 
