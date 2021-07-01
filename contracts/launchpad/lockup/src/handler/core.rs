@@ -151,7 +151,7 @@ pub fn claim_internal<S: Storage, A: Api, Q: Querier>(
     let config: state::Config = state::read_config(&deps.storage)?;
 
     // check time range // open_claim flag
-    if env.block.time.gt(&config.cliff_time) {
+    if env.block.time.lt(&config.cliff_time) {
         return Err(StdError::unauthorized());
     }
 
