@@ -72,7 +72,7 @@ pub fn deposit_internal<S: Storage, A: Api, Q: Querier>(
     let config: state::Config = state::read_config(&deps.storage)?;
 
     // check time range // open_deposit flag
-    if env.block.time.gt(&config.start_time) && env.block.time.lt(&config.finish_time) {
+    if env.block.time.lt(&config.start_time) && env.block.time.gt(&config.finish_time) {
         return Err(StdError::unauthorized());
     }
 
