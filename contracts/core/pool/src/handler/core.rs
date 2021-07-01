@@ -64,20 +64,11 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
         )));
     }
 
-    let anchor_deposit_amount = deduct_tax(
-        deps,
-        Coin {
-            denom: config.stable_denom.clone(),
-            amount: received.into(),
-        },
-    )?
-    .amount;
-
     let dp_mint_amount = deduct_tax(
         deps,
         Coin {
             denom: config.stable_denom.clone(),
-            amount: anchor_deposit_amount.clone(),
+            amount: received.into(),
         },
     )?
     .amount;
@@ -89,7 +80,7 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
                 deps,
                 &config.moneymarket,
                 &config.stable_denom,
-                anchor_deposit_amount,
+                received.into(),
             )?,
             vec![CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: deps.api.human_address(&config.dp_token)?,
@@ -121,15 +112,11 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
     let epoch_state = querier::anchor::epoch_state(deps, &config.moneymarket)?;
     let market_redeem_amount = Uint256::from(amount).div(epoch_state.exchange_rate);
     let user_redeem_amount = deduct_tax(
-        // double deduction - make sense
         deps,
-        deduct_tax(
-            deps,
-            Coin {
-                denom: config.stable_denom.clone(),
-                amount: market_redeem_amount.into(),
-            },
-        )?,
+        Coin {
+            denom: config.stable_denom.clone(),
+            amount: amount.into(),
+        },
     )?;
 
     Ok(HandleResponse {
