@@ -64,15 +64,21 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
         )));
     }
 
-    let deposit_amount = deduct_tax(
+    let anchor_deposit_amount = deduct_tax(
         deps,
-        deduct_tax(
-            deps,
-            Coin {
-                denom: config.stable_denom.clone(),
-                amount: received.into(),
-            },
-        )?,
+        Coin {
+            denom: config.stable_denom.clone(),
+            amount: received.into(),
+        },
+    )?
+    .amount;
+
+    let dp_mint_amount = deduct_tax(
+        deps,
+        Coin {
+            denom: config.stable_denom.clone(),
+            amount: anchor_deposit_amount.clone(),
+        },
     )?
     .amount;
 
@@ -83,13 +89,13 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
                 deps,
                 &config.moneymarket,
                 &config.stable_denom,
-                deposit_amount,
+                anchor_deposit_amount,
             )?,
             vec![CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: deps.api.human_address(&config.dp_token)?,
                 msg: to_binary(&Cw20HandleMsg::Mint {
                     recipient: env.message.sender.clone(),
-                    amount: deposit_amount,
+                    amount: dp_mint_amount.clone(),
                 })?,
                 send: vec![],
             })],
@@ -98,7 +104,7 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
         log: vec![
             log("action", "deposit"),
             log("sender", env.message.sender),
-            log("amount", deposit_amount.to_string()),
+            log("amount", dp_mint_amount),
         ],
         data: None,
     })
