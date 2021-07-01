@@ -4,8 +4,6 @@ use cosmwasm_std::{Api, Env, Extern, HandleResponse, Querier, StdResult, Storage
 use cw20::Cw20HandleMsg;
 use std::ops::{Add, Sub};
 
-use pylon_launchpad::lockup_msg::HandleMsg;
-
 use crate::lib_staking as staking;
 use crate::state;
 
@@ -62,6 +60,39 @@ pub fn update<S: Storage, A: Api, Q: Querier>(
     })
 }
 
+pub fn deposit_internal<S: Storage, A: Api, Q: Querier>(
+    deps: &mut Extern<S, A, Q>,
+    env: Env,
+    sender: HumanAddr,
+    amount: Uint256,
+) -> StdResult<HandleResponse> {
+    if !env.message.sender.eq(&env.contract.address) {
+        return Err(StdError::unauthorized());
+    }
+    let config: state::Config = state::read_config(&deps.storage)?;
+
+    // check time range // open_deposit flag
+    if env.block.time.gt(&config.start_time) && env.block.time.lt(&config.finish_time) {
+        return Err(StdError::unauthorized());
+    }
+
+    let owner = deps.api.canonical_address(&sender)?;
+    let mut reward: state::Reward = state::read_reward(&deps.storage)?;
+    let mut user: state::User = state::read_user(&deps.storage, &owner)?;
+
+    reward.total_deposit = reward.total_deposit.add(amount);
+    user.amount = user.amount.add(amount);
+
+    state::store_reward(&mut deps.storage, &reward)?;
+    state::store_user(&mut deps.storage, &owner, &user)?;
+
+    Ok(HandleResponse {
+        messages: vec![],
+        log: vec![],
+        data: None,
+    })
+}
+
 pub fn withdraw_internal<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
@@ -105,39 +136,6 @@ pub fn withdraw_internal<S: Storage, A: Api, Q: Querier>(
             log("sender", sender),
             log("withdraw_amount", amount),
         ],
-        data: None,
-    })
-}
-
-pub fn deposit_internal<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
-    env: Env,
-    sender: HumanAddr,
-    amount: Uint256,
-) -> StdResult<HandleResponse> {
-    if !env.message.sender.eq(&env.contract.address) {
-        return Err(StdError::unauthorized());
-    }
-    let config: state::Config = state::read_config(&deps.storage)?;
-
-    // check time range // open_deposit flag
-    if env.block.time.gt(&config.start_time) && env.block.time.lt(&config.finish_time) {
-        return Err(StdError::unauthorized());
-    }
-
-    let owner = deps.api.canonical_address(&sender)?;
-    let mut reward: state::Reward = state::read_reward(&deps.storage)?;
-    let mut user: state::User = state::read_user(&deps.storage, &owner)?;
-
-    reward.total_deposit = reward.total_deposit.add(amount);
-    user.amount = user.amount.add(amount);
-
-    state::store_reward(&mut deps.storage, &reward)?;
-    state::store_user(&mut deps.storage, &owner, &user)?;
-
-    Ok(HandleResponse {
-        messages: vec![],
-        log: vec![],
         data: None,
     })
 }
