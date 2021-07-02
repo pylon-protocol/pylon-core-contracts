@@ -156,7 +156,10 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
     // calculate deduct(total_aust_amount * exchange_rate) - (total_dp_balance)
     let config = config::read(&deps.storage)?;
     if config.beneficiary != deps.api.canonical_address(&env.message.sender)? {
-        return Err(StdError::unauthorized());
+        return Err(StdError::generic_err(format!(
+            "Pool: cannot execute earn function with unauthorized sender. (sender: {})",
+            env.message.sender,
+        )));
     }
 
     // assets
