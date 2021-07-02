@@ -16,7 +16,7 @@ pub fn update<S: Storage, A: Api, Q: Querier>(
 
     let mut token: state::Token = state::read_token(&deps.storage, &token_addr)?;
     if token.status.ne(&state::Status::Running) {
-        return Err(StdError::unauthorized());
+        return Err(StdError::generic_err("Feeder: invalid token status"));
     }
 
     let elapsed = env.block.time.sub(token.last_updated_at);
@@ -52,7 +52,10 @@ fn check_owner<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<()> {
     let config: state::Config = state::read_config(&deps.storage)?;
     if config.owner.ne(caller) {
-        return Err(StdError::unauthorized());
+        return Err(StdError::generic_err(format!(
+            "Feeder: only owner can execute this function. (owner: {}, sender: {})",
+            config.owner, caller,
+        )));
     }
 
     Ok(())
