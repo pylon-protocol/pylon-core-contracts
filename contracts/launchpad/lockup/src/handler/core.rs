@@ -13,11 +13,10 @@ pub fn update<S: Storage, A: Api, Q: Querier>(
     target: Option<HumanAddr>,
 ) -> StdResult<HandleResponse> {
     let config: state::Config = state::read_config(&deps.storage)?;
-    let mut reward: state::Reward = state::read_reward(&deps.storage)?;
-
     let applicable_reward_time = std::cmp::min(config.finish_time, env.block.time);
 
     // reward
+    let mut reward: state::Reward = state::read_reward(&deps.storage)?;
     reward.reward_per_token_stored =
         reward
             .reward_per_token_stored
@@ -50,7 +49,7 @@ pub fn update<S: Storage, A: Api, Q: Querier>(
         log: [
             vec![
                 log("action", "update"),
-                log("sender", env.message.sender.clone()),
+                log("sender", env.message.sender),
                 log("stored_rpt", reward.reward_per_token_stored),
             ],
             user_update_logs,
@@ -67,13 +66,19 @@ pub fn deposit_internal<S: Storage, A: Api, Q: Querier>(
     amount: Uint256,
 ) -> StdResult<HandleResponse> {
     if !env.message.sender.eq(&env.contract.address) {
-        return Err(StdError::unauthorized());
+        return Err(StdError::generic_err(format!(
+            "Lockup: cannot execute internal function with unauthorized sender. (sender: {})",
+            env.message.sender,
+        )));
     }
     let config: state::Config = state::read_config(&deps.storage)?;
 
     // check time range // open_deposit flag
     if env.block.time.lt(&config.start_time) && env.block.time.gt(&config.finish_time) {
-        return Err(StdError::unauthorized());
+        return Err(StdError::generic_err(format!(
+            "Lockup: cannot deposit tokens out of period range. (now: {}, starts: {}, ends: {})",
+            env.block.time, config.start_time, config.finish_time,
+        )));
     }
 
     let owner = deps.api.canonical_address(&sender)?;
@@ -88,7 +93,11 @@ pub fn deposit_internal<S: Storage, A: Api, Q: Querier>(
 
     Ok(HandleResponse {
         messages: vec![],
-        log: vec![],
+        log: vec![
+            log("action", "deposit"),
+            log("sender", env.message.sender),
+            log("deposit_amount", amount),
+        ],
         data: None,
     })
 }
@@ -99,11 +108,21 @@ pub fn withdraw_internal<S: Storage, A: Api, Q: Querier>(
     sender: HumanAddr,
     amount: Uint256,
 ) -> StdResult<HandleResponse> {
+    if !env.message.sender.eq(&env.contract.address) {
+        return Err(StdError::generic_err(format!(
+            "Lockup: cannot execute internal function with unauthorized sender. (sender: {})",
+            env.message.sender,
+        )));
+    }
+
     let config: state::Config = state::read_config(&deps.storage)?;
 
     // check time range // open_withdraw flag
     if env.block.time.lt(&config.finish_time) {
-        return Err(StdError::unauthorized());
+        return Err(StdError::generic_err(format!(
+            "Lockup: cannot withdraw tokens during lockup period. (now: {}, ends: {})",
+            env.block.time, config.finish_time,
+        )));
     }
 
     let owner = deps.api.canonical_address(&sender)?;
@@ -146,13 +165,20 @@ pub fn claim_internal<S: Storage, A: Api, Q: Querier>(
     sender: HumanAddr,
 ) -> StdResult<HandleResponse> {
     if !env.message.sender.eq(&env.contract.address) {
-        return Err(StdError::unauthorized());
+        return Err(StdError::generic_err(format!(
+            "Lockup: cannot execute internal function with unauthorized sender. (sender: {})",
+            env.message.sender,
+        )));
     }
+
     let config: state::Config = state::read_config(&deps.storage)?;
 
     // check time range // open_claim flag
     if env.block.time.lt(&config.cliff_time) {
-        return Err(StdError::unauthorized());
+        return Err(StdError::generic_err(format!(
+            "Lockup: cannot claim rewards during lockup period. (now: {}, ends: {})",
+            env.block.time, config.cliff_time
+        )));
     }
 
     let owner = deps.api.canonical_address(&sender)?;
