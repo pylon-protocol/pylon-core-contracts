@@ -1,4 +1,4 @@
-use cosmwasm_bignumber::Uint256;
+use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::{
     from_binary, log, to_binary, Api, BankMsg, CanonicalAddr, Coin, CosmosMsg, Env, Extern,
     HandleResponse, HumanAddr, Querier, StdError, StdResult, Storage, Uint128, WasmMsg,
@@ -164,17 +164,10 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
 
     // assets
     let epoch_state = querier::anchor::epoch_state(deps, &config.moneymarket)?;
-    let virtual_exchange_rate = querier::feeder::fetch(
-        deps,
-        &config.exchange_rate_feeder,
-        Option::from(env.block.time),
-        &deps.api.human_address(&config.dp_token)?,
-    )?;
-
-    // collector
     let atoken_balance =
         querier::token::balance_of(deps, &config.atoken, env.contract.address.clone())?;
     let dp_total_supply = querier::token::total_supply(deps, &config.dp_token)?;
+
     let pool_value_locked = Uint256::from(
         deduct_tax(
             deps,
@@ -185,18 +178,8 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
         )?
         .amount,
     );
-    let vpool_value_locked = Uint256::from(
-        deduct_tax(
-            deps,
-            Coin {
-                denom: config.stable_denom.clone(),
-                amount: (Uint256::from(atoken_balance).mul(virtual_exchange_rate)).into(),
-            },
-        )?
-        .amount,
-    );
     let earnable = pool_value_locked.sub(Uint256::from(dp_total_supply));
-    let fee = pool_value_locked.sub(vpool_value_locked);
+    let fee = earnable.div(Decimal256::from_uint256(5)); // TODO: fix it (20%)
 
     Ok(HandleResponse {
         messages: [
