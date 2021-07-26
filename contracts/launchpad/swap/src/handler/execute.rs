@@ -18,6 +18,10 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
     let config = state::read_config(&deps.storage)?;
     let vpool = state::read_vpool(&deps.storage)?;
 
+    if config.finish.lt(&env.block.time) {
+        return Err(StdError::unauthorized());
+    }
+
     // 1:1
     let received: Uint256 = env
         .message
