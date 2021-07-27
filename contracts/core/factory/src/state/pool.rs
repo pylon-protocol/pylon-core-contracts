@@ -8,6 +8,7 @@ use cosmwasm_storage::{Bucket, ReadonlyBucket};
 pub static PREFIX_POOL: &[u8] = b"pool";
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
 pub enum Status {
     Neutral,
     Ready,
