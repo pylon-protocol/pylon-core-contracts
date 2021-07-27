@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Pool",
+  "type": "object",
+  "required": [
+    "address",
+    "id",
+    "status"
+  ],
+  "properties": {
+    "address": {
+      "$ref": "#/definitions/CanonicalAddr"
+    },
+    "id": {
+      "$ref": "#/definitions/Uint256"
+    },
+    "status": {
+      "$ref": "#/definitions/Status"
+    }
+  },
+  "definitions": {
+    "Binary": {
+      "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>",
+      "type": "string"
+    },
+    "CanonicalAddr": {
+      "$ref": "#/definitions/Binary"
+    },
+    "Status": {
+      "type": "string",
+      "enum": [
+        "Neutral",
+        "Ready",
+        "Deployed"
+      ]
+    },
+    "Uint256": {
+      "type": "string"
+    }
+  }
+}
