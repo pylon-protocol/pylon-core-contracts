@@ -73,6 +73,10 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
         HandleMsg::Receive(msg) => CoreHandler::receive(deps, env, msg),
         HandleMsg::Deposit {} => CoreHandler::deposit(deps, env),
         HandleMsg::Earn {} => CoreHandler::earn(deps, env),
+        HandleMsg::Configure {
+            beneficiary,
+            fee_collector,
+        } => CoreHandler::configure(deps, beneficiary, fee_collector, env),
     }
 }
 

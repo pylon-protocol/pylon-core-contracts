@@ -21,6 +21,10 @@ pub enum HandleMsg {
     Receive(Cw20ReceiveMsg),
     Deposit {}, // UST -> DP (user)
     Earn {},    // x -> UST (beneficiary)
+    Configure {
+        beneficiary: HumanAddr,
+        fee_collector: HumanAddr,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

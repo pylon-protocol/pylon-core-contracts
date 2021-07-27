@@ -7,6 +7,7 @@ use cw20::{Cw20HandleMsg, Cw20ReceiveMsg};
 use moneymarket::querier::deduct_tax;
 use pylon_core::pool_msg::Cw20HookMsg;
 use std::ops::{Div, Mul, Sub};
+use std::str::FromStr;
 
 use crate::config;
 use crate::querier;
@@ -75,7 +76,6 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
 
     Ok(HandleResponse {
         messages: [
-            querier::feeder::update_msg(deps, &config.exchange_rate_feeder, &config.dp_token)?,
             querier::anchor::deposit_stable_msg(
                 deps,
                 &config.moneymarket,
@@ -121,7 +121,6 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
 
     Ok(HandleResponse {
         messages: [
-            querier::feeder::update_msg(deps, &config.exchange_rate_feeder, &config.dp_token)?,
             vec![CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: deps.api.human_address(&config.dp_token)?,
                 msg: to_binary(&Cw20HandleMsg::Burn { amount })?,
@@ -179,33 +178,38 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
         .amount,
     );
     let earnable = pool_value_locked.sub(Uint256::from(dp_total_supply));
-    let fee = earnable.div(Decimal256::from_uint256(5)); // TODO: fix it (20%)
+    let fee = earnable.div(Decimal256::from_str("5.0")?); // TODO: fix it (20%)
 
     Ok(HandleResponse {
         messages: [
-            querier::feeder::update_msg(deps, &config.exchange_rate_feeder, &config.dp_token)?,
             querier::anchor::redeem_stable_msg(
                 deps,
                 &config.moneymarket,
                 &config.atoken,
-                earnable.mul(epoch_state.exchange_rate).into(),
+                earnable.div(epoch_state.exchange_rate).into(),
             )?,
             vec![
                 CosmosMsg::Bank(BankMsg::Send {
                     from_address: env.contract.address.clone(),
                     to_address: deps.api.human_address(&config.beneficiary)?,
-                    amount: vec![Coin {
-                        denom: config.stable_denom.clone(),
-                        amount: earnable.sub(fee).into(),
-                    }],
+                    amount: vec![deduct_tax(
+                        deps,
+                        Coin {
+                            denom: config.stable_denom.clone(),
+                            amount: earnable.sub(fee).into(),
+                        },
+                    )?],
                 }),
                 CosmosMsg::Bank(BankMsg::Send {
                     from_address: env.contract.address.clone(),
                     to_address: deps.api.human_address(&config.fee_collector)?,
-                    amount: vec![Coin {
-                        denom: config.stable_denom.clone(),
-                        amount: fee.into(),
-                    }],
+                    amount: vec![deduct_tax(
+                        deps,
+                        Coin {
+                            denom: config.stable_denom.clone(),
+                            amount: fee.into(),
+                        },
+                    )?],
                 }),
             ],
         ]
@@ -218,6 +222,27 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
         ],
         data: None,
     })
+}
+
+pub fn configure<S: Storage, A: Api, Q: Querier>(
+    deps: &mut Extern<S, A, Q>,
+    beneficiary: HumanAddr,
+    fee_collector: HumanAddr,
+    env: Env,
+) -> StdResult<HandleResponse> {
+    let mut config = config::read(&deps.storage)?;
+    if config.owner != deps.api.canonical_address(&env.message.sender)? {
+        return Err(StdError::generic_err(format!(
+            "Pool: cannot execute configure function with unauthorized sender. (sender: {})",
+            env.message.sender,
+        )));
+    }
+
+    config.beneficiary = deps.api.canonical_address(&beneficiary)?;
+    config.fee_collector = deps.api.canonical_address(&fee_collector)?;
+    config::store(&mut deps.storage, &config)?;
+
+    Ok(HandleResponse::default())
 }
 
 pub fn register_dp_token<S: Storage, A: Api, Q: Querier>(
