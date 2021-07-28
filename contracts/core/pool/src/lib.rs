@@ -1,8 +1,6 @@
-// core
-pub mod config;
-pub mod contract;
+mod contract;
+pub mod state;
 
-// querier
 mod handler;
 mod querier;
 

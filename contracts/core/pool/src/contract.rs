@@ -1,6 +1,6 @@
 use cosmwasm_std::{
     to_binary, Api, Binary, CanonicalAddr, CosmosMsg, Env, Extern, HandleResponse, InitResponse,
-    MigrateResponse, MigrateResult, Querier, StdResult, Storage, WasmMsg,
+    MigrateResponse, MigrateResult, Querier, QueryRequest, StdResult, Storage, WasmMsg, WasmQuery,
 };
 
 use cw20::MinterResponse;
@@ -9,7 +9,10 @@ use terraswap::token::InitMsg as Cw20InitMsg;
 
 use crate::handler::core as CoreHandler;
 use crate::handler::query as QueryHandler;
-use crate::{config, querier};
+use crate::state::config;
+
+use pylon_core::adapter::{ConfigResponse, QueryMsg as AdapterQueryMsg};
+use pylon_core::factory_msg::HandleMsg as FactoryHandleMsg;
 use pylon_core::pool_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
@@ -17,48 +20,56 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     env: Env,
     msg: InitMsg,
 ) -> StdResult<InitResponse> {
-    let sender = env.message.sender;
-    let raw_sender = deps.api.canonical_address(&sender)?;
+    let adapter_config: ConfigResponse =
+        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
+            contract_addr: msg.yield_adapter.clone(),
+            msg: to_binary(&AdapterQueryMsg::Config {})?,
+        }))?;
 
-    let mut config = config::Config {
+    let config = config::Config {
+        id: msg.pool_id.clone(),
+        name: msg.pool_name.clone(),
         this: deps.api.canonical_address(&env.contract.address)?,
-        owner: raw_sender,
+        factory: deps.api.canonical_address(&env.message.sender)?,
         beneficiary: deps.api.canonical_address(&msg.beneficiary)?,
         fee_collector: deps.api.canonical_address(&msg.fee_collector)?,
-        exchange_rate_feeder: deps.api.canonical_address(&msg.exchange_rate_feeder)?,
-        moneymarket: deps.api.canonical_address(&msg.moneymarket)?,
-        stable_denom: String::default(),
-        atoken: CanonicalAddr::default(),
+        yield_adapter: deps.api.canonical_address(&msg.yield_adapter)?,
+        input_denom: adapter_config.input_denom,
+        yield_token: deps.api.canonical_address(&adapter_config.yield_token)?,
         dp_token: CanonicalAddr::default(),
     };
-
-    let market_config = querier::anchor::config(deps, &config.moneymarket)?;
-
-    config.stable_denom = market_config.stable_denom.clone();
-    config.atoken = deps.api.canonical_address(&market_config.aterra_contract)?;
 
     config::store(&mut deps.storage, &config)?;
 
     Ok(InitResponse {
-        messages: vec![CosmosMsg::Wasm(WasmMsg::Instantiate {
-            code_id: msg.dp_code_id,
-            send: vec![],
-            label: None,
-            msg: to_binary(&Cw20InitMsg {
-                name: format!("Deposit Token - {}", msg.pool_name),
-                symbol: "PylonDP".to_string(),
-                decimals: 6u8,
-                initial_balances: vec![],
-                mint: Some(MinterResponse {
-                    minter: env.contract.address.clone(),
-                    cap: None,
-                }),
-                init_hook: Some(Cw20InitHook {
-                    contract_addr: env.contract.address,
-                    msg: to_binary(&HandleMsg::RegisterDPToken {})?,
-                }),
-            })?,
-        })],
+        messages: vec![
+            CosmosMsg::Wasm(WasmMsg::Instantiate {
+                code_id: msg.dp_code_id,
+                send: vec![],
+                label: None,
+                msg: to_binary(&Cw20InitMsg {
+                    name: "Pylon Deposit Token".to_string(),
+                    symbol: "DPv1".to_string(),
+                    decimals: 6u8,
+                    initial_balances: vec![],
+                    mint: Some(MinterResponse {
+                        minter: env.contract.address.clone(),
+                        cap: None,
+                    }),
+                    init_hook: Some(Cw20InitHook {
+                        contract_addr: env.contract.address,
+                        msg: to_binary(&HandleMsg::RegisterDPToken {})?,
+                    }),
+                })?,
+            }),
+            CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: deps.api.human_address(&config.factory)?,
+                send: vec![],
+                msg: to_binary(&FactoryHandleMsg::RegisterPool {
+                    pool_id: msg.pool_id,
+                })?,
+            }),
+        ],
         log: vec![],
     })
 }
@@ -73,10 +84,6 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
         HandleMsg::Receive(msg) => CoreHandler::receive(deps, env, msg),
         HandleMsg::Deposit {} => CoreHandler::deposit(deps, env),
         HandleMsg::Earn {} => CoreHandler::earn(deps, env),
-        HandleMsg::Configure {
-            beneficiary,
-            fee_collector,
-        } => CoreHandler::configure(deps, beneficiary, fee_collector, env),
     }
 }
 
@@ -85,10 +92,10 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
     msg: QueryMsg,
 ) -> StdResult<Binary> {
     match msg {
-        QueryMsg::DepositAmountOf { owner } => QueryHandler::deposit_amount(deps, owner), // dp_token.balanceOf(msg.sender)
-        QueryMsg::TotalDepositAmount {} => QueryHandler::total_deposit_amount(deps), // dp_token.totalSupply()
-        QueryMsg::Config {} => QueryHandler::config(deps),                           // config
-        QueryMsg::ClaimableReward {} => QueryHandler::claimable_reward(deps), // config.strategy.reward()
+        QueryMsg::Config {} => QueryHandler::config(deps),
+        QueryMsg::DepositAmountOf { owner } => QueryHandler::deposit_amount(deps, owner),
+        QueryMsg::TotalDepositAmount {} => QueryHandler::total_deposit_amount(deps),
+        QueryMsg::ClaimableReward {} => QueryHandler::claimable_reward(deps),
     }
 }
 

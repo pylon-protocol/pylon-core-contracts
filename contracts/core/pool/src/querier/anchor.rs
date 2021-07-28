@@ -3,10 +3,11 @@ use cosmwasm_std::{
     to_binary, Api, CanonicalAddr, Coin, CosmosMsg, Extern, HumanAddr, Querier, QueryRequest,
     StdResult, Storage, Uint128, WasmMsg, WasmQuery,
 };
-use cw20::Cw20HandleMsg;
-use moneymarket::querier::deduct_tax;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+
+use cw20::Cw20HandleMsg;
+use moneymarket::querier::deduct_tax;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
