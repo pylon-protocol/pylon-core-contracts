@@ -2,8 +2,12 @@
 members = [
     "packages/*",
     "contracts/core/*",
+    "contracts/core/adapters/*",
     "contracts/launchpad/*",
     "contracts/token/*",
+]
+exclude = [
+    "contracts/core/adapters",
 ]
 
 [profile.release]
