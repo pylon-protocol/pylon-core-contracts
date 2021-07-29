@@ -177,39 +177,38 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
     let exchange_rate = adapter::exchange_rate(deps, &config.yield_adapter, &config.input_denom)?;
 
     Ok(HandleResponse {
-        messages: vec![
-            CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: deps.api.human_address(&config.yield_token)?,
-                msg: to_binary(&Cw20HandleMsg::Send {
-                    contract: deps.api.human_address(&config.yield_adapter)?,
-                    amount: reward.total().div(exchange_rate).into(),
-                    msg: Option::from(to_binary(&AdapterHookMsg::Redeem {})?),
-                })?,
-                send: vec![],
-            }),
-            CosmosMsg::Bank(BankMsg::Send {
-                from_address: env.contract.address.clone(),
-                to_address: deps.api.human_address(&config.beneficiary)?,
-                amount: vec![deduct_tax(
-                    deps,
-                    Coin {
-                        denom: config.input_denom.clone(),
-                        amount: reward.amount.into(),
-                    },
-                )?],
-            }),
-            CosmosMsg::Bank(BankMsg::Send {
-                from_address: env.contract.address.clone(),
-                to_address: deps.api.human_address(&config.fee_collector)?,
-                amount: vec![deduct_tax(
-                    deps,
-                    Coin {
-                        denom: config.input_denom.clone(),
-                        amount: reward.fee.into(),
-                    },
-                )?],
-            }),
-        ],
+        messages: [
+            adapter::redeem(
+                deps,
+                &config.yield_adapter,
+                reward.total().div(exchange_rate).into(),
+            )?,
+            vec![
+                CosmosMsg::Bank(BankMsg::Send {
+                    from_address: env.contract.address.clone(),
+                    to_address: deps.api.human_address(&config.beneficiary)?,
+                    amount: vec![deduct_tax(
+                        deps,
+                        Coin {
+                            denom: config.input_denom.clone(),
+                            amount: reward.amount.into(),
+                        },
+                    )?],
+                }),
+                CosmosMsg::Bank(BankMsg::Send {
+                    from_address: env.contract.address.clone(),
+                    to_address: deps.api.human_address(&config.fee_collector)?,
+                    amount: vec![deduct_tax(
+                        deps,
+                        Coin {
+                            denom: config.input_denom.clone(),
+                            amount: reward.fee.into(),
+                        },
+                    )?],
+                }),
+            ],
+        ]
+        .concat(),
         log: vec![
             log("action", "claim_reward"),
             log("sender", env.message.sender),

@@ -1,8 +1,7 @@
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{Api, Coin, Extern, Querier, StdResult, Storage};
+use pylon_utils::tax::deduct_tax;
 use std::ops::{Add, Div, Mul, Sub};
-
-use moneymarket::querier::deduct_tax;
 
 use crate::querier::{adapter, factory, token};
 use crate::state::config;

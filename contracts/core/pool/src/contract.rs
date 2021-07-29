@@ -1,30 +1,25 @@
 use cosmwasm_std::{
     to_binary, Api, Binary, CanonicalAddr, CosmosMsg, Env, Extern, HandleResponse, InitResponse,
-    MigrateResponse, MigrateResult, Querier, QueryRequest, StdResult, Storage, WasmMsg, WasmQuery,
+    MigrateResponse, MigrateResult, Querier, StdResult, Storage, WasmMsg,
 };
-
 use cw20::MinterResponse;
+use pylon_core::factory_msg::HandleMsg as FactoryHandleMsg;
+use pylon_core::pool_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 use terraswap::hook::InitHook as Cw20InitHook;
 use terraswap::token::InitMsg as Cw20InitMsg;
 
 use crate::handler::core as CoreHandler;
 use crate::handler::query as QueryHandler;
+use crate::querier::adapter;
 use crate::state::config;
-
-use pylon_core::adapter::{ConfigResponse, QueryMsg as AdapterQueryMsg};
-use pylon_core::factory_msg::HandleMsg as FactoryHandleMsg;
-use pylon_core::pool_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
     msg: InitMsg,
 ) -> StdResult<InitResponse> {
-    let adapter_config: ConfigResponse =
-        deps.querier.query(&QueryRequest::Wasm(WasmQuery::Smart {
-            contract_addr: msg.yield_adapter.clone(),
-            msg: to_binary(&AdapterQueryMsg::Config {})?,
-        }))?;
+    let adapter = deps.api.canonical_address(&msg.yield_adapter)?;
+    let adapter_config = adapter::config(deps, &adapter)?;
 
     let config = config::Config {
         id: msg.pool_id.clone(),
@@ -33,7 +28,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
         factory: deps.api.canonical_address(&env.message.sender)?,
         beneficiary: deps.api.canonical_address(&msg.beneficiary)?,
         fee_collector: deps.api.canonical_address(&msg.fee_collector)?,
-        yield_adapter: deps.api.canonical_address(&msg.yield_adapter)?,
+        yield_adapter: adapter,
         input_denom: adapter_config.input_denom,
         yield_token: deps.api.canonical_address(&adapter_config.yield_token)?,
         dp_token: CanonicalAddr::default(),
