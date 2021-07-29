@@ -29,9 +29,9 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
 }
 
 pub fn handle<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
-    env: Env,
-    msg: HandleMsg,
+    _deps: &mut Extern<S, A, Q>,
+    _env: Env,
+    _msg: HandleMsg,
 ) -> StdResult<HandleResponse> {
     Ok(HandleResponse::default())
 }
@@ -49,7 +49,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
                 yield_token: deps.api.human_address(&config.yield_token.clone())?,
             })
         }
-        QueryMsg::ExchangeRate { input_denom } => {
+        QueryMsg::ExchangeRate { input_denom: _ } => {
             let config = config::read(&deps.storage)?;
             let epoch_state = anchor::epoch_state(&deps, &config.moneymarket)?;
 
