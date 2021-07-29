@@ -1,90 +1,185 @@
-# CosmWasm Starter Pack
+# Pool
 
-This is a template to build smart contracts in Rust to run inside a
-[Cosmos SDK](https://github.com/cosmos/cosmos-sdk) module on all chains that enable it.
-To understand the framework better, please read the overview in the
-[cosmwasm repo](https://github.com/CosmWasm/cosmwasm/blob/master/README.md),
-and dig into the [cosmwasm docs](https://www.cosmwasm.com).
-This assumes you understand the theory and just want to get coding.
+## ExecuteMsg
 
-## Creating a new repo from template
+### Redeem // CosmWasm CW-20 `send` message
 
-Assuming you have a recent version of rust and cargo installed (via [rustup](https://rustup.rs/)),
-then the following should get you a new repo to start a contract:
+- swaps DP tokens back to UST.
+- must be included with the DP token's CW-20 `send` message.
+- encode relevant `json` messages in `base64` format
 
-First, install
-[cargo-generate](https://github.com/ashleygwilliams/cargo-generate).
-Unless you did that before, run this line now:
+**Request**
 
-```sh
-cargo install cargo-generate --features vendored-openssl
+```json
+{
+	redeem: {}
+}
+
+// example
+{
+	send: {
+		//...
+		msg: { // base64 format
+			redeem: {}
+		}
+	}
+}
 ```
 
-Now, use it to create your new contract.
-Go to the folder in which you want to place it and run:
+**Log**
 
-**0.10 (latest)**
-
-```sh
-cargo generate --git https://github.com/CosmWasm/cosmwasm-template.git --name PROJECT_NAME
+```jsx
+[
+	{key: "action", value: "deposit"},
+	{key: "sender": value: "{address}"},
+	{key: "amount": value: "{amount}"}
+]
 ```
 
-**0.9**
+### Deposit
 
-```sh
-cargo generate --git https://github.com/CosmWasm/cosmwasm-template.git --branch 0.9 --name PROJECT_NAME
+- swaps UST to this pool contract's DP token.
+- A native `BankSend` message for UST (`uusd`) must be included with the same `CosmosMsg` message context (`coins`), otherwise transaction will be reverted.
+
+**Request**
+
+```json
+{
+	deposit: {}, // must contain UST in payload
+}
 ```
 
-**0.8**
+**Log**
 
-```sh
-cargo generate --git https://github.com/CosmWasm/cosmwasm-template.git --branch 0.8 --name PROJECT_NAME
+```jsx
+[
+	{key: "action", value: "redeem"},
+	{key: "sender", value: "{address}"},
+	{key: "amount", value: "{amount}"}
+]
 ```
 
-You will now have a new folder called `PROJECT_NAME` (I hope you changed that to something else)
-containing a simple working contract and build system that you can customize.
+### ClaimReward // Only callable by contract owner
 
-## Create a Repo
+- claims any accumulated rewards from this pool.
 
-After generating, you have a initialized local git repo, but no commits, and no remote.
-Go to a server (eg. github) and create a new upstream repo (called `YOUR-GIT-URL` below).
-Then run the following:
+**Request**
 
-```sh
-# this is needed to create a valid Cargo.lock file (see below)
-cargo check
-git checkout -b master # in case you generate from non-master
-git add .
-git commit -m 'Initial Commit'
-git remote add origin YOUR-GIT-URL
-git push -u origin master
+```json
+{
+	claim_reward: {}
+}
 ```
 
-## CI Support
+**Log**
 
-We have template configurations for both [GitHub Actions](.github/workflows/Basic.yml)
-and [Circle CI](.circleci/config.yml) in the generated project, so you can
-get up and running with CI right away.
+```jsx
+[
+	{key: "action", value: "claim_reward"},
+	{key: "sender", value: "{address}"},
+	{key: "amount", value: "{amount}"},
+	{key: "fee", value: "{amount}"}	
+]
+```
 
-One note is that the CI runs all `cargo` commands
-with `--locked` to ensure it uses the exact same versions as you have locally. This also means
-you must have an up-to-date `Cargo.lock` file, which is not auto-generated.
-The first time you set up the project (or after adding any dep), you should ensure the
-`Cargo.lock` file is updated, so the CI will test properly. This can be done simply by
-running `cargo check` or `cargo unit-test`.
+## QueryMsg
 
-## Using your project
+### DepositAmountOf
 
-Once you have your custom repo, you should check out [Developing](./Developing.md) to explain
-more on how to run tests and develop code. Or go through the
-[online tutorial](https://www.cosmwasm.com/docs/getting-started/intro) to get a better feel
-of how to develop.
+- returns the UST deposit amount of a particular wallet address.
 
-[Publishing](./Publishing.md) contains useful information on how to publish your contract
-to the world, once you are ready to deploy it on a running blockchain. And
-[Importing](./Importing.md) contains information about pulling in other contracts or crates
-that have been published.
+**Request**
 
-Please replace this README file with information about your specific project. You can keep
-the `Developing.md` and `Publishing.md` files as useful referenced, but please set some
-proper description in the README.
+- `owner`: address to query UST deposit amount
+
+```json
+{
+	deposit_amount_of: {
+		owner: "{address}" // AccAddress
+	}
+}
+```
+
+**Response**
+
+- `amount`: UST deposit amount
+
+```json
+{
+	amount: 100000000 // Uint128 - 6 decimals
+}
+```
+
+### TotalDepositAmount
+
+- returns the total UST deposit amount of this pool contract.
+
+**Request**
+
+```json
+{
+	total_deposit_amount: {}
+}
+```
+
+**Response**
+
+- `amount`: total UST deposit amount
+
+```json
+{
+	amount: 100000000 // Uint128 - 6 decimals
+}
+```
+
+### Config
+
+- returns configuration data of this pool contract.
+
+**Request**
+
+```json
+{
+	config: {}
+}
+```
+
+**Response**
+
+- `beneficiary`: yield beneficiary address
+- `moneymarket`: address for the Anchor money market contract
+- `stable_denom`: type of stablecoin → Anchor only supports UST for now
+- `anchor_token`: aUST token address
+- `dp_token`: `dp_token` token address
+
+```json
+{
+	beneficiary: "{address}", // AccAddress
+	moneymarket: "{address}", // AccAddress
+	stable_denom: "uusd", // string
+	anchor_token: "{address}", // AccAddress
+	dp_token: "{address}", // AccAddress
+}
+```
+
+### GetClaimableReward
+
+- returns claimable rewards for the beneficiary of this pool contract, denominated in UST
+
+**Request**
+
+```json
+{
+	claimable_reward: {}
+}
+```
+
+**Response**
+
+- `claimable_reward`: claimable rewards, denominated in `uusd`
+
+```json
+{
+	claimable_reward: 100000000 // Uint128 - 6 decimals
+}
+```

@@ -1,90 +1,234 @@
-# CosmWasm Starter Pack
+# Lockup
 
-This is a template to build smart contracts in Rust to run inside a
-[Cosmos SDK](https://github.com/cosmos/cosmos-sdk) module on all chains that enable it.
-To understand the framework better, please read the overview in the
-[cosmwasm repo](https://github.com/CosmWasm/cosmwasm/blob/master/README.md),
-and dig into the [cosmwasm docs](https://www.cosmwasm.com).
-This assumes you understand the theory and just want to get coding.
+## ExecuteMsg
 
-## Creating a new repo from template
+### Update
 
-Assuming you have a recent version of rust and cargo installed (via [rustup](https://rustup.rs/)),
-then the following should get you a new repo to start a contract:
+- updates accumulated reward per token
 
-First, install
-[cargo-generate](https://github.com/ashleygwilliams/cargo-generate).
-Unless you did that before, run this line now:
+**Request**
 
-```sh
-cargo install cargo-generate --features vendored-openssl
+```json
+{
+	update: {}
+}
 ```
 
-Now, use it to create your new contract.
-Go to the folder in which you want to place it and run:
+### Redeem // CosmWasm CW-20 `send` message
 
-**0.10 (latest)**
+- locks DP tokens to this contract.
+- must be included with the DP token's CW-20 `send` message.
+- encode relevant `json` messages in `base64` format
 
-```sh
-cargo generate --git https://github.com/CosmWasm/cosmwasm-template.git --name PROJECT_NAME
+**Request**
+
+```json
+{
+	deposit: {}
+}
+
+// example
+{
+	send: {
+		//...
+		msg: { // base64 format
+			deposit: {}
+		}
+	}
+}
 ```
 
-**0.9**
+**Log**
 
-```sh
-cargo generate --git https://github.com/CosmWasm/cosmwasm-template.git --branch 0.9 --name PROJECT_NAME
+```jsx
+[
+	{key: "action", value: "deposit"},
+	{key: "sender", value: "{address}"},
+	{key: "deposit_amount", value: "{amount}"}
+]
 ```
 
-**0.8**
+### Withdraw
 
-```sh
-cargo generate --git https://github.com/CosmWasm/cosmwasm-template.git --branch 0.8 --name PROJECT_NAME
+- withdraws DP tokens from this contract.
+
+**Request**
+
+- `amount`:  amount to withdraw
+
+```json
+{
+	withdraw: {
+		amount: 10000000 // Uint256 - 6 decimals
+	}
+}
 ```
 
-You will now have a new folder called `PROJECT_NAME` (I hope you changed that to something else)
-containing a simple working contract and build system that you can customize.
+**Log**
 
-## Create a Repo
-
-After generating, you have a initialized local git repo, but no commits, and no remote.
-Go to a server (eg. github) and create a new upstream repo (called `YOUR-GIT-URL` below).
-Then run the following:
-
-```sh
-# this is needed to create a valid Cargo.lock file (see below)
-cargo check
-git checkout -b master # in case you generate from non-master
-git add .
-git commit -m 'Initial Commit'
-git remote add origin YOUR-GIT-URL
-git push -u origin master
+```jsx
+[
+	{key: "action", value: "withdraw"},
+	{key: "sender", value: "{address}"},
+	{key: "withdraw_amount", value: "{amount}"}
+]
 ```
 
-## CI Support
+### Claim
 
-We have template configurations for both [GitHub Actions](.github/workflows/Basic.yml)
-and [Circle CI](.circleci/config.yml) in the generated project, so you can
-get up and running with CI right away.
+- claim all accumulated rewards, denominated in UST.
 
-One note is that the CI runs all `cargo` commands
-with `--locked` to ensure it uses the exact same versions as you have locally. This also means
-you must have an up-to-date `Cargo.lock` file, which is not auto-generated.
-The first time you set up the project (or after adding any dep), you should ensure the
-`Cargo.lock` file is updated, so the CI will test properly. This can be done simply by
-running `cargo check` or `cargo unit-test`.
+**Request**
 
-## Using your project
+```json
+{
+	claim: {}
+}
+```
 
-Once you have your custom repo, you should check out [Developing](./Developing.md) to explain
-more on how to run tests and develop code. Or go through the
-[online tutorial](https://www.cosmwasm.com/docs/getting-started/intro) to get a better feel
-of how to develop.
+**Log**
 
-[Publishing](./Publishing.md) contains useful information on how to publish your contract
-to the world, once you are ready to deploy it on a running blockchain. And
-[Importing](./Importing.md) contains information about pulling in other contracts or crates
-that have been published.
+```jsx
+[
+	{key: "action", value: "claim"},
+	{key: "sender", value: "{address}"},
+	{key: "claim_amount", value: "{amount}"}
+]
+```
 
-Please replace this README file with information about your specific project. You can keep
-the `Developing.md` and `Publishing.md` files as useful referenced, but please set some
-proper description in the README.
+### Exit
+
+- unlock all DP tokens locked with this contract, and claim all accumulated rewards.
+
+**Request**
+
+```json
+{
+	exit: {}
+}
+```
+
+**Log**
+
+```jsx
+[
+	{key: "action", value: "exit"},
+	{key: "sender", value: "{address}"},
+	{key: "claim_amount", value: "{amount}"},
+	{key: "withdraw_amount", value: "{amount}"}
+]
+```
+
+## QueryMsg
+
+### Config
+
+- returns configuration data of this contract.
+
+**Request**
+
+```json
+{
+	config: {}
+}
+```
+
+**Response**
+
+- `owner`: owner of the contract
+- `share_token`: (for MINE sales) DP Token contract address
+- `reward_token`: (for MINE sales) MINE Token contract address; may be replaced with any other token address being sold with this lockup pool.
+- `start_time`: distribution start time
+- `cliff_time`: timestamp of which underlying `reward_token`s start being distributed
+- `finish_time`: timestamp of which underlying `reward_token`s stop being distributed
+- `reward_rate`: number of reward tokens distributed per second
+
+```json
+{
+	owner: "{address}", // AccAddress
+	share_token: "{address}", // AccAddress
+	reward_token: "{address}", // AccAddress
+	start_time: 1622870382, // uint64, blocktime
+	cliff_time: 1622870382, // uint64, blocktime
+	finish_time: 1622870382, // uint64, blocktime
+	reward_rate: 1.32993, // Decimal256	
+}
+```
+
+### Reward
+
+- returns reward-related configuration data (state) of this contract.
+
+**Request**
+
+```json
+{
+	reward: {}
+}
+```
+
+**Response**
+
+- `total_deposit`: total deposit amount of this contract
+- `last_update_time`: timestamp of which rewards data was last updated
+
+```json
+{
+	total_deposit: 1000000000, // Uint256, 6 decimal
+	last_update_time: 1622870382 // uint64, blocktime
+}
+```
+
+### BalanceOf
+
+- returns deposit amount of a specific wallet
+
+**Request**
+
+- `owner`: wallet address to query deposited coins
+
+```json
+{
+	balance_of: {
+		owner: "{address}" // AccAddress
+	}
+}
+```
+
+**Response**
+
+- `amount`: deposited amount (denominated in UST)
+
+```json
+{
+	amount: 1000000000 // Uint256 - 6 decimals
+}
+```
+
+### ClaimableReward
+
+- returns total claimable rewards for a specific wallet at a specified timestamp.
+
+**Request**
+
+- `owner`: wallet address to query outstanding rewards.
+- `timestamp`: [OPTIONAL] timestamp to query reward balances from.
+
+```json
+{
+	claimable_reward: {
+		owner: "{address}", // AccAddress
+		timestamp: 1622870382 // uint64, blocktime
+	}
+}
+```
+
+**Response**
+
+- `amount`: claimable reward amount (denominated in UST)
+
+```json
+{
+	amount: 100000000 // Uint256, 6 decimal
+}
+```
