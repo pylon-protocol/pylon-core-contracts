@@ -1,10 +1,10 @@
 [package]
-name = "token-gov"
+name = "pylon-airdrop"
 version = "1.0.0"
 authors = ["carter <carter@pylon.money>", "Terraform Labs, PTE."]
 edition = "2018"
+description = "A Airdrop contract for Pylon Protocol - allow users to claim rewards with Merkle Tree based proof"
 license = "Apache-2.0"
-description = "A Goverance contract for Pylon Protocol - allows a user to create poll and do vote"
 
 exclude = [
   # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
@@ -29,18 +29,23 @@ incremental = false
 overflow-checks = true
 
 [features]
+default = ["cranelift"]
 # for quicker tests, cargo test --lib
 # for more explicit tests, cargo test --features=backtraces
-backtraces = ["cosmwasm-std/backtraces"]
+backtraces = ["cosmwasm-std/backtraces", "cosmwasm-vm/backtraces"]
+cranelift = ["cosmwasm-vm/default-cranelift"]
+singlepass = ["cosmwasm-vm/default-singlepass"]
 
 [dependencies]
+pylon-token = { version = "1.0.0", path = "../../../packages/pylon_token" }
 cw20 = "0.2"
 cosmwasm-std = { version = "0.10.1", features = ["iterator"] }
 cosmwasm-storage = { version = "0.10.1", features = ["iterator"] }
-pylon-token = { version = "1.0.0", path = "../../../packages/pylon_token" }
 schemars = "0.7"
+sha3 = { version = "0.9.1", default-features = false }
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 hex = "0.4"
 
 [dev-dependencies]
-cosmwasm-schema = "0.10.0"
+cosmwasm-vm = { version = "0.10.1", default-features = false, features = ["iterator"] }
+cosmwasm-schema = "0.10.1"

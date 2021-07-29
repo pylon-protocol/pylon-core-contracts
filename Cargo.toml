@@ -4,7 +4,7 @@ members = [
     "contracts/core/*",
     "contracts/core/adapters/*",
     "contracts/gateway/*",
-    "contracts/token/*",
+    "contracts/pylon/*",
 ]
 exclude = [
     "contracts/core/adapters",

@@ -1,10 +1,10 @@
 [package]
-name = "token-staking"
+name = "pylon-gov"
 version = "1.0.0"
-authors = ["Terraform Labs, PTE."]
+authors = ["carter <carter@pylon.money>", "Terraform Labs, PTE."]
 edition = "2018"
-description = "A Staking contract for Anchor Protocol - distribute rewards to stakers"
 license = "Apache-2.0"
+description = "A Goverance contract for Pylon Protocol - allows a user to create poll and do vote"
 
 exclude = [
   # Those files are rust-optimizer artifacts. You might want to commit them for convenience but they should not be part of the source code publication.
@@ -40,6 +40,7 @@ cosmwasm-storage = { version = "0.10.1", features = ["iterator"] }
 pylon-token = { version = "1.0.0", path = "../../../packages/pylon_token" }
 schemars = "0.7"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
+hex = "0.4"
 
 [dev-dependencies]
-cosmwasm-schema = "0.10.1"
+cosmwasm-schema = "0.10.0"

@@ -1,5 +1,5 @@
 [package]
-name = "token-collector"
+name = "pylon-collector"
 version = "1.0.0"
 authors = ["carter <carter@pylon.money>", "Terraform Labs, PTE."]
 edition = "2018"
