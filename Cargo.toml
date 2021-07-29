@@ -3,7 +3,7 @@ members = [
     "packages/*",
     "contracts/core/*",
     "contracts/core/adapters/*",
-    "contracts/launchpad/*",
+    "contracts/gateway/*",
     "contracts/token/*",
 ]
 exclude = [
