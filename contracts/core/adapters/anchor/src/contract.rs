@@ -1,10 +1,11 @@
 use cosmwasm_std::{
-    Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResponse, MigrateResult,
-    Querier, StdResult, Storage,
+    to_binary, Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResponse,
+    MigrateResult, Querier, StdResult, Storage,
 };
+use pylon_core::adapter::{ConfigResponse, ExchangeRateResponse, HandleMsg, QueryMsg};
 
-use pylon_core::adapter::{HandleMsg, QueryMsg};
-
+use crate::anchor;
+use crate::config;
 use crate::msg::{InitMsg, MigrateMsg};
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
@@ -12,6 +13,18 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     env: Env,
     msg: InitMsg,
 ) -> StdResult<InitResponse> {
+    let moneymarket = deps.api.canonical_address(&msg.moneymarket)?;
+    let anchor_config = anchor::config(deps, &moneymarket)?;
+
+    let config = config::Config {
+        owner: deps.api.canonical_address(&env.message.sender)?,
+        moneymarket,
+        input_denom: anchor_config.stable_denom.clone(),
+        yield_token: deps.api.canonical_address(&anchor_config.aterra_contract)?,
+    };
+
+    config::store(&mut deps.storage, &config)?;
+
     Ok(InitResponse::default())
 }
 
@@ -27,7 +40,45 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     msg: QueryMsg,
 ) -> StdResult<Binary> {
-    Ok(Binary::default())
+    match msg {
+        QueryMsg::Config {} => {
+            let config = config::read(&deps.storage)?;
+
+            to_binary(&ConfigResponse {
+                input_denom: config.input_denom.clone(),
+                yield_token: deps.api.human_address(&config.yield_token.clone())?,
+            })
+        }
+        QueryMsg::ExchangeRate { input_denom } => {
+            let config = config::read(&deps.storage)?;
+            let epoch_state = anchor::epoch_state(&deps, &config.moneymarket)?;
+
+            to_binary(&ExchangeRateResponse {
+                exchange_rate: epoch_state.exchange_rate.clone(),
+                yield_token_supply: epoch_state.aterra_supply.clone(),
+            })
+        }
+        QueryMsg::Deposit { amount } => {
+            let config = config::read(&deps.storage)?;
+
+            to_binary(&anchor::deposit_stable_msg(
+                deps,
+                &config.moneymarket,
+                &config.input_denom,
+                amount.into(),
+            )?)
+        }
+        QueryMsg::Redeem { amount } => {
+            let config = config::read(&deps.storage)?;
+
+            to_binary(&anchor::redeem_stable_msg(
+                deps,
+                &config.moneymarket,
+                &config.yield_token,
+                amount.into(),
+            )?)
+        }
+    }
 }
 
 pub fn migrate<S: Storage, A: Api, Q: Querier>(
