@@ -1,6 +1,6 @@
 use cosmwasm_std::{to_binary, Api, Binary, Extern, HumanAddr, Querier, StdResult, Storage};
 
-use pylon_launchpad::lockup_resp as resp;
+use pylon_gateway::lockup_resp as resp;
 
 use crate::lib_staking as staking;
 use crate::state;

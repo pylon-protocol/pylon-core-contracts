@@ -7,7 +7,7 @@ use crate::handler::execute as ExecHandler;
 use crate::handler::query as QueryHandler;
 use crate::state;
 use cosmwasm_bignumber::Uint256;
-use pylon_launchpad::swap_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
+use pylon_gateway::swap_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 use std::ops::Add;
 
 pub fn init<S: Storage, A: Api, Q: Querier>(

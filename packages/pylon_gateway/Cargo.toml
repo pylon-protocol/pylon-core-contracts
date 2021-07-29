@@ -1,5 +1,5 @@
 [package]
-name = "pylon-launchpad"
+name = "pylon-gateway"
 version = "1.0.0"
 authors = ["Terraform Labs, PTE."]
 edition = "2018"

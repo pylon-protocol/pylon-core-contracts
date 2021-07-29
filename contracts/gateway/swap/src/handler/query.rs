@@ -1,10 +1,10 @@
+use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{to_binary, Api, Binary, Coin, Extern, HumanAddr, Querier, StdResult, Storage};
+use pylon_gateway::swap_resp as resp;
+use pylon_utils::tax::deduct_tax;
 
-use crate::querier::tax::deduct_tax;
 use crate::querier::vpool::{calculate_current_price, calculate_withdraw_amount};
 use crate::state;
-use cosmwasm_bignumber::Uint256;
-use pylon_launchpad::swap_resp as resp;
 
 pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
     let config = state::read_config(&deps.storage)?;

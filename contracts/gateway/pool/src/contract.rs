@@ -5,7 +5,7 @@ use cosmwasm_std::{
 };
 use std::ops::Add;
 
-use pylon_launchpad::lockup_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
+use pylon_gateway::lockup_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 
 use crate::handler::core as Core;
 use crate::handler::query as Query;

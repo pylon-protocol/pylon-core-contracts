@@ -1,5 +1,5 @@
 [package]
-name = "launchpad_swap"
+name = "gateway_swap"
 version = "0.1.0"
 authors = ["carter <carter@pylon.money>"]
 edition = "2018"
@@ -37,7 +37,8 @@ backtraces = ["cosmwasm-std/backtraces"]
 cw20 = "0.2.3"
 terraswap = "1.1.0"
 terra-cosmwasm = "1.2.3"
-pylon-launchpad = { version = "1.0.0", path = "../../../packages/pylon_launchpad" }
+pylon-gateway = { version = "1.0.0", path = "../../../packages/pylon_gateway" }
+pylon-utils = { version = "1.0.0", path = "../../../packages/pylon_utils" }
 cosmwasm-bignumber = "1.0"
 cosmwasm-std = { version = "0.10.1" }
 cosmwasm-storage = { version = "0.10.1" }

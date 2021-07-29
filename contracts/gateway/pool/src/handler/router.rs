@@ -5,7 +5,7 @@ use cosmwasm_std::{
 };
 use cw20::Cw20ReceiveMsg;
 
-use pylon_launchpad::lockup_msg::{Cw20HookMsg, HandleMsg};
+use pylon_gateway::lockup_msg::{Cw20HookMsg, HandleMsg};
 
 use crate::state;
 

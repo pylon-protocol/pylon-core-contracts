@@ -4,10 +4,10 @@ use cosmwasm_std::{
     StdResult, Storage, WasmMsg,
 };
 use cw20::Cw20HandleMsg;
+use pylon_utils::tax::deduct_tax;
 use std::ops::{Add, Div, Mul, Sub};
 use terraswap::querier::query_balance;
 
-use crate::querier::tax::deduct_tax;
 use crate::querier::vpool::calculate_withdraw_amount;
 use crate::state;
 
