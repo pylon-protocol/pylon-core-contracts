@@ -1,5 +1,11 @@
 # Pylon protocol contracts
 
+## Components
+
+* [Core](./contracts/core) - Official implementation of Pylon Protocol 
+* [Gateway](./contracts/gateway) - Contracts for pylon gateway
+* [Pylon](./contracts/pylon) - Contracts for pylon token utilities
+
 ## Development
 
 ### Environment Setup
