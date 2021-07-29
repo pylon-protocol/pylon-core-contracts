@@ -3,12 +3,10 @@ use cosmwasm_std::{
     from_binary, log, to_binary, Api, BankMsg, CanonicalAddr, Coin, CosmosMsg, Env, Extern,
     HandleResponse, HumanAddr, Querier, StdError, StdResult, Storage, Uint128, WasmMsg,
 };
-use std::ops::Div;
-
 use cw20::{Cw20HandleMsg, Cw20ReceiveMsg};
-use moneymarket::querier::deduct_tax;
-use pylon_core::adapter::{Cw20HookMsg as AdapterHookMsg, HandleMsg as AdapterHandleMsg};
 use pylon_core::pool_msg::Cw20HookMsg;
+use pylon_utils::tax::deduct_tax;
+use std::ops::Div;
 
 use crate::querier::{adapter, pool};
 use crate::state::config;
@@ -85,46 +83,32 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
         )));
     }
 
-    // pool => adapters => anchor ( deduct tax twice )
-    let dp_mint_amount = deduct_tax(
+    let return_amount = deduct_tax(
         deps,
-        deduct_tax(
-            deps,
-            Coin {
-                denom: config.input_denom.clone(),
-                amount: received.into(),
-            },
-        )?,
-    )?
-    .amount;
+        Coin {
+            denom: config.input_denom.clone(),
+            amount: received.into(),
+        },
+    )?;
 
     Ok(HandleResponse {
-        messages: vec![
-            CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: deps.api.human_address(&config.yield_adapter)?,
-                msg: to_binary(&AdapterHandleMsg::Deposit {})?,
-                send: vec![deduct_tax(
-                    deps,
-                    Coin {
-                        denom: config.input_denom,
-                        amount: received.into(),
-                    },
-                )?],
-            }),
-            CosmosMsg::Wasm(WasmMsg::Execute {
+        messages: [
+            adapter::deposit(deps, &config.yield_adapter, received.into())?,
+            vec![CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: deps.api.human_address(&config.dp_token)?,
                 msg: to_binary(&Cw20HandleMsg::Mint {
                     recipient: env.message.sender.clone(),
-                    amount: dp_mint_amount.clone(),
+                    amount: return_amount.amount.clone(),
                 })?,
                 send: vec![],
-            }),
-        ],
+            })],
+        ]
+        .concat(),
         log: vec![
             log("action", "deposit"),
             log("sender", env.message.sender),
             log("deposit_amount", received),
-            log("mint_amount", dp_mint_amount),
+            log("mint_amount", return_amount.amount),
         ],
         data: None,
     })
@@ -139,45 +123,38 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
     let config = config::read(&deps.storage)?;
 
     let exchange_rate = adapter::exchange_rate(deps, &config.yield_adapter, &config.input_denom)?;
-    let market_redeem_amount = Uint256::from(amount).div(exchange_rate);
-    let user_redeem_amount = deduct_tax(
+    let return_amount = deduct_tax(
         deps,
-        deduct_tax(
-            deps,
-            Coin {
-                denom: config.input_denom.clone(),
-                amount: amount.into(),
-            },
-        )?,
+        Coin {
+            denom: config.input_denom.clone(),
+            amount: amount.into(),
+        },
     )?;
 
     Ok(HandleResponse {
-        messages: vec![
-            CosmosMsg::Wasm(WasmMsg::Execute {
+        messages: [
+            vec![CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: deps.api.human_address(&config.dp_token)?,
                 msg: to_binary(&Cw20HandleMsg::Burn { amount })?,
                 send: vec![],
-            }),
-            CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: deps.api.human_address(&config.yield_token)?,
-                msg: to_binary(&Cw20HandleMsg::Send {
-                    contract: deps.api.human_address(&config.yield_adapter)?,
-                    amount: market_redeem_amount.into(),
-                    msg: Option::from(to_binary(&AdapterHookMsg::Redeem {})?),
-                })?,
-                send: vec![],
-            }),
-            CosmosMsg::Bank(BankMsg::Send {
+            })],
+            adapter::redeem(
+                deps,
+                &config.yield_adapter,
+                Uint256::from(amount).div(exchange_rate).into(),
+            )?,
+            vec![CosmosMsg::Bank(BankMsg::Send {
                 from_address: env.contract.address,
                 to_address: sender,
-                amount: vec![user_redeem_amount.clone()],
-            }),
-        ],
+                amount: vec![return_amount.clone()],
+            })],
+        ]
+        .concat(),
         log: vec![
             log("action", "redeem"),
             log("sender", env.message.sender),
             log("burn_amount", amount),
-            log("redeem_amount", user_redeem_amount.amount),
+            log("redeem_amount", return_amount.amount),
         ],
         data: None,
     })
