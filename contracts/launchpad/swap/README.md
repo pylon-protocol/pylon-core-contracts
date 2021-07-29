@@ -15,7 +15,7 @@ Tokens are swapped 1:1 on deposit, although swapped x:1 on withdrawals.
 
 **Request**
 
-```json
+```jsx
 {
 	deposit: {}
 }
@@ -41,7 +41,7 @@ Tokens are swapped 1:1 on deposit, although swapped x:1 on withdrawals.
 
 - `amount`: coins to withdraw, denominated in UST (`uusd`)
 
-```json
+```jsx
 {
 	withdraw: {
 		amount: 100000000 // Uint256 - 6 decimals
@@ -77,7 +77,7 @@ Tokens are swapped 1:1 on deposit, although swapped x:1 on withdrawals.
 
 **Request**
 
-```json
+```jsx
 {
 	earn: {}
 }
@@ -101,7 +101,7 @@ Tokens are swapped 1:1 on deposit, although swapped x:1 on withdrawals.
 
 **Request**
 
-```json
+```jsx
 {
 	config: {}
 }
@@ -115,7 +115,7 @@ Tokens are swapped 1:1 on deposit, although swapped x:1 on withdrawals.
 - `finish`: sale finish time
 - `price`: fixed sale price
 
-```json
+```jsx
 {
 	owner: "{address}", // AccAddress
 	beneficiary: "{address}", // AccAddress
@@ -131,7 +131,7 @@ Tokens are swapped 1:1 on deposit, although swapped x:1 on withdrawals.
 
 **Request**
 
-```json
+```jsx
 {
 	balance_of: {
 		owner: "{address}" // AccAddress
@@ -143,7 +143,7 @@ Tokens are swapped 1:1 on deposit, although swapped x:1 on withdrawals.
 
 - `amount`: deposited balances, denominated in `uusd`.
 
-```json
+```jsx
 {
 	amount: 10000000 // Uint256 - 6 decimals
 }
@@ -155,7 +155,7 @@ Tokens are swapped 1:1 on deposit, although swapped x:1 on withdrawals.
 
 **Request**
 
-```json
+```jsx
 {
 	total_supply: {}
 }
@@ -165,7 +165,7 @@ Tokens are swapped 1:1 on deposit, although swapped x:1 on withdrawals.
 
 - `amount`: total deposited balances, denominated in `uusd`.
 
-```json
+```jsx
 {
 	amount: 10000000 // Uint256 - 6 decimal
 }
@@ -177,7 +177,7 @@ Tokens are swapped 1:1 on deposit, although swapped x:1 on withdrawals.
 
 **Request**
 
-```json
+```jsx
 {
 	current_price: {}
 }
@@ -187,7 +187,7 @@ Tokens are swapped 1:1 on deposit, although swapped x:1 on withdrawals.
 
 - `price`: current exchange rate.
 
-```json
+```jsx
 {
 	price: 1.09393 // Decimal256
 }

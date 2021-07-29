@@ -15,7 +15,7 @@ Administrative calls only. Refer to contract code and comments for details.
 - `token`: Target token address to query calculated virtual exchange rate.
 - `blocktime`: [OPTIONAL] target blocktime to query calculated virtual exchange rate.
 
-```json
+```jsx
 {
 	exchange_rate_of: {
 		token: "{address}", // AccAddress
@@ -28,7 +28,7 @@ Administrative calls only. Refer to contract code and comments for details.
 
 - `exchange_rate`
 
-```json
+```jsx
 {
 	exchange_rate: 1.32345432 // Decimal256
 }

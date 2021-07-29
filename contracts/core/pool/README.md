@@ -10,7 +10,7 @@
 
 **Request**
 
-```json
+```jsx
 {
 	redeem: {}
 }
@@ -43,7 +43,7 @@
 
 **Request**
 
-```json
+```jsx
 {
 	deposit: {}, // must contain UST in payload
 }
@@ -65,7 +65,7 @@
 
 **Request**
 
-```json
+```jsx
 {
 	claim_reward: {}
 }
@@ -92,7 +92,7 @@
 
 - `owner`: address to query UST deposit amount
 
-```json
+```jsx
 {
 	deposit_amount_of: {
 		owner: "{address}" // AccAddress
@@ -104,7 +104,7 @@
 
 - `amount`: UST deposit amount
 
-```json
+```jsx
 {
 	amount: 100000000 // Uint128 - 6 decimals
 }
@@ -116,7 +116,7 @@
 
 **Request**
 
-```json
+```jsx
 {
 	total_deposit_amount: {}
 }
@@ -126,7 +126,7 @@
 
 - `amount`: total UST deposit amount
 
-```json
+```jsx
 {
 	amount: 100000000 // Uint128 - 6 decimals
 }
@@ -138,7 +138,7 @@
 
 **Request**
 
-```json
+```jsx
 {
 	config: {}
 }
@@ -152,7 +152,7 @@
 - `anchor_token`: aUST token address
 - `dp_token`: `dp_token` token address
 
-```json
+```jsx
 {
 	beneficiary: "{address}", // AccAddress
 	moneymarket: "{address}", // AccAddress
@@ -168,7 +168,7 @@
 
 **Request**
 
-```json
+```jsx
 {
 	claimable_reward: {}
 }
@@ -178,7 +178,7 @@
 
 - `claimable_reward`: claimable rewards, denominated in `uusd`
 
-```json
+```jsx
 {
 	claimable_reward: 100000000 // Uint128 - 6 decimals
 }

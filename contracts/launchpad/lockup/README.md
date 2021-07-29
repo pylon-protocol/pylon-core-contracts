@@ -8,7 +8,7 @@
 
 **Request**
 
-```json
+```jsx
 {
 	update: {}
 }
@@ -22,7 +22,7 @@
 
 **Request**
 
-```json
+```jsx
 {
 	deposit: {}
 }
@@ -56,7 +56,7 @@
 
 - `amount`:  amount to withdraw
 
-```json
+```jsx
 {
 	withdraw: {
 		amount: 10000000 // Uint256 - 6 decimals
@@ -80,7 +80,7 @@
 
 **Request**
 
-```json
+```jsx
 {
 	claim: {}
 }
@@ -102,7 +102,7 @@
 
 **Request**
 
-```json
+```jsx
 {
 	exit: {}
 }
@@ -127,7 +127,7 @@
 
 **Request**
 
-```json
+```jsx
 {
 	config: {}
 }
@@ -143,7 +143,7 @@
 - `finish_time`: timestamp of which underlying `reward_token`s stop being distributed
 - `reward_rate`: number of reward tokens distributed per second
 
-```json
+```jsx
 {
 	owner: "{address}", // AccAddress
 	share_token: "{address}", // AccAddress
@@ -161,7 +161,7 @@
 
 **Request**
 
-```json
+```jsx
 {
 	reward: {}
 }
@@ -172,7 +172,7 @@
 - `total_deposit`: total deposit amount of this contract
 - `last_update_time`: timestamp of which rewards data was last updated
 
-```json
+```jsx
 {
 	total_deposit: 1000000000, // Uint256, 6 decimal
 	last_update_time: 1622870382 // uint64, blocktime
@@ -187,7 +187,7 @@
 
 - `owner`: wallet address to query deposited coins
 
-```json
+```jsx
 {
 	balance_of: {
 		owner: "{address}" // AccAddress
@@ -199,7 +199,7 @@
 
 - `amount`: deposited amount (denominated in UST)
 
-```json
+```jsx
 {
 	amount: 1000000000 // Uint256 - 6 decimals
 }
@@ -214,7 +214,7 @@
 - `owner`: wallet address to query outstanding rewards.
 - `timestamp`: [OPTIONAL] timestamp to query reward balances from.
 
-```json
+```jsx
 {
 	claimable_reward: {
 		owner: "{address}", // AccAddress
@@ -227,7 +227,7 @@
 
 - `amount`: claimable reward amount (denominated in UST)
 
-```json
+```jsx
 {
 	amount: 100000000 // Uint256, 6 decimal
 }
