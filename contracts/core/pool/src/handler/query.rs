@@ -1,8 +1,9 @@
 use cosmwasm_std::{to_binary, Api, Binary, Extern, HumanAddr, Querier, StdResult, Storage};
 
 use pylon_core::pool_resp as resp;
+use pylon_utils::token;
 
-use crate::querier::{pool, token};
+use crate::querier::pool;
 use crate::state::config;
 
 pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {

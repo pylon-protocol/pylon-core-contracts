@@ -1,9 +1,12 @@
-use cosmwasm_bignumber::Uint256;
-use cosmwasm_std::{Api, Coin, Extern, Querier, StdResult, Storage};
-use pylon_utils::tax::deduct_tax;
 use std::ops::{Add, Div, Mul, Sub};
 
-use crate::querier::{adapter, factory, token};
+use cosmwasm_bignumber::Uint256;
+use cosmwasm_std::{Api, Coin, Extern, Querier, StdResult, Storage};
+
+use pylon_utils::tax::deduct_tax;
+use pylon_utils::token;
+
+use crate::querier::{adapter, factory};
 use crate::state::config;
 
 pub struct Reward {
