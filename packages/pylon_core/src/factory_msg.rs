@@ -25,7 +25,7 @@ pub enum HandleMsg {
         yield_adapter: HumanAddr,
     },
     RegisterPool {
-        pool_id: Uint256,
+        pool_id: u64,
     },
     RegisterAdapter {
         address: HumanAddr,
@@ -41,7 +41,7 @@ pub enum HandleMsg {
 pub enum QueryMsg {
     Config {},
     State {},
-    PoolInfo { pool_id: Uint256 },
+    PoolInfo { pool_id: u64 },
     AdapterInfo { address: HumanAddr },
 }
 

@@ -13,12 +13,12 @@ pub struct ConfigResponse {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct StateResponse {
-    pub next_pool_id: Uint256,
+    pub next_pool_id: u64,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct PoolInfoResponse {
-    pub id: Uint256,
+    pub id: u64,
     pub address: HumanAddr,
     pub dp_address: HumanAddr,
     pub yield_adapter: HumanAddr,

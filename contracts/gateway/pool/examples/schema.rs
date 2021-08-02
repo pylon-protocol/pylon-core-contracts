@@ -4,7 +4,7 @@ use std::fs::create_dir_all;
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
 use launchpad_lockup::state::{Config, Reward, User};
-use pylon_gateway::lockup_msg::{HandleMsg, InitMsg, QueryMsg};
+use pylon_gateway::pool_msg::{HandleMsg, InitMsg, QueryMsg};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

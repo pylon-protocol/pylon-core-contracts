@@ -5,41 +5,41 @@ use cw20::Cw20HandleMsg;
 use std::ops::{Add, Sub};
 
 use crate::lib_staking as staking;
-use crate::state;
+use crate::state::{config, state, user};
 
 pub fn update<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
     target: Option<HumanAddr>,
 ) -> StdResult<HandleResponse> {
-    let config: state::Config = state::read_config(&deps.storage)?;
+    let config = config::read(&deps.storage)?;
     let applicable_reward_time = std::cmp::min(config.finish_time, env.block.time);
 
     // reward
-    let mut reward: state::Reward = state::read_reward(&deps.storage)?;
-    reward.reward_per_token_stored =
-        reward
+    let mut state = state::read(&deps.storage)?;
+    state.reward_per_token_stored =
+        state
             .reward_per_token_stored
             .add(staking::calculate_reward_per_token(
                 deps,
-                &reward,
+                &state,
                 &applicable_reward_time,
             )?);
-    reward.last_update_time = applicable_reward_time;
-    state::store_reward(&mut deps.storage, &reward)?;
+    state.last_update_time = applicable_reward_time;
+    state::store(&mut deps.storage, &state)?;
 
     // user
     let mut user_update_logs = vec![];
     if let Some(target) = target {
         let t = deps.api.canonical_address(&target)?;
 
-        let mut user: state::User = state::read_user(&deps.storage, &t)?;
+        let mut user = user::read(&deps.storage, &t)?;
 
         user.reward =
-            staking::calculate_rewards(deps, &reward, &user, Option::from(applicable_reward_time))?;
-        user.reward_per_token_paid = reward.reward_per_token_stored;
+            staking::calculate_rewards(deps, &state, &user, Option::from(applicable_reward_time))?;
+        user.reward_per_token_paid = state.reward_per_token_stored;
 
-        state::store_user(&mut deps.storage, &t, &user)?;
+        user::store(&mut deps.storage, &t, &user)?;
 
         user_update_logs.append(&mut vec![log("target", target), log("reward", user.reward)]);
     }
@@ -50,7 +50,7 @@ pub fn update<S: Storage, A: Api, Q: Querier>(
             vec![
                 log("action", "update"),
                 log("sender", env.message.sender),
-                log("stored_rpt", reward.reward_per_token_stored),
+                log("stored_rpt", state.reward_per_token_stored),
             ],
             user_update_logs,
         ]
@@ -71,7 +71,7 @@ pub fn deposit_internal<S: Storage, A: Api, Q: Querier>(
             env.message.sender,
         )));
     }
-    let config: state::Config = state::read_config(&deps.storage)?;
+    let config = config::read(&deps.storage)?;
 
     // check time range // open_deposit flag
     if env.block.time.lt(&config.start_time) && env.block.time.gt(&config.finish_time) {
@@ -82,14 +82,14 @@ pub fn deposit_internal<S: Storage, A: Api, Q: Querier>(
     }
 
     let owner = deps.api.canonical_address(&sender)?;
-    let mut reward: state::Reward = state::read_reward(&deps.storage)?;
-    let mut user: state::User = state::read_user(&deps.storage, &owner)?;
+    let mut state = state::read(&deps.storage)?;
+    let mut user = user::read(&deps.storage, &owner)?;
 
-    reward.total_deposit = reward.total_deposit.add(amount);
+    state.total_deposit = state.total_deposit.add(amount);
     user.amount = user.amount.add(amount);
 
-    state::store_reward(&mut deps.storage, &reward)?;
-    state::store_user(&mut deps.storage, &owner, &user)?;
+    state::store(&mut deps.storage, &state)?;
+    user::store(&mut deps.storage, &owner, &user)?;
 
     Ok(HandleResponse {
         messages: vec![],
@@ -115,7 +115,7 @@ pub fn withdraw_internal<S: Storage, A: Api, Q: Querier>(
         )));
     }
 
-    let config: state::Config = state::read_config(&deps.storage)?;
+    let config = config::read(&deps.storage)?;
 
     // check time range // open_withdraw flag
     if env.block.time.lt(&config.finish_time) {
@@ -126,8 +126,8 @@ pub fn withdraw_internal<S: Storage, A: Api, Q: Querier>(
     }
 
     let owner = deps.api.canonical_address(&sender)?;
-    let mut reward: state::Reward = state::read_reward(&deps.storage)?;
-    let mut user: state::User = state::read_user(&deps.storage, &owner)?;
+    let mut state = state::read(&deps.storage)?;
+    let mut user = user::read(&deps.storage, &owner)?;
 
     if amount > user.amount {
         return Err(StdError::generic_err(
@@ -135,11 +135,11 @@ pub fn withdraw_internal<S: Storage, A: Api, Q: Querier>(
         ));
     }
 
-    reward.total_deposit = reward.total_deposit.sub(amount);
+    state.total_deposit = state.total_deposit.sub(amount);
     user.amount = user.amount.sub(amount);
 
-    state::store_reward(&mut deps.storage, &reward)?;
-    state::store_user(&mut deps.storage, &owner, &user)?;
+    state::store(&mut deps.storage, &state)?;
+    user::store(&mut deps.storage, &owner, &user)?;
 
     Ok(HandleResponse {
         messages: vec![CosmosMsg::Wasm(WasmMsg::Execute {
@@ -171,7 +171,7 @@ pub fn claim_internal<S: Storage, A: Api, Q: Querier>(
         )));
     }
 
-    let config: state::Config = state::read_config(&deps.storage)?;
+    let config = config::read(&deps.storage)?;
 
     // check time range // open_claim flag
     if env.block.time.lt(&config.cliff_time) {
@@ -182,14 +182,14 @@ pub fn claim_internal<S: Storage, A: Api, Q: Querier>(
     }
 
     let owner = deps.api.canonical_address(&sender)?;
-    let mut user: state::User = state::read_user(&deps.storage, &owner)?;
+    let mut user = user::read(&deps.storage, &owner)?;
 
     let claim_amount = user.reward;
     user.reward = Uint256::zero();
 
     state::store_user(&mut deps.storage, &owner, &user)?;
 
-    let config: state::Config = state::read_config(&deps.storage)?;
+    let config = config::read(&deps.storage)?;
 
     Ok(HandleResponse {
         messages: vec![CosmosMsg::Wasm(WasmMsg::Execute {

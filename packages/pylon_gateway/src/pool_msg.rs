@@ -6,11 +6,17 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InitMsg {
-    pub start: u64,
-    pub period: u64,
-    pub cliff: u64,
-    pub reward_rate: Decimal256,
-    pub share_token: HumanAddr,
+    // we supports only linear distribution
+    pub start_time: u64,
+    pub sale_period: u64,
+    pub sale_amount: Uint256,
+
+    pub depositable: bool,
+    pub withdrawable: bool,
+    pub cliff_period: u64,
+    pub vesting_period: u64,
+    pub unbonding_period: u64,
+    pub staking_token: HumanAddr,
     pub reward_token: HumanAddr,
 }
 
@@ -18,14 +24,16 @@ pub struct InitMsg {
 #[serde(rename_all = "snake_case")]
 pub enum HandleMsg {
     // core
-    Receive(Cw20ReceiveMsg),
     Update { target: Option<HumanAddr> },
+    Receive(Cw20ReceiveMsg),
     Withdraw { amount: Uint256 },
-    Claim {},
+    ClaimReward {},
+    ClaimWithdrawal {},
     // internal
     DepositInternal { sender: HumanAddr, amount: Uint256 },
     WithdrawInternal { sender: HumanAddr, amount: Uint256 },
-    ClaimInternal { sender: HumanAddr },
+    ClaimRewardInternal { sender: HumanAddr },
+    ClaimWithdrawalInternal { sender: HumanAddr },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -46,6 +54,14 @@ pub enum QueryMsg {
         owner: HumanAddr,
         timestamp: Option<u64>,
     }, // -> Uint256
+    ClaimableWithdrawal {
+        address: HumanAddr,
+    },
+    PendingWithdrawals {
+        address: HumanAddr,
+        page: Option<Uint256>,
+        limit: Option<Uint256>,
+    },
 }
 
 /// We currently take no arguments for migrations

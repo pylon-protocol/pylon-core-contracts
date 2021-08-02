@@ -92,7 +92,7 @@ pub fn create_pool<S: Storage, A: Api, Q: Querier>(
 pub fn register_pool<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
-    pool_id: Uint256,
+    pool_id: u64,
 ) -> StdResult<HandleResponse> {
     let mut pool = pool::read(&deps.storage, pool_id)?;
     if pool.status.ne(&pool::Status::Ready) {
