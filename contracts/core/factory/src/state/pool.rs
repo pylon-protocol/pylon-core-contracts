@@ -2,7 +2,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use cosmwasm_bignumber::Uint256;
-use cosmwasm_std::{CanonicalAddr, ReadonlyStorage, StdResult, Storage};
+use cosmwasm_std::{CanonicalAddr, Order, ReadonlyStorage, StdResult, Storage};
 use cosmwasm_storage::{Bucket, ReadonlyBucket};
 
 pub static PREFIX_POOL: &[u8] = b"pool";
@@ -17,26 +17,55 @@ pub enum Status {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Pool {
-    pub id: Uint256,
+    pub id: u64,
     pub status: Status,
     pub address: CanonicalAddr,
 }
 
-pub fn store<S: Storage>(storage: &mut S, id: Uint256, pool: &Pool) -> StdResult<()> {
-    Bucket::new(PREFIX_POOL, storage).save(id.to_string().as_bytes(), pool)
+pub fn store<S: Storage>(storage: &mut S, id: u64, pool: &Pool) -> StdResult<()> {
+    let key = id.to_be_bytes()?;
+    Bucket::new(PREFIX_POOL, storage).save(key, pool)
 }
 
-pub fn read<S: ReadonlyStorage>(storage: &S, id: Uint256) -> StdResult<Pool> {
-    match ReadonlyBucket::new(PREFIX_POOL, storage).may_load(id.to_string().as_bytes())? {
+pub fn read<S: ReadonlyStorage>(storage: &S, id: u64) -> StdResult<Pool> {
+    let key = id.to_be_bytes()?;
+    match ReadonlyBucket::new(PREFIX_POOL, storage).may_load(key)? {
         Some(pool) => Ok(pool),
         None => Ok(Pool {
-            id: Uint256::zero(),
+            id: 0,
             status: Status::Neutral,
             address: CanonicalAddr::default(),
         }),
     }
 }
 
-pub fn remove<S: Storage>(storage: &mut S, id: Uint256) {
-    Bucket::<S, Pool>::new(PREFIX_POOL, storage).remove(id.to_string().as_bytes())
+const MAX_LIMIT: u32 = 30;
+const DEFAULT_LIMIT: u32 = 10;
+pub fn batch_read<S: ReadonlyStorage>(
+    storage: &S,
+    start: u64,
+    limit: Option<u32>,
+) -> StdResult<Pool> {
+    let key = start.to_be_bytes()?;
+    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+
+    ReadonlyBucket::new(PREFIX_POOL, storage)
+        .range(Option: from(key), None, Order::Ascending)
+        .take(limit)
+        .map(|elem| {
+            let (k, v) = elem?;
+            let pool_id_bytes = k: [u8; unknown];
+            let pool_id: u64 = u64::from_be_bytes(pool_id_bytes)?;
+            Ok(Pool {
+                id: pool_id,
+                status: v.status,
+                address: v.address,
+            })
+        })
+        .collect()
+}
+
+pub fn remove<S: Storage>(storage: &mut S, id: u64) {
+    let key = id.to_be_bytes()?;
+    Bucket::<S, Pool>::new(PREFIX_POOL, storage).remove(key)
 }

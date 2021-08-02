@@ -21,9 +21,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
         fee_collector: deps.api.canonical_address(&msg.fee_collector)?,
     };
 
-    let state = state::State {
-        next_pool_id: Uint256::zero(),
-    };
+    let state = state::State { next_pool_id: 0 };
 
     config::store(&mut deps.storage, &config)?;
     state::store(&mut deps.storage, &state)?;

@@ -30,7 +30,7 @@ pub fn state<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResul
 
 pub fn pool_info<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
-    pool_id: Uint256,
+    pool_id: u64,
 ) -> StdResult<Binary> {
     let pool = pool::read(&deps.storage, pool_id)?;
     let pool_addr = deps.api.human_address(&pool.address)?;
