@@ -1,9 +1,7 @@
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-
-use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{StdResult, Storage};
 use cosmwasm_storage::{ReadonlySingleton, Singleton};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 pub static STATE_KEY: &[u8] = b"state";
 

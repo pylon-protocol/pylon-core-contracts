@@ -7,7 +7,7 @@ use cw20::Cw20ReceiveMsg;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InitMsg {
-    pub pool_id: Uint256,
+    pub pool_id: u64,
     pub pool_name: String,
     pub beneficiary: HumanAddr,
     pub fee_collector: HumanAddr,
