@@ -46,7 +46,7 @@ impl TokenQuerier {
     }
 }
 
-pub(crate) fn balances_to_map(
+pub fn balances_to_map(
     balances: &[(&HumanAddr, &[(&HumanAddr, &Uint128)])],
 ) -> HashMap<HumanAddr, HashMap<HumanAddr, Uint128>> {
     let mut balances_map: HashMap<HumanAddr, HashMap<HumanAddr, Uint128>> = HashMap::new();

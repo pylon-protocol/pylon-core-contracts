@@ -1,14 +1,10 @@
 pub mod contract;
-
+mod handler;
 mod querier;
-mod staking;
-mod state;
+pub mod state;
 
 #[cfg(test)]
-mod tests;
-
-#[cfg(test)]
-mod mock_querier;
+mod testing;
 
 #[cfg(all(target_arch = "wasm32", not(feature = "library")))]
 cosmwasm_std::create_entry_points!(contract);
