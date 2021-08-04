@@ -1,15 +1,13 @@
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-
-use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{CanonicalAddr, StdResult, Storage};
 use cosmwasm_storage::{ReadonlySingleton, Singleton};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 pub static CONFIG_KEY: &[u8] = b"config";
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Config {
-    pub id: Uint256,
+    pub id: u64,
     pub name: String,
     pub this: CanonicalAddr,
     pub factory: CanonicalAddr,

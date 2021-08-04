@@ -6,7 +6,7 @@ use cosmwasm_std::HumanAddr;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ConfigResponse {
-    pub id: Uint256,
+    pub id: u64,
     pub name: String,
     pub factory: HumanAddr,
     pub beneficiary: HumanAddr,

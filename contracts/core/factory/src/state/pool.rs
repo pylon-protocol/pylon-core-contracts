@@ -1,9 +1,7 @@
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-
-use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{CanonicalAddr, Order, ReadonlyStorage, StdResult, Storage};
 use cosmwasm_storage::{Bucket, ReadonlyBucket};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 pub static PREFIX_POOL: &[u8] = b"pool";
 
@@ -23,12 +21,12 @@ pub struct Pool {
 }
 
 pub fn store<S: Storage>(storage: &mut S, id: u64, pool: &Pool) -> StdResult<()> {
-    let key = id.to_be_bytes()?;
+    let key = &id.to_be_bytes()[..];
     Bucket::new(PREFIX_POOL, storage).save(key, pool)
 }
 
 pub fn read<S: ReadonlyStorage>(storage: &S, id: u64) -> StdResult<Pool> {
-    let key = id.to_be_bytes()?;
+    let key = &id.to_be_bytes()[..];
     match ReadonlyBucket::new(PREFIX_POOL, storage).may_load(key)? {
         Some(pool) => Ok(pool),
         None => Ok(Pool {
@@ -45,19 +43,17 @@ pub fn batch_read<S: ReadonlyStorage>(
     storage: &S,
     start: u64,
     limit: Option<u32>,
-) -> StdResult<Pool> {
-    let key = start.to_be_bytes()?;
+) -> StdResult<Vec<Pool>> {
+    let key = &start.to_be_bytes()[..];
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
     ReadonlyBucket::new(PREFIX_POOL, storage)
-        .range(Option: from(key), None, Order::Ascending)
+        .range(Option::from(key), None, Order::Ascending)
         .take(limit)
-        .map(|elem| {
-            let (k, v) = elem?;
-            let pool_id_bytes = k: [u8; unknown];
-            let pool_id: u64 = u64::from_be_bytes(pool_id_bytes)?;
+        .map(|elem: StdResult<(_, Pool)>| {
+            let (_, v) = elem?;
             Ok(Pool {
-                id: pool_id,
+                id: v.id,
                 status: v.status,
                 address: v.address,
             })
@@ -66,6 +62,6 @@ pub fn batch_read<S: ReadonlyStorage>(
 }
 
 pub fn remove<S: Storage>(storage: &mut S, id: u64) {
-    let key = id.to_be_bytes()?;
+    let key = &id.to_be_bytes()[..];
     Bucket::<S, Pool>::new(PREFIX_POOL, storage).remove(key)
 }

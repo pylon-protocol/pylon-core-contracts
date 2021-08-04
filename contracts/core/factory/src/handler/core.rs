@@ -1,11 +1,10 @@
-use cosmwasm_bignumber::{Decimal256, Uint256};
+use cosmwasm_bignumber::Decimal256;
 use cosmwasm_std::{
     log, to_binary, Api, CanonicalAddr, CosmosMsg, Env, Extern, HandleResponse, HumanAddr, Querier,
     StdError, StdResult, Storage, WasmMsg,
 };
-use std::ops::Add;
-
 use pylon_core::pool_msg::InitMsg;
+use std::ops::Add;
 
 use crate::state::{adapter, config, pool, state};
 
@@ -61,7 +60,7 @@ pub fn create_pool<S: Storage, A: Api, Q: Querier>(
     pool.address = CanonicalAddr::default();
     pool::store(&mut deps.storage, pool.id, &pool)?;
 
-    state.next_pool_id = state.next_pool_id.add(Uint256::one());
+    state.next_pool_id = state.next_pool_id.add(1);
     state::store(&mut deps.storage, &state)?;
 
     let config = config::read(&deps.storage)?;
