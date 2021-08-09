@@ -1,49 +1,16 @@
-use cosmwasm_std::{Binary, CanonicalAddr, Decimal, ReadonlyStorage, StdResult, Storage, Uint128};
-use cosmwasm_storage::{
-    bucket, bucket_read, singleton, singleton_read, Bucket, ReadonlyBucket, ReadonlySingleton,
-    Singleton,
-};
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-
+use cosmwasm_std::{Binary, CanonicalAddr, ReadonlyStorage, StdResult, Storage, Uint128};
+use cosmwasm_storage::{bucket, bucket_read, Bucket, ReadonlyBucket};
 use pylon_token::common::OrderBy;
 use pylon_token::gov::{PollStatus, VoterInfo};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
-static KEY_CONFIG: &[u8] = b"config";
-static KEY_STATE: &[u8] = b"state";
+use crate::state::{calc_range_end, calc_range_end_addr, calc_range_start, calc_range_start_addr};
 
 static PREFIX_POLL_INDEXER: &[u8] = b"poll_indexer";
 static PREFIX_POLL_VOTER: &[u8] = b"poll_voter";
 static PREFIX_POLL: &[u8] = b"poll";
-static PREFIX_BANK: &[u8] = b"bank";
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct Config {
-    pub owner: CanonicalAddr,
-    pub pylon_token: CanonicalAddr,
-    pub quorum: Decimal,
-    pub threshold: Decimal,
-    pub voting_period: u64,
-    pub timelock_period: u64,
-    pub expiration_period: u64,
-    pub proposal_deposit: Uint128,
-    pub snapshot_period: u64,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct State {
-    pub contract_addr: CanonicalAddr,
-    pub poll_count: u64,
-    pub total_share: Uint128,
-    pub total_deposit: Uint128,
-}
-
-#[derive(Default, Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct TokenManager {
-    pub share: Uint128,                        // total staked balance
-    pub locked_balance: Vec<(u64, VoterInfo)>, // maps poll_id to weight voted
-}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Poll {
@@ -89,31 +56,15 @@ impl PartialEq for ExecuteData {
     }
 }
 
-pub fn config_store<S: Storage>(storage: &mut S) -> Singleton<S, Config> {
-    singleton(storage, KEY_CONFIG)
-}
-
-pub fn config_read<S: Storage>(storage: &S) -> ReadonlySingleton<S, Config> {
-    singleton_read(storage, KEY_CONFIG)
-}
-
-pub fn state_store<S: Storage>(storage: &mut S) -> Singleton<S, State> {
-    singleton(storage, KEY_STATE)
-}
-
-pub fn state_read<S: Storage>(storage: &S) -> ReadonlySingleton<S, State> {
-    singleton_read(storage, KEY_STATE)
-}
-
-pub fn poll_store<S: Storage>(storage: &mut S) -> Bucket<S, Poll> {
+pub fn store<S: Storage>(storage: &mut S) -> Bucket<S, Poll> {
     bucket(PREFIX_POLL, storage)
 }
 
-pub fn poll_read<S: ReadonlyStorage>(storage: &S) -> ReadonlyBucket<S, Poll> {
+pub fn read<S: ReadonlyStorage>(storage: &S) -> ReadonlyBucket<S, Poll> {
     bucket_read(PREFIX_POLL, storage)
 }
 
-pub fn poll_indexer_store<'a, S: Storage>(
+pub fn store_indexer<'a, S: Storage>(
     storage: &'a mut S,
     status: &PollStatus,
 ) -> Bucket<'a, S, bool> {
@@ -123,14 +74,11 @@ pub fn poll_indexer_store<'a, S: Storage>(
     )
 }
 
-pub fn poll_voter_store<S: Storage>(storage: &mut S, poll_id: u64) -> Bucket<S, VoterInfo> {
+pub fn store_voter<S: Storage>(storage: &mut S, poll_id: u64) -> Bucket<S, VoterInfo> {
     Bucket::multilevel(&[PREFIX_POLL_VOTER, &poll_id.to_be_bytes()], storage)
 }
 
-pub fn poll_voter_read<S: ReadonlyStorage>(
-    storage: &S,
-    poll_id: u64,
-) -> ReadonlyBucket<S, VoterInfo> {
+pub fn read_voter<S: ReadonlyStorage>(storage: &S, poll_id: u64) -> ReadonlyBucket<S, VoterInfo> {
     ReadonlyBucket::multilevel(&[PREFIX_POLL_VOTER, &poll_id.to_be_bytes()], storage)
 }
 
@@ -184,7 +132,7 @@ pub fn read_polls<'a, S: ReadonlyStorage>(
             .take(limit)
             .map(|item| {
                 let (k, _) = item?;
-                poll_read(storage).load(&k)
+                read(storage).load(&k)
             })
             .collect()
     } else {
@@ -199,40 +147,4 @@ pub fn read_polls<'a, S: ReadonlyStorage>(
             })
             .collect()
     }
-}
-
-pub fn bank_store<S: Storage>(storage: &mut S) -> Bucket<S, TokenManager> {
-    bucket(PREFIX_BANK, storage)
-}
-
-pub fn bank_read<S: Storage>(storage: &S) -> ReadonlyBucket<S, TokenManager> {
-    bucket_read(PREFIX_BANK, storage)
-}
-
-// this will set the first key after the provided key, by appending a 1 byte
-fn calc_range_start(start_after: Option<u64>) -> Option<Vec<u8>> {
-    start_after.map(|id| {
-        let mut v = id.to_be_bytes().to_vec();
-        v.push(1);
-        v
-    })
-}
-
-// this will set the first key after the provided key, by appending a 1 byte
-fn calc_range_end(start_after: Option<u64>) -> Option<Vec<u8>> {
-    start_after.map(|id| id.to_be_bytes().to_vec())
-}
-
-// this will set the first key after the provided key, by appending a 1 byte
-fn calc_range_start_addr(start_after: Option<CanonicalAddr>) -> Option<Vec<u8>> {
-    start_after.map(|addr| {
-        let mut v = addr.as_slice().to_vec();
-        v.push(1);
-        v
-    })
-}
-
-// this will set the first key after the provided key, by appending a 1 byte
-fn calc_range_end_addr(start_after: Option<CanonicalAddr>) -> Option<Vec<u8>> {
-    start_after.map(|addr| addr.as_slice().to_vec())
 }

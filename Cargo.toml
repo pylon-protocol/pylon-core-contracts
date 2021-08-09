@@ -1,13 +1,19 @@
 [workspace]
 members = [
     "packages/*",
-    "contracts/core/*",
-    "contracts/core/adapters/*",
-    "contracts/gateway/*",
-    "contracts/pylon/*",
-]
-exclude = [
-    "contracts/core/adapters",
+    "contracts/core/factory",
+    "contracts/core/pool",
+    "contracts/core/token",
+    "contracts/core/adapters/anchor",
+    "contracts/gateway/factory",
+    "contracts/gateway/pool",
+    "contracts/gateway/swap",
+    "contracts/pylon/airdrop",
+    "contracts/pylon/collector",
+    "contracts/pylon/community",
+    "contracts/pylon/gov",
+    "contracts/pylon/staking",
+    "contracts/pylon/vesting",
 ]
 
 [profile.release]

@@ -1,11 +1,3 @@
-use crate::contract::{handle, init, query};
-use crate::mock_querier::{mock_dependencies, WasmMockQuerier};
-use crate::state::{
-    bank_read, bank_store, config_read, poll_store, poll_voter_read, poll_voter_store, state_read,
-    Config, Poll, State, TokenManager,
-};
-
-use crate::querier::load_token_balance;
 use cosmwasm_std::testing::{mock_env, MockApi, MockStorage, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{
     coins, from_binary, log, to_binary, Api, CanonicalAddr, Coin, CosmosMsg, Decimal, Env, Extern,
@@ -18,6 +10,11 @@ use pylon_token::gov::{
     PollsResponse, QueryMsg, StakerResponse, VoteOption, VoterInfo, VotersResponse,
     VotersResponseItem,
 };
+
+use crate::contract::{handle, init, query};
+use crate::querier::gov;
+use crate::state::{bank, config, poll, state};
+use crate::testing::mock_querier::{mock_dependencies, WasmMockQuerier};
 
 const VOTING_TOKEN: &str = "voting_token";
 const TEST_CREATOR: &str = "creator";
@@ -81,10 +78,10 @@ fn proper_initialization() {
     let res = init(&mut deps, env.clone(), msg).unwrap();
     assert_eq!(0, res.messages.len());
 
-    let config: Config = config_read(&mut deps.storage).load().unwrap();
+    let config = config::read(&mut deps.storage).load().unwrap();
     assert_eq!(
         config,
-        Config {
+        config::Config {
             pylon_token: CanonicalAddr::default(),
             owner: deps
                 .api
@@ -104,7 +101,7 @@ fn proper_initialization() {
         pylon_token: HumanAddr::from(VOTING_TOKEN),
     };
     let _res = handle(&mut deps, env, msg).unwrap();
-    let config: Config = config_read(&mut deps.storage).load().unwrap();
+    let config = config::read(&mut deps.storage).load().unwrap();
     assert_eq!(
         config.pylon_token,
         deps.api
@@ -112,10 +109,10 @@ fn proper_initialization() {
             .unwrap()
     );
 
-    let state: State = state_read(&mut deps.storage).load().unwrap();
+    let state = state::read(&mut deps.storage).load().unwrap();
     assert_eq!(
         state,
-        State {
+        state::State {
             contract_addr: deps
                 .api
                 .canonical_address(&HumanAddr::from(MOCK_CONTRACT_ADDR))
@@ -887,7 +884,7 @@ fn happy_days_end_poll() {
         .api
         .canonical_address(&HumanAddr::from(TEST_VOTER))
         .unwrap();
-    let voter = poll_voter_read(&deps.storage, 1u64)
+    let voter = poll::read_voter(&deps.storage, 1u64)
         .load(&voter_addr_raw.as_slice())
         .unwrap();
     assert_eq!(
@@ -898,7 +895,7 @@ fn happy_days_end_poll() {
         }
     );
 
-    let token_manager = bank_read(&deps.storage)
+    let token_manager = bank::read(&deps.storage)
         .load(&voter_addr_raw.as_slice())
         .unwrap();
     assert_eq!(
@@ -1571,10 +1568,10 @@ fn happy_days_withdraw_voting_tokens() {
     let handle_res = handle(&mut deps, env, msg.clone()).unwrap();
     assert_stake_tokens_result(11, 0, 11, 0, handle_res, &mut deps);
 
-    let state: State = state_read(&mut deps.storage).load().unwrap();
+    let state = state::read(&mut deps.storage).load().unwrap();
     assert_eq!(
         state,
-        State {
+        state::State {
             contract_addr: deps
                 .api
                 .canonical_address(&HumanAddr::from(MOCK_CONTRACT_ADDR))
@@ -1612,10 +1609,10 @@ fn happy_days_withdraw_voting_tokens() {
         })
     );
 
-    let state: State = state_read(&mut deps.storage).load().unwrap();
+    let state = state::read(&mut deps.storage).load().unwrap();
     assert_eq!(
         state,
-        State {
+        state::State {
             contract_addr: deps
                 .api
                 .canonical_address(&HumanAddr::from(MOCK_CONTRACT_ADDR))
@@ -1647,10 +1644,10 @@ fn happy_days_withdraw_voting_tokens_all() {
     let handle_res = handle(&mut deps, env, msg.clone()).unwrap();
     assert_stake_tokens_result(11, 0, 11, 0, handle_res, &mut deps);
 
-    let state: State = state_read(&mut deps.storage).load().unwrap();
+    let state = state::read(&mut deps.storage).load().unwrap();
     assert_eq!(
         state,
-        State {
+        state::State {
             contract_addr: deps
                 .api
                 .canonical_address(&HumanAddr::from(MOCK_CONTRACT_ADDR))
@@ -1686,10 +1683,10 @@ fn happy_days_withdraw_voting_tokens_all() {
         })
     );
 
-    let state: State = state_read(&mut deps.storage).load().unwrap();
+    let state = state::read(&mut deps.storage).load().unwrap();
     assert_eq!(
         state,
-        State {
+        state::State {
             contract_addr: deps
                 .api
                 .canonical_address(&HumanAddr::from(MOCK_CONTRACT_ADDR))
@@ -1722,10 +1719,10 @@ fn withdraw_voting_tokens_remove_not_in_progress_poll_voter_info() {
     assert_stake_tokens_result(11, 0, 11, 0, handle_res, &mut deps);
 
     // make fake polls; one in progress & one in passed
-    poll_store(&mut deps.storage)
+    poll::store(&mut deps.storage)
         .save(
             &1u64.to_be_bytes(),
-            &Poll {
+            &poll::Poll {
                 id: 1u64,
                 creator: CanonicalAddr::default(),
                 status: PollStatus::InProgress,
@@ -1743,10 +1740,10 @@ fn withdraw_voting_tokens_remove_not_in_progress_poll_voter_info() {
         )
         .unwrap();
 
-    poll_store(&mut deps.storage)
+    poll::store(&mut deps.storage)
         .save(
             &2u64.to_be_bytes(),
-            &Poll {
+            &poll::Poll {
                 id: 1u64,
                 creator: CanonicalAddr::default(),
                 status: PollStatus::Passed,
@@ -1768,7 +1765,7 @@ fn withdraw_voting_tokens_remove_not_in_progress_poll_voter_info() {
         .api
         .canonical_address(&HumanAddr::from(TEST_VOTER))
         .unwrap();
-    poll_voter_store(&mut deps.storage, 1u64)
+    poll::store_voter(&mut deps.storage, 1u64)
         .save(
             &voter_addr_raw.as_slice(),
             &VoterInfo {
@@ -1777,7 +1774,7 @@ fn withdraw_voting_tokens_remove_not_in_progress_poll_voter_info() {
             },
         )
         .unwrap();
-    poll_voter_store(&mut deps.storage, 2u64)
+    poll::store_voter(&mut deps.storage, 2u64)
         .save(
             &voter_addr_raw.as_slice(),
             &VoterInfo {
@@ -1786,10 +1783,10 @@ fn withdraw_voting_tokens_remove_not_in_progress_poll_voter_info() {
             },
         )
         .unwrap();
-    bank_store(&mut deps.storage)
+    bank::store(&mut deps.storage)
         .save(
             &voter_addr_raw.as_slice(),
-            &TokenManager {
+            &bank::TokenManager {
                 share: Uint128(11u128),
                 locked_balance: vec![
                     (
@@ -1818,7 +1815,7 @@ fn withdraw_voting_tokens_remove_not_in_progress_poll_voter_info() {
     };
 
     let _ = handle(&mut deps, env, msg).unwrap();
-    let voter = poll_voter_read(&deps.storage, 1u64)
+    let voter = poll::read_voter(&deps.storage, 1u64)
         .load(&voter_addr_raw.as_slice())
         .unwrap();
     assert_eq!(
@@ -1829,13 +1826,13 @@ fn withdraw_voting_tokens_remove_not_in_progress_poll_voter_info() {
         }
     );
     assert_eq!(
-        poll_voter_read(&deps.storage, 2u64)
+        poll::read_voter(&deps.storage, 2u64)
             .load(&voter_addr_raw.as_slice())
             .is_err(),
         true
     );
 
-    let token_manager = bank_read(&deps.storage)
+    let token_manager = bank::read(&deps.storage)
         .load(&voter_addr_raw.as_slice())
         .unwrap();
     assert_eq!(
@@ -2161,10 +2158,10 @@ fn assert_create_poll_result(
     );
 
     //confirm poll count
-    let state: State = state_read(&mut deps.storage).load().unwrap();
+    let state = state::read(&mut deps.storage).load().unwrap();
     assert_eq!(
         state,
-        State {
+        state::State {
             contract_addr: deps
                 .api
                 .canonical_address(&HumanAddr::from(MOCK_CONTRACT_ADDR))
@@ -2189,10 +2186,10 @@ fn assert_stake_tokens_result(
         &log("share", new_share.to_string())
     );
 
-    let state: State = state_read(&mut deps.storage).load().unwrap();
+    let state = state::read(&mut deps.storage).load().unwrap();
     assert_eq!(
         state,
-        State {
+        state::State {
             contract_addr: deps
                 .api
                 .canonical_address(&HumanAddr::from(MOCK_CONTRACT_ADDR))
@@ -3131,7 +3128,7 @@ fn happy_days_end_poll_with_controlled_quorum() {
     assert_eq!(value.yes_votes.u128(), 9 * stake_amount);
 
     // actual staked amount is 10 times bigger than staked amount
-    let actual_staked_weight = (load_token_balance(
+    let actual_staked_weight = (gov::load_token_balance(
         &deps,
         &HumanAddr::from(VOTING_TOKEN),
         &deps
