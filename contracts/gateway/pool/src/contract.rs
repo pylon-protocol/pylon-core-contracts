@@ -31,6 +31,11 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
             "GatewayPool: sale amount canont be zero",
         ));
     }
+    if msg.unbonding_period.ne(&0) {
+        return Err(StdError::generic_err(
+            "GatewayPool: unbonding period feature is not implemented",
+        ));
+    }
 
     config::store(
         &mut deps.storage,
