@@ -1,4 +1,4 @@
-use cosmwasm_bignumber::{Decimal256, Uint256};
+use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::HumanAddr;
 use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
@@ -16,6 +16,7 @@ pub struct InitMsg {
     pub cliff_period: u64,
     pub vesting_period: u64,
     pub unbonding_period: u64,
+
     pub staking_token: HumanAddr,
     pub reward_token: HumanAddr,
 }
@@ -48,19 +49,20 @@ pub enum QueryMsg {
     Config {}, // state::Config
     Reward {}, // state::Reward
     BalanceOf {
-        owner: HumanAddr,
+        address: HumanAddr,
     }, // -> Uint256
     ClaimableReward {
-        owner: HumanAddr,
+        address: HumanAddr,
         timestamp: Option<u64>,
     }, // -> Uint256
     ClaimableWithdrawal {
         address: HumanAddr,
+        timestamp: Option<u64>,
     },
     PendingWithdrawals {
         address: HumanAddr,
-        page: Option<Uint256>,
-        limit: Option<Uint256>,
+        page: Option<u32>,
+        limit: Option<u32>,
     },
 }
 

@@ -4,8 +4,8 @@ use cosmwasm_std::{Api, Env, Extern, HandleResponse, Querier, StdResult, Storage
 use cw20::Cw20HandleMsg;
 use std::ops::{Add, Sub};
 
-use crate::lib_staking as staking;
-use crate::state::{config, state, user};
+use crate::querier::pool;
+use crate::state::{config, state, user, withdrawal};
 
 pub fn update<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
@@ -20,7 +20,7 @@ pub fn update<S: Storage, A: Api, Q: Querier>(
     state.reward_per_token_stored =
         state
             .reward_per_token_stored
-            .add(staking::calculate_reward_per_token(
+            .add(pool::calculate_reward_per_token(
                 deps,
                 &state,
                 &applicable_reward_time,
@@ -36,7 +36,7 @@ pub fn update<S: Storage, A: Api, Q: Querier>(
         let mut user = user::read(&deps.storage, &t)?;
 
         user.reward =
-            staking::calculate_rewards(deps, &state, &user, Option::from(applicable_reward_time))?;
+            pool::calculate_rewards(deps, &state, &user, Option::from(applicable_reward_time))?;
         user.reward_per_token_paid = state.reward_per_token_stored;
 
         user::store(&mut deps.storage, &t, &user)?;
@@ -96,7 +96,7 @@ pub fn deposit_internal<S: Storage, A: Api, Q: Querier>(
         log: vec![
             log("action", "deposit"),
             log("sender", env.message.sender),
-            log("deposit_amount", amount),
+            log("amount", amount),
         ],
         data: None,
     })
@@ -138,28 +138,57 @@ pub fn withdraw_internal<S: Storage, A: Api, Q: Querier>(
     state.total_deposit = state.total_deposit.sub(amount);
     user.amount = user.amount.sub(amount);
 
-    state::store(&mut deps.storage, &state)?;
-    user::store(&mut deps.storage, &owner, &user)?;
+    let messages: Vec<CosmosMsg>;
+    let action: &str;
+    if config.unbonding_period > 0 {
+        let mut accumulated = Uint256::zero();
+        if user.next_withdrawal_index.gt(&0) {
+            let withdrawal = withdrawal::read(&deps.storage, &owner, user.next_withdrawal_index)?;
+            accumulated = withdrawal.accumulated.add(amount);
+        }
 
-    Ok(HandleResponse {
-        messages: vec![CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: deps.api.human_address(&config.share_token)?,
+        withdrawal::store(
+            &mut deps.storage,
+            &owner,
+            user.next_withdrawal_index,
+            &withdrawal::Withdrawal {
+                amount,
+                accumulated,
+                period: config.unbonding_period.clone(),
+                emitted: env.block.time.clone(),
+            },
+        )?;
+        user.next_withdrawal_index = user.next_withdrawal_index.add(1);
+
+        messages = vec![];
+        action = "unbond";
+    } else {
+        messages = vec![CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: deps.api.human_address(&config.staking_token)?,
             msg: to_binary(&Cw20HandleMsg::Transfer {
                 recipient: sender.clone(),
                 amount: amount.into(),
             })?,
             send: vec![],
-        })],
+        })];
+        action = "withdraw";
+    }
+
+    state::store(&mut deps.storage, &state)?;
+    user::store(&mut deps.storage, &owner, &user)?;
+
+    Ok(HandleResponse {
+        messages,
         log: vec![
-            log("action", "withdraw"),
+            log("action", action),
             log("sender", sender),
-            log("withdraw_amount", amount),
+            log("amount", amount),
         ],
         data: None,
     })
 }
 
-pub fn claim_internal<S: Storage, A: Api, Q: Querier>(
+pub fn claim_reward_internal<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
     sender: HumanAddr,
@@ -174,10 +203,10 @@ pub fn claim_internal<S: Storage, A: Api, Q: Querier>(
     let config = config::read(&deps.storage)?;
 
     // check time range // open_claim flag
-    if env.block.time.lt(&config.cliff_time) {
+    if env.block.time.lt(&config.cliff_period) {
         return Err(StdError::generic_err(format!(
             "Lockup: cannot claim rewards during lockup period. (now: {}, ends: {})",
-            env.block.time, config.cliff_time
+            env.block.time, config.cliff_period
         )));
     }
 
@@ -186,8 +215,7 @@ pub fn claim_internal<S: Storage, A: Api, Q: Querier>(
 
     let claim_amount = user.reward;
     user.reward = Uint256::zero();
-
-    state::store_user(&mut deps.storage, &owner, &user)?;
+    user::store(&mut deps.storage, &owner, &user)?;
 
     let config = config::read(&deps.storage)?;
 
@@ -201,9 +229,50 @@ pub fn claim_internal<S: Storage, A: Api, Q: Querier>(
             send: vec![],
         })],
         log: vec![
-            log("action", "claim"),
+            log("action", "claim_reward"),
             log("sender", sender),
-            log("claim_amount", claim_amount),
+            log("amount", claim_amount),
+        ],
+        data: None,
+    })
+}
+
+pub fn claim_withdrawal_internal<S: Storage, A: Api, Q: Querier>(
+    deps: &mut Extern<S, A, Q>,
+    env: Env,
+    sender: HumanAddr,
+) -> StdResult<HandleResponse> {
+    if !env.message.sender.eq(&env.contract.address) {
+        return Err(StdError::generic_err(format!(
+            "Lockup: cannot execute internal function with unauthorized sender. (sender: {})",
+            env.message.sender,
+        )));
+    }
+
+    let owner = deps.api.canonical_address(&sender)?;
+    let config = config::read(&deps.storage)?;
+    let mut user = user::read(&deps.storage, &owner)?;
+
+    let claimable_index = pool::fetch_claimable_withdrawal_index(deps, &owner, env.block.time)?;
+    let from = withdrawal::read(&deps.storage, &owner, user.claimed_withdrawal_index)?;
+    let to = withdrawal::read(&deps.storage, &owner, claimable_index)?;
+    let amount = to.accumulated.sub(from.accumulated);
+
+    user.claimed_withdrawal_index = claimable_index;
+
+    Ok(HandleResponse {
+        messages: vec![CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: deps.api.human_address(&config.staking_token)?,
+            msg: to_binary(&Cw20HandleMsg::Transfer {
+                recipient: sender.clone(),
+                amount: amount.into(),
+            })?,
+            send: vec![],
+        })],
+        log: vec![
+            log("action", "claim_withdrawal"),
+            log("sender", sender),
+            log("amount", amount),
         ],
         data: None,
     })
