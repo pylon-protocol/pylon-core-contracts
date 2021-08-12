@@ -67,7 +67,7 @@ pub fn deposit_internal<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<HandleResponse> {
     if !env.message.sender.eq(&env.contract.address) {
         return Err(StdError::generic_err(format!(
-            "Lockup: cannot execute internal function with unauthorized sender. (sender: {})",
+            "Gateway/Pool: cannot execute internal function with unauthorized sender. (sender: {})",
             env.message.sender,
         )));
     }
@@ -76,7 +76,7 @@ pub fn deposit_internal<S: Storage, A: Api, Q: Querier>(
     // check time range // open_deposit flag
     if env.block.time.lt(&config.start_time) && env.block.time.gt(&config.finish_time) {
         return Err(StdError::generic_err(format!(
-            "Lockup: cannot deposit tokens out of period range. (now: {}, starts: {}, ends: {})",
+            "Gateway/Pool: cannot deposit tokens out of period range. (now: {}, starts: {}, ends: {})",
             env.block.time, config.start_time, config.finish_time,
         )));
     }
@@ -110,7 +110,7 @@ pub fn withdraw_internal<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<HandleResponse> {
     if !env.message.sender.eq(&env.contract.address) {
         return Err(StdError::generic_err(format!(
-            "Lockup: cannot execute internal function with unauthorized sender. (sender: {})",
+            "Gateway/Pool: cannot execute internal function with unauthorized sender. (sender: {})",
             env.message.sender,
         )));
     }
@@ -120,7 +120,7 @@ pub fn withdraw_internal<S: Storage, A: Api, Q: Querier>(
     // check time range // open_withdraw flag
     if env.block.time.lt(&config.finish_time) {
         return Err(StdError::generic_err(format!(
-            "Lockup: cannot withdraw tokens during lockup period. (now: {}, ends: {})",
+            "Gateway/Pool: cannot withdraw tokens during lockup period. (now: {}, ends: {})",
             env.block.time, config.finish_time,
         )));
     }
@@ -195,7 +195,7 @@ pub fn claim_reward_internal<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<HandleResponse> {
     if !env.message.sender.eq(&env.contract.address) {
         return Err(StdError::generic_err(format!(
-            "Lockup: cannot execute internal function with unauthorized sender. (sender: {})",
+            "Gateway/Pool: cannot execute internal function with unauthorized sender. (sender: {})",
             env.message.sender,
         )));
     }
@@ -205,7 +205,7 @@ pub fn claim_reward_internal<S: Storage, A: Api, Q: Querier>(
     // check time range // open_claim flag
     if env.block.time.lt(&config.cliff_period) {
         return Err(StdError::generic_err(format!(
-            "Lockup: cannot claim rewards during lockup period. (now: {}, ends: {})",
+            "Gateway/Pool: cannot claim rewards during lockup period. (now: {}, ends: {})",
             env.block.time, config.cliff_period
         )));
     }
@@ -241,10 +241,11 @@ pub fn claim_withdrawal_internal<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
     sender: HumanAddr,
+    index: u64,
 ) -> StdResult<HandleResponse> {
     if !env.message.sender.eq(&env.contract.address) {
         return Err(StdError::generic_err(format!(
-            "Lockup: cannot execute internal function with unauthorized sender. (sender: {})",
+            "Gateway/Pool: cannot execute internal function with unauthorized sender. (sender: {})",
             env.message.sender,
         )));
     }
@@ -252,13 +253,18 @@ pub fn claim_withdrawal_internal<S: Storage, A: Api, Q: Querier>(
     let owner = deps.api.canonical_address(&sender)?;
     let config = config::read(&deps.storage)?;
     let mut user = user::read(&deps.storage, &owner)?;
+    if user.claimed_withdrawal_index.gt(&index) {
+        return Err(StdError::generic_err(format!(
+            "Gateway/Pool: index should be greater than claimed_index. {} > {}",
+            user.claimed_withdrawal_index, index,
+        )));
+    }
 
-    let claimable_index = pool::fetch_claimable_withdrawal_index(deps, &owner, env.block.time)?;
     let from = withdrawal::read(&deps.storage, &owner, user.claimed_withdrawal_index)?;
-    let to = withdrawal::read(&deps.storage, &owner, claimable_index)?;
+    let to = withdrawal::read(&deps.storage, &owner, index.clone())?;
     let amount = to.accumulated.sub(from.accumulated);
 
-    user.claimed_withdrawal_index = claimable_index;
+    user.claimed_withdrawal_index = index;
 
     Ok(HandleResponse {
         messages: vec![CosmosMsg::Wasm(WasmMsg::Execute {

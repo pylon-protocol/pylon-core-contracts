@@ -115,6 +115,7 @@ pub fn claim_reward<S: Storage, A: Api, Q: Querier>(
 pub fn claim_withdrawal<S: Storage, A: Api, Q: Querier>(
     _: &Extern<S, A, Q>,
     env: Env,
+    index: u64,
 ) -> StdResult<HandleResponse> {
     Ok(HandleResponse {
         messages: vec![
@@ -129,6 +130,7 @@ pub fn claim_withdrawal<S: Storage, A: Api, Q: Querier>(
                 contract_addr: env.contract.address,
                 msg: to_binary(&HandleMsg::ClaimWithdrawalInternal {
                     sender: env.message.sender,
+                    index,
                 })?,
                 send: vec![],
             }),
