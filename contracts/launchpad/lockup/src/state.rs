@@ -14,10 +14,8 @@ pub struct Config {
     pub share_token: CanonicalAddr,
     pub reward_token: CanonicalAddr,
     pub start_time: u64,
+    pub cliff_time: u64,
     pub finish_time: u64,
-    pub open_deposit: bool,
-    pub open_withdraw: bool,
-    pub open_claim: bool,
     pub reward_rate: Decimal256,
 }
 

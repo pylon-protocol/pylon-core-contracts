@@ -9,6 +9,8 @@ pub struct ConfigResponse {
     pub beneficiary: HumanAddr,
     pub start: u64,
     pub finish: u64,
+    pub price: Decimal256,
+    pub total_sale_amount: Uint256,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -24,4 +26,9 @@ pub struct TotalSupplyResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct CurrentPriceResponse {
     pub price: Decimal256,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct SimulateWithdrawResponse {
+    pub amount: Uint256,
 }

@@ -8,9 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct InitMsg {
     pub start: u64,
     pub period: u64,
-    pub open_deposit: bool,
-    pub open_withdraw: bool,
-    pub open_claim: bool,
+    pub cliff: u64,
     pub reward_rate: Decimal256,
     pub share_token: HumanAddr,
     pub reward_token: HumanAddr,
@@ -21,14 +19,13 @@ pub struct InitMsg {
 pub enum HandleMsg {
     // core
     Receive(Cw20ReceiveMsg),
-    Update {},
+    Update { target: Option<HumanAddr> },
     Withdraw { amount: Uint256 },
     Claim {},
-    Exit {},
-    // governance
-    SetDepositAvailability { availability: bool },
-    SetWithdrawAvailability { availability: bool },
-    SetClaimAvailability { availability: bool },
+    // internal
+    DepositInternal { sender: HumanAddr, amount: Uint256 },
+    WithdrawInternal { sender: HumanAddr, amount: Uint256 },
+    ClaimInternal { sender: HumanAddr },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

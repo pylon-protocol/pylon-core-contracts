@@ -69,10 +69,14 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     msg: HandleMsg,
 ) -> StdResult<HandleResponse> {
     match msg {
+        HandleMsg::RegisterDPToken {} => CoreHandler::register_dp_token(deps, env),
         HandleMsg::Receive(msg) => CoreHandler::receive(deps, env, msg),
         HandleMsg::Deposit {} => CoreHandler::deposit(deps, env),
-        HandleMsg::ClaimReward {} => CoreHandler::claim_reward(deps, env),
-        HandleMsg::RegisterDPToken {} => CoreHandler::register_dp_token(deps, env),
+        HandleMsg::Earn {} => CoreHandler::earn(deps, env),
+        HandleMsg::Configure {
+            beneficiary,
+            fee_collector,
+        } => CoreHandler::configure(deps, beneficiary, fee_collector, env),
     }
 }
 

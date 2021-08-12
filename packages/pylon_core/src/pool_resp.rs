@@ -15,6 +15,7 @@ pub struct TotalDepositAmountResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ConfigResponse {
     pub beneficiary: HumanAddr,
+    pub fee_collector: HumanAddr,
     pub moneymarket: HumanAddr,
     pub stable_denom: String,
     pub anchor_token: HumanAddr,
@@ -23,5 +24,6 @@ pub struct ConfigResponse {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ClaimableRewardResponse {
-    pub claimable_reward: Uint128,
+    pub amount: Uint128,
+    pub fee: Uint128,
 }

@@ -37,7 +37,7 @@ pub fn calculate_rewards<S: Storage, A: Api, Q: Querier>(
     if let Some(timestamp) = timestamp {
         if reward.last_update_time.gt(&timestamp) {
             return Err(StdError::generic_err(
-                "Staking: timestamp must be greater than last update time",
+                "Lockup: timestamp must be greater than last update time",
             ));
         }
 

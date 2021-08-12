@@ -6,6 +6,7 @@ use cosmwasm_std::{
 use crate::handler::execute as ExecHandler;
 use crate::handler::query as QueryHandler;
 use crate::state;
+use cosmwasm_bignumber::Uint256;
 use pylon_launchpad::swap_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 use std::ops::Add;
 
@@ -22,6 +23,16 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
             beneficiary: msg.beneficiary,
             start: msg.start,
             finish: msg.start.add(msg.period),
+            price: msg.price,
+            max_cap: msg.max_cap,
+            total_sale_amount: msg.total_sale_amount,
+        },
+    )?;
+
+    state::store_reward(
+        &mut deps.storage,
+        &state::Reward {
+            total_supply: Uint256::zero(),
         },
     )?;
 
@@ -59,6 +70,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
         QueryMsg::BalanceOf { owner } => QueryHandler::balance_of(deps, owner),
         QueryMsg::TotalSupply {} => QueryHandler::total_supply(deps),
         QueryMsg::CurrentPrice {} => QueryHandler::current_price(deps),
+        QueryMsg::SimulateWithdraw { amount } => QueryHandler::simulate_withdraw(deps, amount),
     }
 }
 

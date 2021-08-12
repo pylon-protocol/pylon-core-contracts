@@ -9,10 +9,8 @@ pub struct ConfigResponse {
     pub share_token: HumanAddr,
     pub reward_token: HumanAddr,
     pub start_time: u64,
+    pub cliff_time: u64,
     pub finish_time: u64,
-    pub open_deposit: bool,
-    pub open_withdraw: bool,
-    pub open_claim: bool,
     pub reward_rate: Decimal256,
 }
 

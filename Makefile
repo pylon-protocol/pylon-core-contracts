@@ -11,13 +11,13 @@ build:
 
 deploy:
 ifndef network
-	yarn --cwd ./deployer start
+	yarn --cwd ./deployer start -d ../artifacts
 else
-	yarn --cwd ./deployer start --network $(network)
+	yarn --cwd ./deployer start -d ../artifacts --network $(network)
 endif
 
 deploy-columbus:
-	deploy network=columbus
+	make deploy network=columbus
 
 deploy-tequila:
-	deploy network=tequila
+	make deploy network=tequila

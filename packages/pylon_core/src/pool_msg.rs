@@ -17,10 +17,14 @@ pub struct InitMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum HandleMsg {
-    Receive(Cw20ReceiveMsg),
-    Deposit {},     // UST -> DP (user)
-    ClaimReward {}, // x -> UST (beneficiary)
     RegisterDPToken {},
+    Receive(Cw20ReceiveMsg),
+    Deposit {}, // UST -> DP (user)
+    Earn {},    // x -> UST (beneficiary)
+    Configure {
+        beneficiary: HumanAddr,
+        fee_collector: HumanAddr,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
