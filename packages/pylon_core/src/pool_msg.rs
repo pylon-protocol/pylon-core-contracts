@@ -9,7 +9,6 @@ pub struct InitMsg {
     pub pool_name: String,
     pub beneficiary: HumanAddr,
     pub fee_collector: HumanAddr,
-    pub exchange_rate_feeder: HumanAddr,
     pub moneymarket: HumanAddr,
     pub dp_code_id: u64,
 }
