@@ -63,13 +63,13 @@ pub fn claimable_reward<S: Storage, A: Api, Q: Querier>(
 pub fn claimable_withdrawal<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     owner: HumanAddr,
-    timestamp: Option<u64>,
+    index: u64,
 ) -> StdResult<Binary> {
     to_binary(&resp::ClaimableWithdrawalResponse {
         amount: pool::calculate_withdrawal_amount(
             deps,
             &deps.api.canonical_address(&owner)?,
-            timestamp,
+            index,
         )?,
     })
 }

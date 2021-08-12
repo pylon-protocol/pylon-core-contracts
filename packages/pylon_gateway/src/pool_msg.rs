@@ -29,12 +29,12 @@ pub enum HandleMsg {
     Receive(Cw20ReceiveMsg),
     Withdraw { amount: Uint256 },
     ClaimReward {},
-    ClaimWithdrawal {},
+    ClaimWithdrawal { index: u64 },
     // internal
     DepositInternal { sender: HumanAddr, amount: Uint256 },
     WithdrawInternal { sender: HumanAddr, amount: Uint256 },
     ClaimRewardInternal { sender: HumanAddr },
-    ClaimWithdrawalInternal { sender: HumanAddr },
+    ClaimWithdrawalInternal { sender: HumanAddr, index: u64 },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -57,7 +57,7 @@ pub enum QueryMsg {
     }, // -> Uint256
     ClaimableWithdrawal {
         address: HumanAddr,
-        timestamp: Option<u64>,
+        index: u64,
     },
     PendingWithdrawals {
         address: HumanAddr,

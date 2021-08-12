@@ -16,24 +16,19 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     env: Env,
     msg: InitMsg,
 ) -> StdResult<InitResponse> {
-    if msg.sale_period <= 0 {
+    if msg.sale_period.lt(&0) {
         return Err(StdError::generic_err(
-            "GatewayPool: sale period cannot be zero",
+            "Gateway/Pool: sale period cannot be zero",
         ));
     }
     if msg.cliff_period.add(msg.vesting_period) != msg.sale_period {
         return Err(StdError::generic_err(
-            "GatewayPool: sale period must equals with cliff + vesting period",
+            "Gateway/Pool: sale period must equals with cliff + vesting period",
         ));
     }
     if msg.sale_amount.is_zero() {
         return Err(StdError::generic_err(
-            "GatewayPool: sale amount canont be zero",
-        ));
-    }
-    if msg.unbonding_period.ne(&0) {
-        return Err(StdError::generic_err(
-            "GatewayPool: unbonding period feature is not implemented",
+            "Gateway/Pool: sale amount cannot be zero",
         ));
     }
 
@@ -81,7 +76,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
         HandleMsg::Receive(msg) => Router::receive(deps, env, msg),
         HandleMsg::Withdraw { amount } => Router::withdraw(deps, env, amount),
         HandleMsg::ClaimReward {} => Router::claim_reward(deps, env),
-        HandleMsg::ClaimWithdrawal {} => Router::claim_withdrawal(deps, env),
+        HandleMsg::ClaimWithdrawal { index } => Router::claim_withdrawal(deps, env, index),
         // internal
         HandleMsg::Update { target } => Core::update(deps, env, target),
         HandleMsg::DepositInternal { sender, amount } => {
@@ -91,8 +86,8 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
             Core::withdraw_internal(deps, env, sender, amount)
         }
         HandleMsg::ClaimRewardInternal { sender } => Core::claim_reward_internal(deps, env, sender),
-        HandleMsg::ClaimWithdrawalInternal { sender } => {
-            Core::claim_withdrawal_internal(deps, env, sender)
+        HandleMsg::ClaimWithdrawalInternal { sender, index } => {
+            Core::claim_withdrawal_internal(deps, env, sender, index)
         }
     }
 }
@@ -108,8 +103,8 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
         QueryMsg::ClaimableReward { address, timestamp } => {
             Query::claimable_reward(deps, address, timestamp)
         }
-        QueryMsg::ClaimableWithdrawal { address, timestamp } => {
-            Query::claimable_withdrawal(deps, address, timestamp)
+        QueryMsg::ClaimableWithdrawal { address, index } => {
+            Query::claimable_withdrawal(deps, address, index)
         }
         QueryMsg::PendingWithdrawals {
             address,

@@ -50,38 +50,18 @@ pub fn calculate_rewards<S: Storage, A: Api, Q: Querier>(
 pub fn calculate_withdrawal_amount<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     owner: &CanonicalAddr,
-    blocktime: Option<u64>,
+    index: u64,
 ) -> StdResult<Uint256> {
     let user = user::read(&deps.storage, owner)?;
-    let index = match blocktime {
-        Some(blocktime) => fetch_claimable_withdrawal_index(deps, owner, blocktime)?,
-        None => user.next_withdrawal_index.sub(1),
-    };
+    if user.claimed_withdrawal_index.gt(&index) {
+        return Err(StdError::generic_err(format!(
+            "Gateway/Pool: index should be greater than claimed_index. {} > {}",
+            user.claimed_withdrawal_index, index,
+        )));
+    }
 
     let from = withdrawal::read(&deps.storage, owner, user.claimed_withdrawal_index)?;
     let to = withdrawal::read(&deps.storage, owner, index)?;
 
     Ok(to.accumulated.sub(from.accumulated))
-}
-
-pub fn fetch_claimable_withdrawal_index<S: Storage, A: Api, Q: Querier>(
-    deps: &Extern<S, A, Q>,
-    owner: &CanonicalAddr,
-    _blocktime: u64,
-) -> StdResult<u64> {
-    // TODO: binary search
-    let user = user::read(&deps.storage, owner)?;
-    let _middle = user
-        .next_withdrawal_index
-        .sub(user.claimed_withdrawal_index)
-        .div(2)
-        .add(user.claimed_withdrawal_index);
-
-    Ok(user.next_withdrawal_index.sub(1))
-
-    // loop {
-    //     let withdrawal = withdrawal::read(&deps.storage, owner, middle)?;
-    //     if withdrawal.is_claimable(&blocktime) {}
-    // }
-    // Ok(0)
 }
