@@ -6,6 +6,7 @@ members = [
     "contracts/core/token",
     "contracts/core/adapters/anchor",
     "contracts/gateway/factory",
+    "contracts/gateway/gov",
     "contracts/gateway/pool",
     "contracts/gateway/swap",
     "contracts/pylon/airdrop",
