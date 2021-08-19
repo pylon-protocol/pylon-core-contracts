@@ -16,6 +16,7 @@ pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResu
         owner: deps.api.human_address(&config.owner)?,
         pool_code_id: config.pool_code_id,
         token_code_id: config.token_code_id,
+        fee_rate: config.fee_rate,
         fee_collector: deps.api.human_address(&config.fee_collector)?,
     })
 }
@@ -58,10 +59,7 @@ pub fn adapter_info<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     address: HumanAddr,
 ) -> StdResult<Binary> {
-    let adapter = adapter::read(&deps.storage, deps.api.canonical_address(&address)?)?;
+    let _adapter = adapter::read(&deps.storage, deps.api.canonical_address(&address)?)?;
 
-    to_binary(&resp::AdapterInfoResponse {
-        address,
-        fee_rate: adapter.fee_rate,
-    })
+    to_binary(&resp::AdapterInfoResponse { address })
 }

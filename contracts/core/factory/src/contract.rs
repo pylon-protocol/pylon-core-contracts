@@ -16,6 +16,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
         owner: deps.api.canonical_address(&env.message.sender)?,
         pool_code_id: msg.pool_code_id.clone(),
         token_code_id: msg.token_code_id.clone(),
+        fee_rate: msg.fee_rate.clone(),
         fee_collector: deps.api.canonical_address(&msg.fee_collector)?,
     };
 
@@ -37,17 +38,24 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
             owner,
             pool_code_id,
             token_code_id,
+            fee_rate,
             fee_collector,
-        } => CoreHandler::configure(deps, env, owner, pool_code_id, token_code_id, fee_collector),
+        } => CoreHandler::configure(
+            deps,
+            env,
+            owner,
+            pool_code_id,
+            token_code_id,
+            fee_rate,
+            fee_collector,
+        ),
         HandleMsg::CreatePool {
             pool_name,
             beneficiary,
             yield_adapter,
         } => CoreHandler::create_pool(deps, env, pool_name, beneficiary, yield_adapter),
         HandleMsg::RegisterPool { pool_id } => CoreHandler::register_pool(deps, env, pool_id),
-        HandleMsg::RegisterAdapter { address, fee_rate } => {
-            CoreHandler::register_adapter(deps, env, address, fee_rate)
-        }
+        HandleMsg::RegisterAdapter { address } => CoreHandler::register_adapter(deps, env, address),
         HandleMsg::UnregisterAdapter { address } => {
             CoreHandler::unregister_adapter(deps, env, address)
         }

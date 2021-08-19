@@ -10,7 +10,6 @@ pub static PREFIX_ADAPTER: &[u8] = b"adapter";
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Adapter {
     pub address: CanonicalAddr,
-    pub fee_rate: Decimal256,
 }
 
 pub fn store<S: Storage>(
@@ -26,7 +25,6 @@ pub fn read<S: ReadonlyStorage>(storage: &S, address: CanonicalAddr) -> StdResul
         Some(adapter) => Ok(adapter),
         None => Ok(Adapter {
             address: CanonicalAddr::default(),
-            fee_rate: Decimal256::zero(),
         }),
     }
 }

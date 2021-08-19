@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 pub struct InitMsg {
     pub pool_code_id: u64,
     pub token_code_id: u64,
+    pub fee_rate: Decimal256,
     pub fee_collector: HumanAddr,
 }
 
@@ -14,10 +15,11 @@ pub struct InitMsg {
 #[serde(rename_all = "snake_case")]
 pub enum HandleMsg {
     Configure {
-        owner: HumanAddr,
-        pool_code_id: u64,
-        token_code_id: u64,
-        fee_collector: HumanAddr,
+        owner: Option<HumanAddr>,
+        pool_code_id: Option<u64>,
+        token_code_id: Option<u64>,
+        fee_rate: Option<Decimal256>,
+        fee_collector: Option<HumanAddr>,
     },
     CreatePool {
         pool_name: String,
@@ -29,7 +31,6 @@ pub enum HandleMsg {
     },
     RegisterAdapter {
         address: HumanAddr,
-        fee_rate: Decimal256,
     },
     UnregisterAdapter {
         address: HumanAddr,

@@ -1,6 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use cosmwasm_bignumber::Decimal256;
 use cosmwasm_std::{CanonicalAddr, StdResult, Storage};
 use cosmwasm_storage::{ReadonlySingleton, Singleton};
 
@@ -11,6 +12,7 @@ pub struct Config {
     pub owner: CanonicalAddr,
     pub pool_code_id: u64,
     pub token_code_id: u64,
+    pub fee_rate: Decimal256,
     pub fee_collector: CanonicalAddr,
 }
 

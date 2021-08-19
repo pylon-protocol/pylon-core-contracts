@@ -8,6 +8,7 @@ pub struct ConfigResponse {
     pub owner: HumanAddr,
     pub pool_code_id: u64,
     pub token_code_id: u64,
+    pub fee_rate: Decimal256,
     pub fee_collector: HumanAddr,
 }
 
@@ -28,5 +29,4 @@ pub struct PoolInfoResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct AdapterInfoResponse {
     pub address: HumanAddr,
-    pub fee_rate: Decimal256,
 }

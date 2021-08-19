@@ -1,7 +1,7 @@
 use cosmwasm_bignumber::Decimal256;
 use cosmwasm_std::{
-    log, to_binary, Api, CanonicalAddr, CosmosMsg, Env, Extern, HandleResponse, HumanAddr, Querier,
-    StdError, StdResult, Storage, WasmMsg,
+    log, to_binary, Api, CanonicalAddr, CosmosMsg, Env, Extern, HandleResponse, HumanAddr,
+    LogAttribute, Querier, StdError, StdResult, Storage, WasmMsg,
 };
 use pylon_core::pool_msg::InitMsg;
 use std::ops::Add;
@@ -11,10 +11,11 @@ use crate::state::{adapter, config, pool, state};
 pub fn configure<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
-    owner: HumanAddr,
-    pool_code_id: u64,
-    token_code_id: u64,
-    fee_collector: HumanAddr,
+    owner: Option<HumanAddr>,
+    pool_code_id: Option<u64>,
+    token_code_id: Option<u64>,
+    fee_rate: Option<Decimal256>,
+    fee_collector: Option<HumanAddr>,
 ) -> StdResult<HandleResponse> {
     let mut config = config::read(&deps.storage)?;
     let sender = deps.api.canonical_address(&env.message.sender)?;
@@ -22,18 +23,36 @@ pub fn configure<S: Storage, A: Api, Q: Querier>(
         return Err(StdError::unauthorized());
     }
 
-    config.owner = deps.api.canonical_address(&owner)?;
-    config.pool_code_id = pool_code_id;
-    config.token_code_id = token_code_id;
-    config.fee_collector = deps.api.canonical_address(&fee_collector)?;
+    let mut logs: Vec<LogAttribute> = vec![
+        log("action", "configure"),
+        log("sender", env.message.sender),
+    ];
+    if let Some(o) = owner {
+        config.owner = deps.api.canonical_address(&o)?;
+        logs.push(log("new_owner", o));
+    }
+    if let Some(p) = pool_code_id {
+        config.pool_code_id = p.clone();
+        logs.push(log("new_pid", p));
+    }
+    if let Some(t) = token_code_id {
+        config.token_code_id = t.clone();
+        logs.push(log("new_tid", t));
+    }
+    if let Some(f) = fee_rate {
+        config.fee_rate = f.clone();
+        logs.push(log("new_fee_rate", f));
+    }
+    if let Some(f) = fee_collector {
+        config.fee_collector = deps.api.canonical_address(&f)?;
+        logs.push(log("new_fee_collector", f));
+    }
+
     config::store(&mut deps.storage, &config)?;
 
     Ok(HandleResponse {
         messages: vec![],
-        log: vec![
-            log("action", "configure"),
-            log("sender", env.message.sender),
-        ],
+        log: logs,
         data: None,
     })
 }
@@ -118,16 +137,20 @@ pub fn register_adapter<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
     adapter: HumanAddr,
-    fee_rate: Decimal256,
 ) -> StdResult<HandleResponse> {
+    let config = config::read(&deps.storage)?;
+    if config
+        .owner
+        .ne(&deps.api.canonical_address(&env.message.sender)?)
+    {
+        return Err(StdError::generic_err("Factory: only owner (register)"));
+    }
+
     let address = deps.api.canonical_address(&adapter)?;
     adapter::store(
         &mut deps.storage,
         address.clone(),
-        &adapter::Adapter {
-            address,
-            fee_rate: fee_rate.clone(),
-        },
+        &adapter::Adapter { address },
     )?;
 
     Ok(HandleResponse {
@@ -136,7 +159,6 @@ pub fn register_adapter<S: Storage, A: Api, Q: Querier>(
             log("action", "register_adapter"),
             log("sender", env.message.sender),
             log("adapter", adapter),
-            log("fee_rate", fee_rate),
         ],
         data: None,
     })
@@ -147,6 +169,14 @@ pub fn unregister_adapter<S: Storage, A: Api, Q: Querier>(
     env: Env,
     adapter: HumanAddr,
 ) -> StdResult<HandleResponse> {
+    let config = config::read(&deps.storage)?;
+    if config
+        .owner
+        .ne(&deps.api.canonical_address(&env.message.sender)?)
+    {
+        return Err(StdError::generic_err("Factory: only owner (register)"));
+    }
+
     let address = deps.api.canonical_address(&adapter)?;
     adapter::remove(&mut deps.storage, address);
 
