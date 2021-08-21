@@ -8,7 +8,7 @@ use pylon_core::pool_msg::Cw20HookMsg;
 use pylon_utils::tax::deduct_tax;
 use std::ops::Div;
 
-use crate::querier::{adapter, pool};
+use crate::querier::{adapter, factory, pool};
 use crate::state::config;
 
 pub fn register_dp_token<S: Storage, A: Api, Q: Querier>(
@@ -59,7 +59,7 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     env: Env,
 ) -> StdResult<HandleResponse> {
-    let config = config::read(&deps.storage)?;
+    let config = config::read(&deps.storage).unwrap();
 
     // check deposit
     let received: Uint256 = env
@@ -89,17 +89,19 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
             denom: config.input_denom.clone(),
             amount: received.into(),
         },
-    )?;
+    )
+    .unwrap();
 
     Ok(HandleResponse {
         messages: [
-            adapter::deposit(deps, &config.yield_adapter, received.into())?,
+            adapter::deposit(deps, &config.yield_adapter, received.into()).unwrap(),
             vec![CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: deps.api.human_address(&config.dp_token)?,
+                contract_addr: deps.api.human_address(&config.dp_token).unwrap(),
                 msg: to_binary(&Cw20HandleMsg::Mint {
                     recipient: env.message.sender.clone(),
                     amount: return_amount.amount.clone(),
-                })?,
+                })
+                .unwrap(),
                 send: vec![],
             })],
         ]
@@ -173,8 +175,13 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
         )));
     }
 
+    let factory_config = factory::config(deps, &config.factory)?;
     let reward = pool::claimable_rewards(deps)?;
     let exchange_rate = adapter::exchange_rate(deps, &config.yield_adapter, &config.input_denom)?;
+
+    println!("{:?}", factory_config);
+    println!("{:?}", reward);
+    println!("{:?}", exchange_rate);
 
     Ok(HandleResponse {
         messages: [
@@ -197,7 +204,7 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
                 }),
                 CosmosMsg::Bank(BankMsg::Send {
                     from_address: env.contract.address.clone(),
-                    to_address: deps.api.human_address(&config.fee_collector)?,
+                    to_address: factory_config.fee_collector,
                     amount: vec![deduct_tax(
                         deps,
                         Coin {

@@ -10,7 +10,6 @@ pub struct InitMsg {
     pub pool_id: u64,
     pub pool_name: String,
     pub beneficiary: HumanAddr,
-    pub fee_collector: HumanAddr,
     pub yield_adapter: HumanAddr,
     pub dp_code_id: u64,
 }

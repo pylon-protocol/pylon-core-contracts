@@ -10,7 +10,6 @@ pub struct ConfigResponse {
     pub name: String,
     pub factory: HumanAddr,
     pub beneficiary: HumanAddr,
-    pub fee_collector: HumanAddr,
     pub yield_adapter: HumanAddr,
     pub input_denom: String,
     pub yield_token: HumanAddr,

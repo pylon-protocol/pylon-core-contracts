@@ -27,7 +27,6 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
         this: deps.api.canonical_address(&env.contract.address)?,
         factory: deps.api.canonical_address(&env.message.sender)?,
         beneficiary: deps.api.canonical_address(&msg.beneficiary)?,
-        fee_collector: deps.api.canonical_address(&msg.fee_collector)?,
         yield_adapter: adapter,
         input_denom: adapter_config.input_denom,
         yield_token: deps.api.canonical_address(&adapter_config.yield_token)?,
@@ -43,7 +42,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
                 send: vec![],
                 label: None,
                 msg: to_binary(&Cw20InitMsg {
-                    name: "Pylon Deposit Token".to_string(),
+                    name: "Pylon Deposit Pool Token".to_string(),
                     symbol: "DPv1".to_string(),
                     decimals: 6u8,
                     initial_balances: vec![],

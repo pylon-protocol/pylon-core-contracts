@@ -1,9 +1,8 @@
 use std::env::current_dir;
 use std::fs::create_dir_all;
 
+use core_pool::state::{config, state};
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
-
-use core_pool::config::Config;
 use pylon_core::pool_msg::{HandleMsg, InitMsg, QueryMsg};
 
 fn main() {
@@ -15,5 +14,6 @@ fn main() {
     export_schema(&schema_for!(InitMsg), &out_dir);
     export_schema(&schema_for!(HandleMsg), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
-    export_schema(&schema_for!(Config), &out_dir);
+    export_schema(&schema_for!(config::Config), &out_dir);
+    export_schema(&schema_for!(state::State), &out_dir);
 }

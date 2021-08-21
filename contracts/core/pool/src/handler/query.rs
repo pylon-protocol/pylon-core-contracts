@@ -14,7 +14,6 @@ pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResu
         name: config.name.clone(),
         factory: deps.api.human_address(&config.factory)?,
         beneficiary: deps.api.human_address(&config.beneficiary)?,
-        fee_collector: deps.api.human_address(&config.fee_collector)?,
         yield_adapter: deps.api.human_address(&config.yield_adapter)?,
         input_denom: config.input_denom,
         yield_token: deps.api.human_address(&config.yield_token)?,

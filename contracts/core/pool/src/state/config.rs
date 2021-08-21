@@ -12,7 +12,6 @@ pub struct Config {
     pub this: CanonicalAddr,
     pub factory: CanonicalAddr,
     pub beneficiary: CanonicalAddr,
-    pub fee_collector: CanonicalAddr,
     pub yield_adapter: CanonicalAddr,
     pub input_denom: String,
     pub yield_token: CanonicalAddr,

@@ -9,6 +9,7 @@ use pylon_utils::token;
 use crate::querier::{adapter, factory};
 use crate::state::config;
 
+#[derive(Clone, Default, Debug)]
 pub struct Reward {
     pub amount: Uint256,
     pub fee: Uint256,
@@ -44,8 +45,8 @@ pub fn claimable_rewards<S: Storage, A: Api, Q: Querier>(
         .amount,
     );
     let amount = pvl.sub(Uint256::from(dp_total_supply));
-    let fee_rate = factory::fee_rate(deps, &config.factory, &config.yield_adapter)?;
-    let fee = amount.div(fee_rate);
+    let factory_config = factory::config(deps, &config.factory)?;
+    let fee = amount.mul(factory_config.fee_rate);
 
     Ok(Reward {
         amount: amount.sub(fee),
