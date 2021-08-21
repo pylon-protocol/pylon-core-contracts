@@ -9,7 +9,7 @@ use std::str::FromStr;
 use crate::contract;
 use crate::state::{adapter, config, pool, state};
 use crate::testing::constants::{
-    TEST_BENEFICIARY, TEST_CREATOR, TEST_FEE_COLLECTOR, TEST_POOL, TEST_USER, TEST_YIELD_ADAPTER,
+    TEST_BENEFICIARY, TEST_CREATOR, TEST_POOL, TEST_USER, TEST_YIELD_ADAPTER,
 };
 use crate::testing::utils;
 
@@ -110,7 +110,6 @@ fn create_pool_and_register() {
                 pool_id: prev_state.next_pool_id.clone(),
                 pool_name: TEST_POOL.into(),
                 beneficiary: HumanAddr::from(TEST_BENEFICIARY),
-                fee_collector: HumanAddr::from(TEST_FEE_COLLECTOR),
                 yield_adapter: HumanAddr::from(TEST_YIELD_ADAPTER),
                 dp_code_id: config.token_code_id.clone(),
             })

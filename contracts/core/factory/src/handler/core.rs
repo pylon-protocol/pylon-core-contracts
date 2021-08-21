@@ -93,7 +93,6 @@ pub fn create_pool<S: Storage, A: Api, Q: Querier>(
                 pool_id: pool.id,
                 pool_name,
                 beneficiary,
-                fee_collector: deps.api.human_address(&config.fee_collector)?,
                 yield_adapter,
                 dp_code_id: config.token_code_id.clone(),
             })?,
