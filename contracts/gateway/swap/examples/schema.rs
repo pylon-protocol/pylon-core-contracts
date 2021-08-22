@@ -3,7 +3,7 @@ use std::fs::create_dir_all;
 
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
 
-use launchpad_swap::state::{Config, User};
+use gateway_swap::state::{config, state, user, vpool};
 use pylon_gateway::swap_msg::{HandleMsg, InitMsg, QueryMsg};
 
 fn main() {
@@ -15,6 +15,8 @@ fn main() {
     export_schema(&schema_for!(InitMsg), &out_dir);
     export_schema(&schema_for!(HandleMsg), &out_dir);
     export_schema(&schema_for!(QueryMsg), &out_dir);
-    export_schema(&schema_for!(Config), &out_dir);
-    export_schema(&schema_for!(User), &out_dir);
+    export_schema(&schema_for!(vpool::VirtualPool), &out_dir);
+    export_schema(&schema_for!(config::Config), &out_dir);
+    export_schema(&schema_for!(state::State), &out_dir);
+    export_schema(&schema_for!(user::User), &out_dir);
 }

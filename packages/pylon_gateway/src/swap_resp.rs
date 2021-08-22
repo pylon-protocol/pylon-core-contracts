@@ -19,6 +19,12 @@ pub struct BalanceOfResponse {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct AvailableCapOfResponse {
+    pub staked: Uint256,
+    pub cap: Uint256,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct TotalSupplyResponse {
     pub amount: Uint256,
 }

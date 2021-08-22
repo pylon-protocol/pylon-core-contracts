@@ -5,7 +5,7 @@ use cosmwasm_std::{
 
 use crate::handler::execute as ExecHandler;
 use crate::handler::query as QueryHandler;
-use crate::state;
+use crate::state::{config, state, user, vpool};
 use cosmwasm_bignumber::Uint256;
 use pylon_gateway::swap_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 use std::ops::Add;
@@ -15,34 +15,39 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     env: Env,
     msg: InitMsg,
 ) -> StdResult<InitResponse> {
-    state::store_config(
+    config::store(
         &mut deps.storage,
-        &state::Config {
+        &config::Config {
             this: env.contract.address.clone(),
             owner: env.message.sender,
             beneficiary: msg.beneficiary,
+            base_price: msg.base_price,
+            min_user_cap: msg.min_user_cap,
+            max_user_cap: msg.max_user_cap,
+            staking_contract: msg.staking_contract,
+            min_stake_amount: msg.min_stake_amount,
+            max_stake_amount: msg.max_stake_amount,
+            additional_cap_per_token: msg.additional_cap_per_token,
+            total_sale_amount: msg.total_sale_amount,
             start: msg.start,
             finish: msg.start.add(msg.period),
-            price: msg.price,
-            max_cap: msg.max_cap,
-            total_sale_amount: msg.total_sale_amount,
         },
     )?;
 
-    state::store_reward(
+    state::store(
         &mut deps.storage,
-        &state::Reward {
+        &state::State {
             total_supply: Uint256::zero(),
         },
     )?;
 
-    state::store_vpool(
+    vpool::store(
         &mut deps.storage,
-        &state::VirtualPool {
-            x_denom: msg.x_denom,
-            y_addr: deps.api.canonical_address(&msg.y_addr)?,
-            liq_x: msg.liq_x,
-            liq_y: msg.liq_y,
+        &vpool::VirtualPool {
+            x_denom: msg.pool_x_denom,
+            y_addr: deps.api.canonical_address(&msg.pool_y_addr)?,
+            liq_x: msg.pool_liq_x,
+            liq_y: msg.pool_liq_y,
         },
     )?;
 
@@ -68,6 +73,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
     match msg {
         QueryMsg::Config {} => QueryHandler::config(deps),
         QueryMsg::BalanceOf { owner } => QueryHandler::balance_of(deps, owner),
+        QueryMsg::AvailableCapOf { address } => QueryHandler::available_cap_of(deps, address),
         QueryMsg::TotalSupply {} => QueryHandler::total_supply(deps),
         QueryMsg::CurrentPrice {} => QueryHandler::current_price(deps),
         QueryMsg::SimulateWithdraw { amount } => QueryHandler::simulate_withdraw(deps, amount),
