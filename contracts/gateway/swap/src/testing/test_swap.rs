@@ -3,11 +3,11 @@ use cosmwasm_std::testing::mock_env;
 use cosmwasm_std::{from_binary, Coin, HumanAddr, Uint128};
 use pylon_gateway::swap_msg::{HandleMsg, QueryMsg};
 use pylon_gateway::swap_resp::AvailableCapOfResponse;
+use pylon_token::gov::StakerResponse;
 use std::ops::{Add, Mul};
 use std::str::FromStr;
 
 use crate::contract;
-use crate::querier::staking::StakerResponse;
 use crate::testing::constants::{
     TEST_ADDITIONAL_CAP_PER_TOKEN, TEST_MAX_STAKE_AMOUNT, TEST_MAX_USER_CAP, TEST_MIN_STAKE_AMOUNT,
     TEST_MIN_USER_CAP, TEST_OWNER, TEST_POOL_X_DENOM, TEST_USER,
@@ -35,6 +35,7 @@ fn sale() {
         StakerResponse {
             balance: Uint128::from(TEST_MIN_STAKE_AMOUNT),
             share: Uint128::from(TEST_MIN_STAKE_AMOUNT),
+            locked_balance: vec![],
         },
     )]));
 
@@ -66,6 +67,7 @@ fn calculate_user_cap() {
         StakerResponse {
             balance: Uint128::from(TEST_MIN_STAKE_AMOUNT / 2),
             share: Uint128::from(TEST_MIN_STAKE_AMOUNT / 2),
+            locked_balance: vec![],
         },
     )]));
     let cap_res: AvailableCapOfResponse =
@@ -84,6 +86,7 @@ fn calculate_user_cap() {
         StakerResponse {
             balance: Uint128::from(TEST_MIN_STAKE_AMOUNT),
             share: Uint128::from(TEST_MIN_STAKE_AMOUNT),
+            locked_balance: vec![],
         },
     )]));
     let cap_res: AvailableCapOfResponse =
@@ -102,6 +105,7 @@ fn calculate_user_cap() {
         StakerResponse {
             balance: Uint128::from(TEST_MIN_STAKE_AMOUNT * 2),
             share: Uint128::from(TEST_MIN_STAKE_AMOUNT * 2),
+            locked_balance: vec![],
         },
     )]));
     let cap_res: AvailableCapOfResponse =
@@ -123,6 +127,7 @@ fn calculate_user_cap() {
         StakerResponse {
             balance: Uint128::from(TEST_MAX_STAKE_AMOUNT),
             share: Uint128::from(TEST_MAX_STAKE_AMOUNT),
+            locked_balance: vec![],
         },
     )]));
     let cap_res: AvailableCapOfResponse =
@@ -141,6 +146,7 @@ fn calculate_user_cap() {
         StakerResponse {
             balance: Uint128::from(TEST_MAX_STAKE_AMOUNT * 2),
             share: Uint128::from(TEST_MAX_STAKE_AMOUNT * 2),
+            locked_balance: vec![],
         },
     )]));
     let cap_res: AvailableCapOfResponse =

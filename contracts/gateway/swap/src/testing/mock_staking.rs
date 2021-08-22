@@ -1,7 +1,6 @@
-use cosmwasm_std::{to_binary, HumanAddr, QuerierResult, Uint128};
+use cosmwasm_std::{to_binary, HumanAddr, QuerierResult, SystemError, Uint128};
+use pylon_token::gov::{QueryMsg, StakerResponse};
 use std::collections::HashMap;
-
-use crate::querier::staking::{StakerRequest, StakerResponse};
 
 #[derive(Clone, Default)]
 pub struct MockStaking {
@@ -9,15 +8,23 @@ pub struct MockStaking {
 }
 
 impl MockStaking {
-    pub fn handle_query(&self, msg: StakerRequest) -> QuerierResult {
-        let def = &StakerResponse {
-            balance: Uint128::zero(),
-            share: Uint128::zero(),
-        };
-        Ok(to_binary(match self.infos.get(&msg.address) {
-            Some(info) => info,
-            None => def,
-        }))
+    pub fn handle_query(&self, msg: QueryMsg) -> QuerierResult {
+        match msg {
+            QueryMsg::Staker { address } => {
+                let def = &StakerResponse {
+                    balance: Uint128::zero(),
+                    share: Uint128::zero(),
+                    locked_balance: vec![],
+                };
+                Ok(to_binary(match self.infos.get(&address) {
+                    Some(info) => info,
+                    None => def,
+                }))
+            }
+            _ => Err(SystemError::UnsupportedRequest {
+                kind: stringify!(msg).to_string(),
+            }),
+        }
     }
 }
 

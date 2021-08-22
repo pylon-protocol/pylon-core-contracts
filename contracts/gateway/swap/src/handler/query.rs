@@ -7,6 +7,7 @@ use crate::querier::staking::staker;
 use crate::querier::swap::calculate_user_cap;
 use crate::querier::vpool::{calculate_current_price, calculate_withdraw_amount};
 use crate::state::{config, state, user, vpool};
+use std::ops::{Div, Mul};
 
 pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
     let config = config::read(&deps.storage)?;
@@ -38,11 +39,17 @@ pub fn available_cap_of<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<Binary> {
     let config = config::read(&deps.storage).unwrap();
     let staker_info = staker(deps, &config.staking_contract, address).unwrap();
+    if Uint256::from(staker_info.balance).lt(&config.min_stake_amount) {
+        return to_binary(&resp::AvailableCapOfResponse {
+            staked: Uint256::from(staker_info.balance),
+            cap: Uint256::zero(),
+        });
+    }
     let cap = calculate_user_cap(&config, Uint256::from(staker_info.balance)).unwrap();
 
     to_binary(&resp::AvailableCapOfResponse {
         staked: Uint256::from(staker_info.balance),
-        cap,
+        cap: cap.mul(config.base_price),
     })
 }
 
