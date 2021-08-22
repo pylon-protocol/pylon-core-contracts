@@ -60,6 +60,11 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     msg: HandleMsg,
 ) -> StdResult<HandleResponse> {
     match msg {
+        HandleMsg::Configure {
+            total_sale_amount,
+            min_user_cap,
+            max_user_cap,
+        } => ExecHandler::configure(deps, env, total_sale_amount, min_user_cap, max_user_cap),
         HandleMsg::Deposit {} => ExecHandler::deposit(deps, env),
         HandleMsg::Withdraw { amount } => ExecHandler::withdraw(deps, env, amount),
         HandleMsg::Earn {} => ExecHandler::earn(deps, env),

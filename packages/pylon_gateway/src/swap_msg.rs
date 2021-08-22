@@ -25,8 +25,15 @@ pub struct InitMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum HandleMsg {
+    Configure {
+        total_sale_amount: Uint256,
+        min_user_cap: Uint256,
+        max_user_cap: Uint256,
+    },
     Deposit {},
-    Withdraw { amount: Uint256 },
+    Withdraw {
+        amount: Uint256,
+    },
     Earn {},
 }
 

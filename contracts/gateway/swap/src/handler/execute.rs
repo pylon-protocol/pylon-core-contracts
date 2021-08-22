@@ -12,6 +12,25 @@ use crate::querier::staking::staker;
 use crate::querier::swap::calculate_user_cap;
 use crate::querier::vpool::calculate_withdraw_amount;
 use crate::state::{config, state, user, vpool};
+use std::cmp::max;
+
+pub fn configure<S: Storage, A: Api, Q: Querier>(
+    deps: &mut Extern<S, A, Q>,
+    env: Env,
+    total_sale_amount: Uint256,
+    min_user_cap: Uint256,
+    max_user_cap: Uint256,
+) -> StdResult<HandleResponse> {
+    let mut config = config::read(&deps.storage)?;
+
+    config.total_sale_amount = total_sale_amount;
+    config.min_user_cap = min_user_cap;
+    config.max_user_cap = max_user_cap;
+
+    config::store(&mut deps.storage, &config)?;
+
+    Ok(HandleResponse::default())
+}
 
 pub fn deposit<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
@@ -20,6 +39,9 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
     let config = config::read(&deps.storage)?;
     let vpool = vpool::read(&deps.storage)?;
 
+    if config.start.gt(&env.block.time) {
+        return Err(StdError::generic_err("Swap: not started"));
+    }
     if config.finish.lt(&env.block.time) {
         return Err(StdError::generic_err("Swap: finished"));
     }
