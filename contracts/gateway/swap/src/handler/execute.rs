@@ -8,18 +8,20 @@ use pylon_utils::tax::deduct_tax;
 use std::ops::{Add, Div, Mul, Sub};
 use terraswap::querier::query_balance;
 
+use crate::querier::staking::staker;
+use crate::querier::swap::calculate_user_cap;
 use crate::querier::vpool::calculate_withdraw_amount;
-use crate::state;
+use crate::state::{config, state, user, vpool};
 
 pub fn deposit<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
 ) -> StdResult<HandleResponse> {
-    let config = state::read_config(&deps.storage)?;
-    let vpool = state::read_vpool(&deps.storage)?;
+    let config = config::read(&deps.storage)?;
+    let vpool = vpool::read(&deps.storage)?;
 
     if config.finish.lt(&env.block.time) {
-        return Err(StdError::unauthorized());
+        return Err(StdError::generic_err("Swap: finished"));
     }
 
     // 1:1
@@ -30,7 +32,6 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
         .find(|c| c.denom == vpool.x_denom)
         .map(|c| Uint256::from(c.amount))
         .unwrap_or_else(Uint256::zero);
-
     if received.is_zero() {
         return Err(StdError::generic_err(format!(
             "Swap: insufficient token amount {}",
@@ -39,38 +40,47 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
     }
     if env.message.sent_funds.len() > 1 {
         return Err(StdError::generic_err(format!(
-            "Pool: this contract only accepts {}",
+            "Swap: this contract only accepts {}",
             vpool.x_denom,
         )));
     }
 
     let sender = &deps.api.canonical_address(&env.message.sender)?;
-    let mut user = state::read_user(&deps.storage, sender)?;
-    let mut reward = state::read_reward(&deps.storage)?;
+    let mut user = user::read(&deps.storage, sender)?;
+    let mut state = state::read(&deps.storage)?;
 
-    let deposit_amount = received.div(config.price);
-    if user.amount.add(deposit_amount).gt(&config.max_cap) {
+    let deposit_amount = received.div(config.base_price);
+    if deposit_amount.lt(&config.min_user_cap) {
         return Err(StdError::generic_err(format!(
-            "Pool: maximum deposit cap exceeded ({})",
-            config.max_cap,
+            "Swap: min user cap not satisfied ({})",
+            config.min_user_cap,
         )));
     }
-    if reward
+
+    let staker_info = staker(deps, &config.staking_contract, env.message.sender.clone()).unwrap();
+    let user_cap = calculate_user_cap(&config, Uint256::from(staker_info.balance)).unwrap();
+    if user.amount.add(deposit_amount).gt(&user_cap) {
+        return Err(StdError::generic_err(format!(
+            "Swap: user cap exceeded ({})",
+            user_cap,
+        )));
+    }
+    if state
         .total_supply
         .add(deposit_amount)
         .gt(&config.total_sale_amount)
     {
         return Err(StdError::generic_err(format!(
-            "Pool: maximum swap cap exceeded ({})",
+            "Swap: sale cap exceeded ({})",
             config.total_sale_amount
         )));
     }
 
     user.amount = user.amount.add(deposit_amount);
-    reward.total_supply = reward.total_supply.add(deposit_amount);
+    state.total_supply = state.total_supply.add(deposit_amount);
 
-    state::store_user(&mut deps.storage, sender, &user)?;
-    state::store_reward(&mut deps.storage, &reward)?;
+    user::store(&mut deps.storage, sender, &user)?;
+    state::store(&mut deps.storage, &state)?;
 
     Ok(HandleResponse {
         messages: vec![],
@@ -89,16 +99,16 @@ fn withdraw_with_penalty<S: Storage, A: Api, Q: Querier>(
     env: Env,
     amount: Uint256,
 ) -> StdResult<HandleResponse> {
-    let mut vpool = state::read_vpool(&deps.storage)?;
+    let mut vpool = vpool::read(&deps.storage)?;
     let withdraw_amount = calculate_withdraw_amount(&vpool.liq_x, &vpool.liq_y, &amount)?;
 
     vpool.liq_x = vpool.liq_x.sub(withdraw_amount);
     vpool.liq_y = vpool.liq_y.add(amount);
 
-    state::store_vpool(&mut deps.storage, &vpool)?;
+    vpool::store(&mut deps.storage, &vpool)?;
 
-    let config = state::read_config(&deps.storage)?;
-    let penalty = amount.mul(config.price).sub(withdraw_amount);
+    let config = config::read(&deps.storage)?;
+    let penalty = amount.mul(config.base_price).sub(withdraw_amount);
 
     Ok(HandleResponse {
         messages: vec![
@@ -140,7 +150,7 @@ fn withdraw_without_penalty<S: Storage, A: Api, Q: Querier>(
     env: Env,
     amount: Uint256,
 ) -> StdResult<HandleResponse> {
-    let vpool = state::read_vpool(&deps.storage)?;
+    let vpool = vpool::read(&deps.storage)?;
 
     Ok(HandleResponse {
         messages: vec![CosmosMsg::Wasm(WasmMsg::Execute {
@@ -167,8 +177,8 @@ pub fn withdraw<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<HandleResponse> {
     // xyk
     let sender = &deps.api.canonical_address(&env.message.sender)?;
-    let mut user = state::read_user(&deps.storage, sender)?;
-    let mut reward = state::read_reward(&deps.storage)?;
+    let mut user = user::read(&deps.storage, sender)?;
+    let mut state = state::read(&deps.storage)?;
 
     if user.amount.lt(&amount) {
         return Err(StdError::generic_err(format!(
@@ -178,12 +188,12 @@ pub fn withdraw<S: Storage, A: Api, Q: Querier>(
     }
 
     user.amount = user.amount.sub(amount);
-    reward.total_supply = reward.total_supply.sub(amount);
+    state.total_supply = state.total_supply.sub(amount);
 
-    state::store_user(&mut deps.storage, sender, &user)?;
-    state::store_reward(&mut deps.storage, &reward)?;
+    user::store(&mut deps.storage, sender, &user)?;
+    state::store(&mut deps.storage, &state)?;
 
-    let config: state::Config = state::read_config(&deps.storage)?;
+    let config = config::read(&deps.storage)?;
     if config.finish.gt(&env.block.time) {
         Ok(withdraw_with_penalty(deps, env, amount)?)
     } else {
@@ -192,7 +202,7 @@ pub fn withdraw<S: Storage, A: Api, Q: Querier>(
 }
 
 fn check_owner<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>, env: &Env) -> StdResult<()> {
-    let config = state::read_config(&deps.storage)?;
+    let config = config::read(&deps.storage)?;
     if config.owner.ne(&env.message.sender) {
         return Err(StdError::unauthorized());
     }
@@ -205,12 +215,12 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<HandleResponse> {
     check_owner(deps, &env)?;
 
-    let config = state::read_config(&deps.storage)?;
+    let config = config::read(&deps.storage)?;
     if config.finish.gt(&env.block.time) {
-        return Err(StdError::unauthorized());
+        return Err(StdError::generic_err("Swap: not finished"));
     }
 
-    let vpool = state::read_vpool(&deps.storage)?;
+    let vpool = vpool::read(&deps.storage)?;
     let earn_amount = query_balance(deps, &env.contract.address, vpool.x_denom.clone())?;
 
     Ok(HandleResponse {
