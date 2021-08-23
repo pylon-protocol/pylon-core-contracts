@@ -41,4 +41,12 @@ pub fn query_buyers() {
     let bin_res = contract::query(&deps, msg).unwrap();
     let res: BuyersResponse = from_binary(&bin_res).unwrap();
     assert_eq!(res.buyers.len(), 5);
+
+    let msg = QueryMsg::Buyers {
+        start_after: Option::from(HumanAddr::from("TEST_9")),
+        limit: None,
+    };
+    let bin_res = contract::query(&deps, msg).unwrap();
+    let res: BuyersResponse = from_binary(&bin_res).unwrap();
+    assert_eq!(res.buyers.len(), 0);
 }
