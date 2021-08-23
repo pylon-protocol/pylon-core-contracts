@@ -9,6 +9,7 @@ members = [
     "contracts/gateway/gov",
     "contracts/gateway/pool",
     "contracts/gateway/swap",
+    "contracts/gateway/swap-refund",
     "contracts/pylon/airdrop",
     "contracts/pylon/collector",
     "contracts/pylon/community",
