@@ -76,7 +76,7 @@ fn calculate_user_cap() {
         cap_res,
         AvailableCapOfResponse {
             staked: Uint256::from(TEST_MIN_STAKE_AMOUNT / 2),
-            cap: Uint256::from(TEST_MIN_USER_CAP),
+            cap: Uint256::zero(),
         }
     );
 

@@ -3,6 +3,7 @@ pub mod contract;
 pub mod state;
 
 mod handler;
+mod migration;
 mod querier;
 
 #[cfg(test)]

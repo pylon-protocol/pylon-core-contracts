@@ -1,14 +1,15 @@
+use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{
     Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResponse, MigrateResult,
     Querier, StdResult, Storage,
 };
+use pylon_gateway::swap_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
+use std::ops::Add;
 
 use crate::handler::execute as ExecHandler;
 use crate::handler::query as QueryHandler;
+use crate::migration::migration;
 use crate::state::{config, state, user, vpool};
-use cosmwasm_bignumber::Uint256;
-use pylon_gateway::swap_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
-use std::ops::Add;
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
@@ -86,9 +87,9 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
 }
 
 pub fn migrate<S: Storage, A: Api, Q: Querier>(
-    _: &mut Extern<S, A, Q>,
+    deps: &mut Extern<S, A, Q>,
     _: Env,
     _: MigrateMsg,
 ) -> MigrateResult {
-    Ok(MigrateResponse::default())
+    migration(deps)
 }
