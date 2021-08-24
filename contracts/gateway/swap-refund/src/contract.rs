@@ -76,7 +76,12 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
+    Config {},
     Buyers {
+        start_after: Option<HumanAddr>,
+        limit: Option<u32>,
+    },
+    Simulate {
         start_after: Option<HumanAddr>,
         limit: Option<u32>,
     },
@@ -87,7 +92,18 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
     msg: QueryMsg,
 ) -> StdResult<Binary> {
     match msg {
+        QueryMsg::Config {} => QueryHandler::config(deps),
         QueryMsg::Buyers { start_after, limit } => QueryHandler::buyers(
+            deps,
+            match start_after {
+                Some(start_after) => {
+                    Option::from(deps.api.canonical_address(&start_after).unwrap())
+                }
+                None => None,
+            },
+            limit,
+        ),
+        QueryMsg::Simulate { start_after, limit } => QueryHandler::simulate(
             deps,
             match start_after {
                 Some(start_after) => {

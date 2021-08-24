@@ -22,4 +22,3 @@ members = [
 rpath = false
 lto = true
 overflow-checks = true
-

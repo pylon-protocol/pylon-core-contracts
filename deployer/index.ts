@@ -27,7 +27,7 @@ const lcdClient = new LCDClient({
   URL: network.URL,
   chainID: network.chainID,
   gasAdjustment: 2,
-  gasPrices: { uluna: 0.15 },
+  gasPrices: { uluna: 0.44 },
 });
 
 const key = new MnemonicKey({ mnemonic: network.accounts.mnemonic });
