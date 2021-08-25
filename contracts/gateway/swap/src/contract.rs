@@ -7,8 +7,8 @@ use pylon_gateway::swap_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 use std::ops::Add;
 
 use crate::handler::execute as ExecHandler;
+use crate::handler::migrate as MigrateHandler;
 use crate::handler::query as QueryHandler;
-use crate::migration::migration;
 use crate::state::{config, state, user, vpool};
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
@@ -88,8 +88,10 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
 
 pub fn migrate<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
-    _: Env,
-    _: MigrateMsg,
+    env: Env,
+    msg: MigrateMsg,
 ) -> MigrateResult {
-    migration(deps)
+    match msg {
+        MigrateMsg::Refund {} => MigrateHandler::refund(deps, env),
+    }
 }

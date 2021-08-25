@@ -5,7 +5,7 @@ use pylon_gateway::swap_msg::MigrateMsg;
 use std::str::FromStr;
 
 use crate::contract;
-use crate::migration::NewConfig;
+use crate::handler::migrate::NewConfig;
 use crate::state::config::KEY_CONFIG;
 use crate::testing::constants::{TEST_BASE_PRICE, TEST_OWNER, TEST_POOL_X_DENOM};
 use crate::testing::mock_querier::mock_dependencies;
