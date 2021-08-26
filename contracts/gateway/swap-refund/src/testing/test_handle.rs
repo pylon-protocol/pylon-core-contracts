@@ -70,7 +70,7 @@ pub fn handle_refund() {
         limit: None,
     };
     let res = contract::handle(&mut deps, manager.clone(), msg.clone()).unwrap();
-    assert_eq!(res.messages.len(), 10);
+    assert_eq!(res.messages.len(), 9); // except 0
 
     for buyer in &buyers {
         let user_state = user_state::read(

@@ -67,16 +67,18 @@ pub fn refund<S: Storage, A: Api, Q: Querier>(
         let user_state =
             user_state::read(&deps.storage, &deps.api.canonical_address(address).unwrap()).unwrap();
         if !user_state.processed {
-            let refund_amount = info.amount.mul(config.base_price);
+            if !info.amount.is_zero() {
+                let refund_amount = info.amount.mul(config.base_price);
 
-            msgs.push(CosmosMsg::Bank(BankMsg::Send {
-                from_address: env.contract.address.clone(),
-                to_address: address.clone(),
-                amount: vec![Coin {
-                    denom: config.refund_denom.clone(),
-                    amount: refund_amount.into(),
-                }],
-            }));
+                msgs.push(CosmosMsg::Bank(BankMsg::Send {
+                    from_address: env.contract.address.clone(),
+                    to_address: address.clone(),
+                    amount: vec![Coin {
+                        denom: config.refund_denom.clone(),
+                        amount: refund_amount.into(),
+                    }],
+                }));
+            }
 
             user_state::store(
                 &mut deps.storage,
