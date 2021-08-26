@@ -1,5 +1,5 @@
 [package]
-name = "core-pool"
+name = "core-pool-v2"
 version = "0.1.0"
 authors = ["carter <carter@pylon.money>"]
 edition = "2018"
