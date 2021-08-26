@@ -21,3 +21,6 @@ deploy-columbus:
 
 deploy-tequila:
 	make deploy network=tequila
+
+deploy-local:
+	make deploy network=local

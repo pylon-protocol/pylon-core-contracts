@@ -12,7 +12,6 @@ use crate::querier::staking::staker;
 use crate::querier::swap::calculate_user_cap;
 use crate::querier::vpool::calculate_withdraw_amount;
 use crate::state::{config, state, user, vpool};
-use std::cmp::max;
 
 pub fn configure<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,

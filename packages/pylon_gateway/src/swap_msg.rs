@@ -50,4 +50,6 @@ pub enum QueryMsg {
 
 /// We currently take no arguments for migrations
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct MigrateMsg {}
+pub enum MigrateMsg {
+    Refund {},
+}
