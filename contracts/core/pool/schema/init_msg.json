@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "InitMsg",
+  "type": "object",
+  "required": [
+    "beneficiary",
+    "dp_code_id",
+    "exchange_rate_feeder",
+    "fee_collector",
+    "moneymarket",
+    "pool_name"
+  ],
+  "properties": {
+    "beneficiary": {
+      "$ref": "#/definitions/HumanAddr"
+    },
+    "dp_code_id": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "exchange_rate_feeder": {
+      "$ref": "#/definitions/HumanAddr"
+    },
+    "fee_collector": {
+      "$ref": "#/definitions/HumanAddr"
+    },
+    "moneymarket": {
+      "$ref": "#/definitions/HumanAddr"
+    },
+    "pool_name": {
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "HumanAddr": {
+      "type": "string"
+    }
+  }
+}

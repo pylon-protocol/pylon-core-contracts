@@ -2,6 +2,7 @@
 members = [
     "packages/*",
     "contracts/core/factory",
+    "contracts/core/pool",
     "contracts/core/pool-v2",
     "contracts/core/token",
     "contracts/core/adapters/anchor",
