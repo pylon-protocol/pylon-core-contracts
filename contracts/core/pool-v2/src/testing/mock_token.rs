@@ -25,7 +25,7 @@ impl Default for MockToken {
                     },
                 ),
                 (
-                    &TEST_TOKEN_YIELD.to_string(),
+                    &TEST_TOKEN_POOL.to_string(),
                     TokenInfoResponse {
                         name: TEST_TOKEN_POOL.to_string(),
                         symbol: "TNT".to_string(),

@@ -179,10 +179,6 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
     let reward = pool::claimable_rewards(deps)?;
     let exchange_rate = adapter::exchange_rate(deps, &config.yield_adapter, &config.input_denom)?;
 
-    println!("{:?}", factory_config);
-    println!("{:?}", reward);
-    println!("{:?}", exchange_rate);
-
     Ok(HandleResponse {
         messages: [
             adapter::redeem(
