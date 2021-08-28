@@ -2,7 +2,6 @@ use cosmwasm_std::{
     to_binary, Api, CanonicalAddr, Extern, HumanAddr, Querier, QueryRequest, StdResult, Storage,
     Uint128, WasmQuery,
 };
-
 use cw20::Cw20QueryMsg;
 use cw20::{BalanceResponse, TokenInfoResponse};
 

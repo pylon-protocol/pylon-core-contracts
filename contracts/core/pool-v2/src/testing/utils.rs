@@ -1,6 +1,6 @@
 use cosmwasm_std::testing::{mock_env, MockApi, MockStorage};
 use cosmwasm_std::{Env, Extern, HumanAddr, Uint128};
-use pylon_core::pool_msg::{HandleMsg, InitMsg};
+use pylon_core::pool_v2_msg::{HandleMsg, InitMsg};
 
 use crate::contract;
 use crate::testing::constants::{

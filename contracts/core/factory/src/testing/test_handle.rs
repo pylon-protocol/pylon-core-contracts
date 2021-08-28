@@ -2,7 +2,7 @@ use cosmwasm_bignumber::Decimal256;
 use cosmwasm_std::testing::{mock_dependencies, mock_env};
 use cosmwasm_std::{log, to_binary, Api, CanonicalAddr, CosmosMsg, HumanAddr, WasmMsg};
 use pylon_core::factory_msg::HandleMsg;
-use pylon_core::pool_msg::InitMsg;
+use pylon_core::pool_v2_msg::InitMsg;
 use std::ops::Add;
 use std::str::FromStr;
 

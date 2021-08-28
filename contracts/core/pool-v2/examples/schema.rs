@@ -3,7 +3,7 @@ use std::fs::create_dir_all;
 
 use core_pool_v2::state::{config, state};
 use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
-use pylon_core::pool_msg::{HandleMsg, InitMsg, QueryMsg};
+use pylon_core::pool_v2_msg::{HandleMsg, InitMsg, QueryMsg};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

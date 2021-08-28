@@ -2,7 +2,7 @@ use cosmwasm_std::testing::{mock_env, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{to_binary, Api, CanonicalAddr, CosmosMsg, HumanAddr, WasmMsg};
 use cw20::MinterResponse;
 use pylon_core::factory_msg::HandleMsg as FactoryHandleMsg;
-use pylon_core::pool_msg::HandleMsg as PoolHandleMsg;
+use pylon_core::pool_v2_msg::HandleMsg as PoolHandleMsg;
 use terraswap::hook::InitHook as Cw20InitHook;
 use terraswap::token::InitMsg as Cw20InitMsg;
 

@@ -115,9 +115,18 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
         deps,
         Coin {
             denom: config.stable_denom.clone(),
-            amount: amount.into(),
+            amount: deduct_tax(
+                deps,
+                Coin {
+                    denom: config.stable_denom.clone(),
+                    amount: amount.into(),
+                },
+            )
+            .unwrap()
+            .amount,
         },
-    )?;
+    )
+    .unwrap();
 
     Ok(HandleResponse {
         messages: [

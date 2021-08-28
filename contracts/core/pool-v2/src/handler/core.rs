@@ -4,7 +4,7 @@ use cosmwasm_std::{
     HandleResponse, HumanAddr, Querier, StdError, StdResult, Storage, Uint128, WasmMsg,
 };
 use cw20::{Cw20HandleMsg, Cw20ReceiveMsg};
-use pylon_core::pool_msg::Cw20HookMsg;
+use pylon_core::pool_v2_msg::Cw20HookMsg;
 use pylon_utils::tax::deduct_tax;
 use std::ops::Div;
 
@@ -124,14 +124,24 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<HandleResponse> {
     let config = config::read(&deps.storage)?;
 
-    let exchange_rate = adapter::exchange_rate(deps, &config.yield_adapter, &config.input_denom)?;
+    let exchange_rate =
+        adapter::exchange_rate(deps, &config.yield_adapter, &config.input_denom).unwrap();
     let return_amount = deduct_tax(
         deps,
         Coin {
             denom: config.input_denom.clone(),
-            amount: amount.into(),
+            amount: deduct_tax(
+                deps,
+                Coin {
+                    denom: config.input_denom.clone(),
+                    amount: amount.into(),
+                },
+            )
+            .unwrap()
+            .amount,
         },
-    )?;
+    )
+    .unwrap();
 
     Ok(HandleResponse {
         messages: [

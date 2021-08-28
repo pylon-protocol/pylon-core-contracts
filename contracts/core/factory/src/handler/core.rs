@@ -3,7 +3,7 @@ use cosmwasm_std::{
     log, to_binary, Api, CanonicalAddr, CosmosMsg, Env, Extern, HandleResponse, HumanAddr,
     LogAttribute, Querier, StdError, StdResult, Storage, WasmMsg,
 };
-use pylon_core::pool_msg::InitMsg;
+use pylon_core::pool_v2_msg::InitMsg;
 use std::ops::Add;
 
 use crate::state::{adapter, config, pool, state};

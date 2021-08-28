@@ -11,8 +11,8 @@ use crate::testing::utils;
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::testing::MOCK_CONTRACT_ADDR;
 use cosmwasm_std::{from_binary, Coin, Decimal, HumanAddr, Uint128};
-use pylon_core::pool_msg::QueryMsg;
-use pylon_core::pool_resp::{
+use pylon_core::pool_v2_msg::QueryMsg;
+use pylon_core::pool_v2_resp::{
     ClaimableRewardResponse, ConfigResponse, DepositAmountResponse, TotalDepositAmountResponse,
 };
 use pylon_utils::tax::deduct_tax;

@@ -2,7 +2,7 @@ use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::testing::{mock_env, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{to_binary, BankMsg, Coin, CosmosMsg, Decimal, HumanAddr, Uint128, WasmMsg};
 use cw20::{Cw20HandleMsg, Cw20ReceiveMsg};
-use pylon_core::pool_msg::{Cw20HookMsg, HandleMsg};
+use pylon_core::pool_v2_msg::{Cw20HookMsg, HandleMsg};
 use pylon_utils::tax::deduct_tax;
 use std::ops::{Div, Mul};
 use std::str::FromStr;

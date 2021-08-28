@@ -6,8 +6,8 @@ use pylon_core::factory_resp as resp;
 
 use crate::state::{adapter, config, pool, state};
 use cosmwasm_bignumber::Uint256;
-use pylon_core::pool_msg::QueryMsg;
-use pylon_core::pool_resp::{ClaimableRewardResponse, ConfigResponse};
+use pylon_core::pool_v2_msg::QueryMsg;
+use pylon_core::pool_v2_resp::{ClaimableRewardResponse, ConfigResponse};
 
 pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
     let config = config::read(&deps.storage)?;

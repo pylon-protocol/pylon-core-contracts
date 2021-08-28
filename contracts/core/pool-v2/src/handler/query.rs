@@ -1,6 +1,5 @@
 use cosmwasm_std::{to_binary, Api, Binary, Extern, HumanAddr, Querier, StdResult, Storage};
-
-use pylon_core::pool_resp as resp;
+use pylon_core::pool_v2_resp as resp;
 use pylon_utils::token;
 
 use crate::querier::pool;

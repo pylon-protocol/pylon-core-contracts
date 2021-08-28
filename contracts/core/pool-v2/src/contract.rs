@@ -4,7 +4,7 @@ use cosmwasm_std::{
 };
 use cw20::MinterResponse;
 use pylon_core::factory_msg::HandleMsg as FactoryHandleMsg;
-use pylon_core::pool_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
+use pylon_core::pool_v2_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 use terraswap::hook::InitHook as Cw20InitHook;
 use terraswap::token::InitMsg as Cw20InitMsg;
 
