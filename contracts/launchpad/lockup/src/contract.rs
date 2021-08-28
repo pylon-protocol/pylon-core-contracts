@@ -95,6 +95,6 @@ pub fn migrate<S: Storage, A: Api, Q: Querier>(
     _: Env,
     msg: MigrateMsg,
 ) -> MigrateResult {
-    // migration(deps, msg)
-    Ok(MigrateResponse::default())
+    migration(deps, msg)
+    // Ok(MigrateResponse::default())
 }
