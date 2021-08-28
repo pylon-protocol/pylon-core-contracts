@@ -1,7 +1,7 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::{
-    Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResult, Querier, StdResult,
-    Storage,
+    Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResponse, MigrateResult,
+    Querier, StdResult, Storage,
 };
 use pylon_launchpad::lockup_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 use std::ops::Add;
@@ -86,4 +86,5 @@ pub fn migrate<S: Storage, A: Api, Q: Querier>(
     msg: MigrateMsg,
 ) -> MigrateResult {
     migration(deps, msg)
+    // Ok(MigrateResponse::default())
 }
