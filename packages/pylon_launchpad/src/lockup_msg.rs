@@ -50,4 +50,7 @@ pub enum QueryMsg {
 
 /// We currently take no arguments for migrations
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct MigrateMsg {}
+pub struct MigrateMsg {
+    pub temp_withdraw_start_time: u64,
+    pub temp_withdraw_finish_time: u64,
+}

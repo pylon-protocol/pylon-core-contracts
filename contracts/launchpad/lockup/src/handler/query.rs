@@ -1,5 +1,4 @@
 use cosmwasm_std::{to_binary, Api, Binary, Extern, HumanAddr, Querier, StdResult, Storage};
-
 use pylon_launchpad::lockup_resp as resp;
 
 use crate::lib_staking as staking;
@@ -15,6 +14,8 @@ pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResu
         start_time: config.start_time,
         cliff_time: config.cliff_time,
         finish_time: config.finish_time,
+        temp_withdraw_start_time: config.temp_withdraw_start_time,
+        temp_withdraw_finish_time: config.temp_withdraw_finish_time,
         reward_rate: config.reward_rate,
     })
 }

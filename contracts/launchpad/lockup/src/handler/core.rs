@@ -117,12 +117,14 @@ pub fn withdraw_internal<S: Storage, A: Api, Q: Querier>(
 
     let config: state::Config = state::read_config(&deps.storage)?;
 
-    // check time range // open_withdraw flag
-    if env.block.time.lt(&config.finish_time) {
+    if (env.block.time.gt(&config.temp_withdraw_start_time)
+        && env.block.time.lt(&config.temp_withdraw_finish_time))
+        || env.block.time.lt(&config.finish_time)
+    {
         return Err(StdError::generic_err(format!(
-            "Lockup: cannot withdraw tokens during lockup period. (now: {}, ends: {})",
-            env.block.time, config.finish_time,
-        )));
+                "Lockup: cannot withdraw tokens during lockup period. (now: {}, temp_start: {}, temp_end: {}, ends: {})",
+                env.block.time, config.temp_withdraw_start_time,config.temp_withdraw_finish_time, config.finish_time,
+            )));
     }
 
     let owner = deps.api.canonical_address(&sender)?;

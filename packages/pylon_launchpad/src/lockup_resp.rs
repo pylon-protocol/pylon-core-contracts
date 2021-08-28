@@ -11,6 +11,8 @@ pub struct ConfigResponse {
     pub start_time: u64,
     pub cliff_time: u64,
     pub finish_time: u64,
+    pub temp_withdraw_start_time: u64,
+    pub temp_withdraw_finish_time: u64,
     pub reward_rate: Decimal256,
 }
 
