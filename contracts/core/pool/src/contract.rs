@@ -74,7 +74,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
         HandleMsg::Configure {
             beneficiary,
             fee_collector,
-        } => CoreHandler::configure(deps, beneficiary, fee_collector, env),
+        } => CoreHandler::configure(deps, env, beneficiary, fee_collector),
     }
 }
 

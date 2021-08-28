@@ -235,12 +235,12 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
 
 pub fn configure<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
+    env: Env,
     beneficiary: HumanAddr,
     fee_collector: HumanAddr,
-    env: Env,
 ) -> StdResult<HandleResponse> {
     let mut config = config::read(&deps.storage)?;
-    if config.owner != deps.api.canonical_address(&env.message.sender)? {
+    if config.owner != deps.api.canonical_address(&env.message.sender).unwrap() {
         return Err(StdError::generic_err(format!(
             "Pool: cannot execute configure function with unauthorized sender. (sender: {})",
             env.message.sender,
