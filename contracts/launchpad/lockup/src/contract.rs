@@ -50,12 +50,13 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     msg: HandleMsg,
 ) -> StdResult<HandleResponse> {
     match msg {
+        // common
+        HandleMsg::Update { target } => Core::update(deps, env, target),
         // router
         HandleMsg::Receive(msg) => Router::receive(deps, env, msg),
         HandleMsg::Withdraw { amount } => Router::withdraw(deps, env, amount),
         HandleMsg::Claim {} => Router::claim(deps, env),
         // internal
-        HandleMsg::Update { target } => Core::update(deps, env, target),
         HandleMsg::DepositInternal { sender, amount } => {
             Core::deposit_internal(deps, env, sender, amount)
         }
@@ -63,6 +64,15 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
             Core::withdraw_internal(deps, env, sender, amount)
         }
         HandleMsg::ClaimInternal { sender } => Core::claim_internal(deps, env, sender),
+        // owner
+        HandleMsg::Configure {
+            owner,
+            start_time,
+            cliff_time,
+            finish_time,
+        } => Core::configure(deps, env, owner, start_time, cliff_time, finish_time),
+        HandleMsg::AddReward { amount } => Core::add_reward(deps, env, amount),
+        HandleMsg::SubReward { amount } => Core::sub_reward(deps, env, amount),
     }
 }
 
@@ -85,6 +95,6 @@ pub fn migrate<S: Storage, A: Api, Q: Querier>(
     _: Env,
     msg: MigrateMsg,
 ) -> MigrateResult {
-    migration(deps, msg)
-    // Ok(MigrateResponse::default())
+    // migration(deps, msg)
+    Ok(MigrateResponse::default())
 }

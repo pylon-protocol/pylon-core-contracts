@@ -19,13 +19,38 @@ pub struct InitMsg {
 pub enum HandleMsg {
     // core
     Receive(Cw20ReceiveMsg),
-    Update { target: Option<HumanAddr> },
-    Withdraw { amount: Uint256 },
+    Update {
+        target: Option<HumanAddr>,
+    },
+    Withdraw {
+        amount: Uint256,
+    },
     Claim {},
     // internal
-    DepositInternal { sender: HumanAddr, amount: Uint256 },
-    WithdrawInternal { sender: HumanAddr, amount: Uint256 },
-    ClaimInternal { sender: HumanAddr },
+    DepositInternal {
+        sender: HumanAddr,
+        amount: Uint256,
+    },
+    WithdrawInternal {
+        sender: HumanAddr,
+        amount: Uint256,
+    },
+    ClaimInternal {
+        sender: HumanAddr,
+    },
+    // owner
+    Configure {
+        owner: Option<HumanAddr>,
+        start_time: Option<u64>,
+        cliff_time: Option<u64>,
+        finish_time: Option<u64>,
+    },
+    SubReward {
+        amount: Uint256,
+    },
+    AddReward {
+        amount: Uint256,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

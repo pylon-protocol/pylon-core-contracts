@@ -1,11 +1,12 @@
-use cosmwasm_bignumber::Uint256;
-use cosmwasm_std::{log, to_binary, CosmosMsg, HumanAddr, StdError, WasmMsg};
+use cosmwasm_bignumber::{Decimal256, Uint256};
+use cosmwasm_std::{log, to_binary, CosmosMsg, HumanAddr, LogAttribute, StdError, WasmMsg};
 use cosmwasm_std::{Api, Env, Extern, HandleResponse, Querier, StdResult, Storage};
 use cw20::Cw20HandleMsg;
-use std::ops::{Add, Sub};
+use std::ops::{Add, Div, Mul, Sub};
 
 use crate::lib_staking as staking;
 use crate::state;
+use std::cmp::{max, min};
 
 pub fn update<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
@@ -205,6 +206,180 @@ pub fn claim_internal<S: Storage, A: Api, Q: Querier>(
             log("action", "claim"),
             log("sender", sender),
             log("claim_amount", claim_amount),
+        ],
+        data: None,
+    })
+}
+
+pub fn configure<S: Storage, A: Api, Q: Querier>(
+    deps: &mut Extern<S, A, Q>,
+    env: Env,
+    owner: Option<HumanAddr>,
+    start_time: Option<u64>,
+    cliff_time: Option<u64>,
+    finish_time: Option<u64>,
+) -> StdResult<HandleResponse> {
+    let mut config = state::read_config(&deps.storage).unwrap();
+    if config
+        .owner
+        .ne(&deps.api.canonical_address(&env.message.sender).unwrap())
+    {
+        return Err(StdError::generic_err(format!(
+            "Lockup: cannot execute add_reward message with unauthorized sender. expected: {}, actual: {}",
+            deps.api.human_address(&config.owner).unwrap(), env.message.sender,
+        )));
+    }
+
+    let remaining = Uint256::from(
+        config
+            .finish_time
+            .sub(min(config.start_time, env.block.time)),
+    );
+
+    let mut logs: Vec<LogAttribute> = vec![log("action", "configure")];
+    if let Some(owner) = owner {
+        config.owner = deps.api.canonical_address(&owner).unwrap();
+        logs.push(log("new_owner", owner));
+    }
+    if let Some(start_time) = start_time {
+        if env.block.time.gt(&start_time) {
+            return Err(StdError::generic_err(
+                "Lockup: cannot change start_time. reason: now > start_time",
+            ));
+        }
+        config.start_time = start_time;
+        logs.push(log("new_start_time", start_time));
+    }
+    if let Some(cliff_time) = cliff_time {
+        if env.block.time.gt(&cliff_time) {
+            return Err(StdError::generic_err(
+                "Lockup: cannot change cliff_time. reason: now > cliff_time",
+            ));
+        }
+        config.cliff_time = cliff_time;
+        logs.push(log("new_cliff_time", cliff_time));
+    }
+    if let Some(finish_time) = finish_time {
+        if env.block.time.gt(&finish_time) {
+            return Err(StdError::generic_err(
+                "Lockup: cannot change finish_time. reason: now > finish_time",
+            ));
+        }
+        config.finish_time = finish_time;
+        config.reward_rate = Decimal256::from_uint256(config.reward_rate.mul(remaining).div(
+            Decimal256::from_uint256(Uint256::from(finish_time.sub(env.block.time))),
+        ));
+        logs.push(log("new_finish_time", finish_time));
+    }
+
+    Ok(HandleResponse {
+        messages: vec![],
+        log: logs,
+        data: None,
+    })
+}
+
+pub fn add_reward<S: Storage, A: Api, Q: Querier>(
+    deps: &mut Extern<S, A, Q>,
+    env: Env,
+    amount: Uint256,
+) -> StdResult<HandleResponse> {
+    let mut config = state::read_config(&deps.storage).unwrap();
+    if config
+        .owner
+        .ne(&deps.api.canonical_address(&env.message.sender).unwrap())
+    {
+        return Err(StdError::generic_err(format!(
+            "Lockup: cannot execute add_reward message with unauthorized sender. expected: {}, actual: {}",
+            deps.api.human_address(&config.owner).unwrap(), env.message.sender,
+        )));
+    }
+
+    let reward_rate_before = config.reward_rate.clone();
+
+    let remaining = Uint256::from(
+        config
+            .finish_time
+            .sub(max(config.start_time, env.block.time)),
+    );
+    if env.block.time.gt(&config.start_time) {
+        config.reward_rate = Decimal256::from_uint256(
+            config
+                .reward_rate
+                .mul(remaining)
+                .add(amount)
+                .div(Decimal256::from_uint256(remaining)),
+        );
+    } else {
+        config.reward_rate = config.reward_rate.add(Decimal256::from_uint256(
+            amount.div(Decimal256::from_uint256(remaining)),
+        ));
+    }
+
+    state::store_config(&mut deps.storage, &config).unwrap();
+
+    Ok(HandleResponse {
+        messages: vec![],
+        log: vec![
+            log("action", "add_reward"),
+            log("reward_rate_before", reward_rate_before),
+            log("reward_rate_after", config.reward_rate),
+        ],
+        data: None,
+    })
+}
+
+pub fn sub_reward<S: Storage, A: Api, Q: Querier>(
+    deps: &mut Extern<S, A, Q>,
+    env: Env,
+    amount: Uint256,
+) -> StdResult<HandleResponse> {
+    let mut config = state::read_config(&deps.storage).unwrap();
+    if config
+        .owner
+        .ne(&deps.api.canonical_address(&env.message.sender).unwrap())
+    {
+        return Err(StdError::generic_err(format!(
+            "Lockup: cannot execute sub_reward message with unauthorized sender. expected: {}, actual: {}",
+            deps.api.human_address(&config.owner).unwrap(), env.message.sender,
+        )));
+    }
+    if env.block.time.gt(&config.finish_time) {
+        return Err(StdError::generic_err(format!(
+            "Lockup: sale finished. execution_time: {}, finish_time: {}",
+            env.block.time, config.finish_time,
+        )));
+    }
+
+    let reward_rate_before = config.reward_rate.clone();
+
+    let remaining = Uint256::from(
+        config
+            .finish_time
+            .sub(max(config.start_time, env.block.time)),
+    );
+    if env.block.time.gt(&config.start_time) {
+        config.reward_rate = Decimal256::from_uint256(
+            config
+                .reward_rate
+                .mul(remaining)
+                .sub(amount)
+                .div(Decimal256::from_uint256(remaining)),
+        );
+    } else {
+        config.reward_rate = config.reward_rate.sub(Decimal256::from_uint256(
+            amount.div(Decimal256::from_uint256(remaining)),
+        ));
+    }
+
+    state::store_config(&mut deps.storage, &config).unwrap();
+
+    Ok(HandleResponse {
+        messages: vec![],
+        log: vec![
+            log("action", "sub_reward"),
+            log("reward_rate_before", reward_rate_before),
+            log("reward_rate_after", config.reward_rate),
         ],
         data: None,
     })
