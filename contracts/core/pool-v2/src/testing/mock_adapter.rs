@@ -1,7 +1,8 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::{to_binary, Coin, CosmosMsg, HumanAddr, QuerierResult, WasmMsg};
 use cw20::Cw20HandleMsg;
-use pylon_core::adapter_msg::{ConfigResponse, ExchangeRateResponse, QueryMsg};
+use pylon_core::adapter_msg::QueryMsg;
+use pylon_core::adapter_resp;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
@@ -49,14 +50,16 @@ impl Default for MockAdapter {
 impl MockAdapter {
     pub fn handle_query(&self, msg: QueryMsg) -> QuerierResult {
         match msg {
-            QueryMsg::Config {} => Ok(to_binary(&ConfigResponse {
+            QueryMsg::Config {} => Ok(to_binary(&adapter_resp::ConfigResponse {
                 input_denom: self.input_denom.clone(),
                 yield_token: self.yield_token.clone(),
             })),
-            QueryMsg::ExchangeRate { input_denom: _ } => Ok(to_binary(&ExchangeRateResponse {
-                exchange_rate: self.exchange_rate.clone(),
-                yield_token_supply: self.yield_token_supply.clone(),
-            })),
+            QueryMsg::ExchangeRate { input_denom: _ } => {
+                Ok(to_binary(&adapter_resp::ExchangeRateResponse {
+                    exchange_rate: self.exchange_rate.clone(),
+                    yield_token_supply: self.yield_token_supply.clone(),
+                }))
+            }
             QueryMsg::Deposit { amount } => {
                 let msgs: Vec<CosmosMsg> = vec![CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: self.target.clone(),
