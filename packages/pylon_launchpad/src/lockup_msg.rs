@@ -63,6 +63,10 @@ pub enum Cw20HookMsg {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Config {}, // state::Config
+    Stakers {
+        start_after: Option<HumanAddr>,
+        limit: Option<u32>,
+    },
     Reward {}, // state::Reward
     BalanceOf {
         owner: HumanAddr,
@@ -75,7 +79,4 @@ pub enum QueryMsg {
 
 /// We currently take no arguments for migrations
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct MigrateMsg {
-    pub temp_withdraw_start_time: u64,
-    pub temp_withdraw_finish_time: u64,
-}
+pub struct MigrateMsg {}

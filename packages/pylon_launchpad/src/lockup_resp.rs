@@ -17,6 +17,18 @@ pub struct ConfigResponse {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct Staker {
+    pub address: HumanAddr,
+    pub staked: Uint256,
+    pub reward: Uint256,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct StakersResponse {
+    pub stakers: Vec<Staker>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct RewardResponse {
     pub total_deposit: Uint256,
     pub last_update_time: u64,

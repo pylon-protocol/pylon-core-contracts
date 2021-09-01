@@ -1,4 +1,6 @@
-use cosmwasm_std::{to_binary, Api, Binary, Extern, HumanAddr, Querier, StdResult, Storage};
+use cosmwasm_std::{
+    to_binary, Api, Binary, CanonicalAddr, Extern, HumanAddr, Querier, StdResult, Storage,
+};
 use pylon_launchpad::lockup_resp as resp;
 
 use crate::lib_staking as staking;
@@ -27,6 +29,25 @@ pub fn reward<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResu
         total_deposit: reward.total_deposit,
         last_update_time: reward.last_update_time,
     })
+}
+
+pub fn stakers<S: Storage, A: Api, Q: Querier>(
+    deps: &Extern<S, A, Q>,
+    start_after: Option<CanonicalAddr>,
+    limit: Option<u32>,
+) -> StdResult<Binary> {
+    let users = state::batch_read_user(deps, start_after, limit)?;
+
+    let mut stakers: Vec<resp::Staker> = Vec::new();
+    for (address, user) in users.iter() {
+        stakers.push(resp::Staker {
+            address: address.clone(),
+            staked: user.amount,
+            reward: user.amount,
+        });
+    }
+
+    to_binary(&resp::StakersResponse { stakers })
 }
 
 pub fn balance_of<S: Storage, A: Api, Q: Querier>(

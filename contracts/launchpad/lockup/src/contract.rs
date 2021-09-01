@@ -9,7 +9,6 @@ use std::ops::Add;
 use crate::handler::core as Core;
 use crate::handler::query as Query;
 use crate::handler::router as Router;
-use crate::migrate::migration;
 use crate::state;
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
@@ -82,6 +81,16 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => Query::config(deps),
+        QueryMsg::Stakers { start_after, limit } => Query::stakers(
+            deps,
+            match start_after {
+                Some(start_after) => {
+                    Option::from(deps.api.canonical_address(&start_after).unwrap())
+                }
+                None => Option::None,
+            },
+            limit,
+        ),
         QueryMsg::Reward {} => Query::reward(deps),
         QueryMsg::BalanceOf { owner } => Query::balance_of(deps, owner),
         QueryMsg::ClaimableReward { owner, timestamp } => {
@@ -91,10 +100,9 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
 }
 
 pub fn migrate<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
-    _: Env,
-    msg: MigrateMsg,
+    _deps: &mut Extern<S, A, Q>,
+    _env: Env,
+    _msg: MigrateMsg,
 ) -> MigrateResult {
-    migration(deps, msg)
-    // Ok(MigrateResponse::default())
+    Ok(MigrateResponse::default())
 }
