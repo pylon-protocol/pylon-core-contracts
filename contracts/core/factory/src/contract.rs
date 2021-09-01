@@ -68,7 +68,6 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => QueryHandler::config(deps),
-        QueryMsg::State {} => QueryHandler::state(deps),
         QueryMsg::PoolInfo { pool_id } => QueryHandler::pool_info(deps, pool_id),
         QueryMsg::AdapterInfo { address } => QueryHandler::adapter_info(deps, address),
     }

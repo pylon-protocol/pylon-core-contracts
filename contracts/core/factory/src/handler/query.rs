@@ -21,14 +21,6 @@ pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResu
     })
 }
 
-pub fn state<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
-    let state = state::read(&deps.storage)?;
-
-    to_binary(&resp::StateResponse {
-        next_pool_id: state.next_pool_id,
-    })
-}
-
 pub fn pool_info<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     pool_id: u64,
