@@ -43,7 +43,7 @@ pub fn stakers<S: Storage, A: Api, Q: Querier>(
         stakers.push(resp::Staker {
             address: address.clone(),
             staked: user.amount,
-            reward: user.amount,
+            reward: user.reward,
         });
     }
 
