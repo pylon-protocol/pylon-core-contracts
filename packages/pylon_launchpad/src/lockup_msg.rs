@@ -66,6 +66,7 @@ pub enum QueryMsg {
     Stakers {
         start_after: Option<HumanAddr>,
         limit: Option<u32>,
+        timestamp: Option<u64>,
     },
     Reward {}, // state::Reward
     BalanceOf {

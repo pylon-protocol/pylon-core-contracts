@@ -35,7 +35,9 @@ pub fn stakers<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     start_after: Option<CanonicalAddr>,
     limit: Option<u32>,
+    timestamp: Option<u64>,
 ) -> StdResult<Binary> {
+    let reward = state::read_reward(&deps.storage)?;
     let users = state::batch_read_user(deps, start_after, limit)?;
 
     let mut stakers: Vec<resp::Staker> = Vec::new();
@@ -43,7 +45,7 @@ pub fn stakers<S: Storage, A: Api, Q: Querier>(
         stakers.push(resp::Staker {
             address: address.clone(),
             staked: user.amount,
-            reward: user.reward,
+            reward: staking::calculate_rewards(deps, &reward, &user, timestamp)?,
         });
     }
 

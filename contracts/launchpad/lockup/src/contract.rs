@@ -81,7 +81,11 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => Query::config(deps),
-        QueryMsg::Stakers { start_after, limit } => Query::stakers(
+        QueryMsg::Stakers {
+            start_after,
+            limit,
+            timestamp,
+        } => Query::stakers(
             deps,
             match start_after {
                 Some(start_after) => {
@@ -90,6 +94,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
                 None => Option::None,
             },
             limit,
+            timestamp,
         ),
         QueryMsg::Reward {} => Query::reward(deps),
         QueryMsg::BalanceOf { owner } => Query::balance_of(deps, owner),
