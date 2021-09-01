@@ -24,4 +24,6 @@ pub struct PoolInfoResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct AdapterInfoResponse {
     pub address: HumanAddr,
+    pub input_denom: String,
+    pub yield_token: HumanAddr,
 }

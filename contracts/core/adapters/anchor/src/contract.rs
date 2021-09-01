@@ -2,7 +2,8 @@ use cosmwasm_std::{
     to_binary, Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResponse,
     MigrateResult, Querier, StdResult, Storage,
 };
-use pylon_core::adapter::{ConfigResponse, ExchangeRateResponse, HandleMsg, QueryMsg};
+use pylon_core::adapter_msg::{HandleMsg, QueryMsg};
+use pylon_core::adapter_resp;
 
 use crate::anchor;
 use crate::config;
@@ -44,7 +45,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
         QueryMsg::Config {} => {
             let config = config::read(&deps.storage)?;
 
-            to_binary(&ConfigResponse {
+            to_binary(&adapter_resp::ConfigResponse {
                 input_denom: config.input_denom.clone(),
                 yield_token: deps.api.human_address(&config.yield_token.clone())?,
             })
@@ -53,7 +54,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
             let config = config::read(&deps.storage)?;
             let epoch_state = anchor::epoch_state(&deps, &config.moneymarket)?;
 
-            to_binary(&ExchangeRateResponse {
+            to_binary(&adapter_resp::ExchangeRateResponse {
                 exchange_rate: epoch_state.exchange_rate.clone(),
                 yield_token_supply: epoch_state.aterra_supply.clone(),
             })

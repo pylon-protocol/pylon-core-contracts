@@ -1,7 +1,7 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::{to_binary, Coin, CosmosMsg, HumanAddr, QuerierResult, WasmMsg};
 use cw20::Cw20HandleMsg;
-use pylon_core::adapter::{ConfigResponse, ExchangeRateResponse, QueryMsg};
+use pylon_core::adapter_msg::{ConfigResponse, ExchangeRateResponse, QueryMsg};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
