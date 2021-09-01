@@ -1,14 +1,13 @@
 use cosmwasm_std::testing::{mock_env, MockApi, MockStorage};
-use cosmwasm_std::{Env, Extern, HumanAddr, Uint128};
+use cosmwasm_std::{Env, Extern, HumanAddr};
 use pylon_core::pool_v2_msg::{HandleMsg, InitMsg};
 
 use crate::contract;
 use crate::testing::constants::{
     TEST_ADAPTER, TEST_BENEFICIARY, TEST_FACTORY, TEST_POOL_ID, TEST_POOL_NAME, TEST_TOKEN_CODE_ID,
-    TEST_TOKEN_POOL, TEST_TOKEN_POOL_SUPPLY, TEST_TOKEN_YIELD, TEST_TOKEN_YIELD_SUPPLY,
+    TEST_TOKEN_POOL,
 };
 use crate::testing::mock_querier::CustomMockQuerier;
-use cw20::TokenInfoResponse;
 
 pub fn init_msg() -> InitMsg {
     InitMsg {

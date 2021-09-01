@@ -1,8 +1,6 @@
-use cosmwasm_bignumber::Decimal256;
 use cosmwasm_std::{
     to_binary, Api, CanonicalAddr, Extern, Querier, QueryRequest, StdResult, Storage, WasmQuery,
 };
-
 use pylon_core::factory_msg::QueryMsg as FactoryQueryMsg;
 use pylon_core::factory_resp::ConfigResponse;
 

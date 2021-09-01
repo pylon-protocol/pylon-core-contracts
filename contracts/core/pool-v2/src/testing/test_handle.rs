@@ -3,6 +3,7 @@ use cosmwasm_std::testing::{mock_env, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{to_binary, BankMsg, Coin, CosmosMsg, Decimal, HumanAddr, Uint128, WasmMsg};
 use cw20::{Cw20HandleMsg, Cw20ReceiveMsg};
 use pylon_core::pool_v2_msg::{Cw20HookMsg, HandleMsg};
+use pylon_token::collector::HandleMsg as CollectorHandleMsg;
 use pylon_utils::tax::deduct_tax;
 use std::ops::{Div, Mul};
 use std::str::FromStr;
@@ -79,7 +80,15 @@ fn handle_redeem() {
         &deps,
         Coin {
             denom: TEST_ADAPTER_INPUT_DENOM.to_string(),
-            amount,
+            amount: deduct_tax(
+                &deps,
+                Coin {
+                    denom: TEST_ADAPTER_INPUT_DENOM.to_string(),
+                    amount,
+                },
+            )
+            .unwrap()
+            .amount,
         },
     )
     .unwrap()
@@ -213,6 +222,14 @@ fn handle_earn() {
                 )
                 .unwrap()]
             }),
+            CosmosMsg::Wasm(WasmMsg::Execute {
+                contract_addr: HumanAddr::from(TEST_FACTORY_FEE_COLLECTOR),
+                msg: to_binary(&CollectorHandleMsg::Sweep {
+                    denom: TEST_ADAPTER_INPUT_DENOM.to_string(),
+                })
+                .unwrap(),
+                send: vec![]
+            })
         ]
     );
 }

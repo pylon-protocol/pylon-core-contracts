@@ -5,6 +5,7 @@ use cosmwasm_std::{
 };
 use cw20::{Cw20HandleMsg, Cw20ReceiveMsg};
 use pylon_core::pool_v2_msg::Cw20HookMsg;
+use pylon_token::collector::HandleMsg as CollectorHandleMsg;
 use pylon_utils::tax::deduct_tax;
 use std::ops::Div;
 
@@ -177,14 +178,15 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
     env: Env,
 ) -> StdResult<HandleResponse> {
     // calculate deduct(total_aust_amount * exchange_rate) - (total_dp_balance)
-    let config = config::read(&deps.storage)?;
-    if config.beneficiary != deps.api.canonical_address(&env.message.sender)? {
+    let config = config::read(&deps.storage).unwrap();
+    if config.beneficiary != deps.api.canonical_address(&env.message.sender).unwrap() {
         return Err(StdError::generic_err(format!(
             "Pool: cannot execute earn function with unauthorized sender. (sender: {})",
             env.message.sender,
         )));
     }
 
+    let adapter_config = adapter::config(deps, &config.yield_adapter)?;
     let factory_config = factory::config(deps, &config.factory)?;
     let reward = pool::claimable_rewards(deps)?;
     let exchange_rate = adapter::exchange_rate(deps, &config.yield_adapter, &config.input_denom)?;
@@ -195,11 +197,12 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
                 deps,
                 &config.yield_adapter,
                 reward.total().div(exchange_rate).into(),
-            )?,
+            )
+            .unwrap(),
             vec![
                 CosmosMsg::Bank(BankMsg::Send {
                     from_address: env.contract.address.clone(),
-                    to_address: deps.api.human_address(&config.beneficiary)?,
+                    to_address: deps.api.human_address(&config.beneficiary).unwrap(),
                     amount: vec![deduct_tax(
                         deps,
                         Coin {
@@ -210,7 +213,7 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
                 }),
                 CosmosMsg::Bank(BankMsg::Send {
                     from_address: env.contract.address.clone(),
-                    to_address: factory_config.fee_collector,
+                    to_address: factory_config.fee_collector.clone(),
                     amount: vec![deduct_tax(
                         deps,
                         Coin {
@@ -218,6 +221,14 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
                             amount: reward.fee.into(),
                         },
                     )?],
+                }),
+                CosmosMsg::Wasm(WasmMsg::Execute {
+                    contract_addr: factory_config.fee_collector.clone(),
+                    msg: to_binary(&CollectorHandleMsg::Sweep {
+                        denom: adapter_config.input_denom.to_string(),
+                    })
+                    .unwrap(),
+                    send: vec![],
                 }),
             ],
         ]

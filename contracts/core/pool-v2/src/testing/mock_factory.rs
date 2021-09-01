@@ -2,7 +2,6 @@ use cosmwasm_bignumber::Decimal256;
 use cosmwasm_std::{to_binary, HumanAddr, QuerierResult, SystemError};
 use pylon_core::factory_msg::QueryMsg;
 use pylon_core::factory_resp::ConfigResponse;
-use std::str::FromStr;
 
 use crate::testing::constants::{
     TEST_FACTORY_FEE_COLLECTOR, TEST_FACTORY_FEE_RATE, TEST_FACTORY_OWNER, TEST_POOL_ID,

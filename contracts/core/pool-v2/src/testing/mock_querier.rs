@@ -1,9 +1,8 @@
 use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{
-    from_binary, from_slice, to_binary, Api, Coin, Decimal, Empty, Extern, HumanAddr, Querier,
-    QuerierResult, QueryRequest, SystemError, Uint128, WasmMsg, WasmQuery,
+    from_binary, from_slice, to_binary, Api, Coin, Extern, HumanAddr, Querier, QuerierResult,
+    QueryRequest, SystemError, WasmQuery,
 };
-use std::collections::HashMap;
 use terra_cosmwasm::{TaxCapResponse, TaxRateResponse, TerraQuery, TerraQueryWrapper, TerraRoute};
 
 use crate::testing::constants::{TEST_ADAPTER, TEST_FACTORY};
