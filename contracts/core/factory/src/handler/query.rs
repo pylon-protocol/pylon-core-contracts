@@ -120,9 +120,10 @@ pub fn adapter_infos<S: Storage, A: Api, Q: Querier>(
     let adapters = adapter::batch_read(deps, start_after, limit).unwrap();
     let mut adapter_infos: Vec<resp::AdapterInfoResponse> = Vec::new();
     for adapter in adapters.iter() {
-        adapter_infos.push(
-            fetch_adapter_info(deps, deps.api.human_address(&adapter.address).unwrap()).unwrap(),
-        );
+        adapter_infos.push(fetch_adapter_info(
+            deps,
+            deps.api.human_address(&adapter.address).unwrap(),
+        )?);
     }
     to_binary(&resp::AdapterInfosResponse { adapter_infos })
 }

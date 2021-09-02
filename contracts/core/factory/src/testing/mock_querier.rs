@@ -61,11 +61,10 @@ impl CustomMockQuerier {
                 if contract_addr.to_string().starts_with("token_") {
                     self.token
                         .handle_query(contract_addr, from_binary(bin_msg).unwrap())
+                } else if contract_addr.to_string().starts_with("yield_adapter") {
+                    self.adapter.handle_query(from_binary(bin_msg).unwrap())
                 } else {
                     match contract_addr.to_string().as_str() {
-                        TEST_YIELD_ADAPTER => {
-                            self.adapter.handle_query(from_binary(bin_msg).unwrap())
-                        }
                         TEST_POOL => self.pool.handle_query(
                             &HumanAddr::from(TEST_POOL.to_string()),
                             from_binary(bin_msg).unwrap(),
