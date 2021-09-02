@@ -1,5 +1,5 @@
 use cosmwasm_bignumber::Decimal256;
-use cosmwasm_std::testing::{mock_dependencies, mock_env};
+use cosmwasm_std::testing::mock_env;
 use cosmwasm_std::{log, to_binary, Api, CanonicalAddr, CosmosMsg, HumanAddr, WasmMsg};
 use pylon_core::factory_msg::HandleMsg;
 use pylon_core::pool_v2_msg::InitMsg;
@@ -11,10 +11,11 @@ use crate::state::{adapter, config, pool, state};
 use crate::testing::constants::{
     TEST_BENEFICIARY, TEST_CREATOR, TEST_POOL, TEST_USER, TEST_YIELD_ADAPTER,
 };
+use crate::testing::mock_querier::mock_dependencies;
 use crate::testing::utils;
 
 #[test]
-fn configure_nothing() {
+fn handle_configure_nothing() {
     let mut deps = mock_dependencies(20, &[]);
     let env = utils::initialize(&mut deps);
 
@@ -36,7 +37,7 @@ fn configure_nothing() {
 }
 
 #[test]
-fn configure_many_as_possible() {
+fn handle_configure_many_as_possible() {
     let mut deps = mock_dependencies(20, &[]);
     let env = utils::initialize(&mut deps);
 
@@ -73,7 +74,7 @@ fn configure_many_as_possible() {
 }
 
 #[test]
-fn configure_with_non_owner() {
+fn handle_configure_with_non_owner() {
     let mut deps = mock_dependencies(20, &[]);
     let _env = utils::initialize(&mut deps);
 
@@ -89,7 +90,7 @@ fn configure_with_non_owner() {
 }
 
 #[test]
-fn create_pool_and_register() {
+fn handle_create_pool_and_register() {
     let mut deps = mock_dependencies(20, &[]);
     let env = utils::initialize(&mut deps);
 
@@ -152,7 +153,7 @@ fn create_pool_and_register() {
 }
 
 #[test]
-fn create_pool_with_unregistered_adapter() {
+fn handle_create_pool_with_unregistered_adapter() {
     let mut deps = mock_dependencies(20, &[]);
     let env = utils::initialize(&mut deps);
 
@@ -166,7 +167,7 @@ fn create_pool_with_unregistered_adapter() {
 }
 
 #[test]
-fn register_pool_which_is_not_ready() {
+fn handle_register_pool_which_is_not_ready() {
     let mut deps = mock_dependencies(20, &[]);
     let env = utils::initialize(&mut deps);
 
@@ -176,7 +177,7 @@ fn register_pool_which_is_not_ready() {
 }
 
 #[test]
-fn register_unregister_adapter() {
+fn handle_register_unregister_adapter() {
     let mut deps = mock_dependencies(20, &[]);
     let env = utils::initialize(&mut deps);
 
@@ -215,7 +216,7 @@ fn register_unregister_adapter() {
 }
 
 #[test]
-fn register_adapter_with_non_owner() {
+fn handle_register_adapter_with_non_owner() {
     let mut deps = mock_dependencies(20, &[]);
     let _env = utils::initialize(&mut deps);
     let user = mock_env(TEST_USER, &[]);
@@ -228,7 +229,7 @@ fn register_adapter_with_non_owner() {
 }
 
 #[test]
-fn unregister_adapter_with_non_owner() {
+fn handle_unregister_adapter_with_non_owner() {
     let mut deps = mock_dependencies(20, &[]);
     let _env = utils::initialize(&mut deps);
     let user = mock_env(TEST_USER, &[]);

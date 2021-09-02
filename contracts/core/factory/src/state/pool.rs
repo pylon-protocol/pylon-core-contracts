@@ -41,14 +41,20 @@ const MAX_LIMIT: u32 = 30;
 const DEFAULT_LIMIT: u32 = 10;
 pub fn batch_read<S: ReadonlyStorage>(
     storage: &S,
-    start: u64,
+    start_after: Option<u64>,
     limit: Option<u32>,
 ) -> StdResult<Vec<Pool>> {
-    let key = &start.to_be_bytes()[..];
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
 
     ReadonlyBucket::new(PREFIX_POOL, storage)
-        .range(Option::from(key), None, Order::Ascending)
+        .range(
+            match start_after {
+                Some(start_after) => Option::from(&start_after.to_be_bytes()[..]),
+                None => Option::None,
+            },
+            None,
+            Order::Ascending,
+        )
         .take(limit)
         .map(|elem: StdResult<(_, Pool)>| {
             let (_, v) = elem?;

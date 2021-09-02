@@ -1,6 +1,6 @@
 use cosmwasm_bignumber::Decimal256;
-use cosmwasm_std::testing::{mock_env, MockApi, MockQuerier, MockStorage};
-use cosmwasm_std::{Decimal, Env, Extern, HumanAddr};
+use cosmwasm_std::testing::{mock_env, MockApi, MockStorage};
+use cosmwasm_std::{Env, Extern, HumanAddr};
 use pylon_core::factory_msg::{HandleMsg, InitMsg};
 use std::str::FromStr;
 
@@ -9,6 +9,7 @@ use crate::testing::constants::{
     TEST_CREATOR, TEST_FEE_COLLECTOR, TEST_FEE_RATE, TEST_POOL_CODE_ID, TEST_TOKEN_CODE_ID,
     TEST_YIELD_ADAPTER,
 };
+use crate::testing::mock_querier::CustomMockQuerier;
 
 pub fn init_msg() -> InitMsg {
     InitMsg {
@@ -19,7 +20,7 @@ pub fn init_msg() -> InitMsg {
     }
 }
 
-pub fn initialize(mut deps: &mut Extern<MockStorage, MockApi, MockQuerier>) -> Env {
+pub fn initialize(mut deps: &mut Extern<MockStorage, MockApi, CustomMockQuerier>) -> Env {
     let env = mock_env(TEST_CREATOR, &[]);
     let msg = init_msg();
     let _res = contract::init(&mut deps, env.clone(), msg).expect("testing: contract initialized");

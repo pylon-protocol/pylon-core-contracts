@@ -41,8 +41,20 @@ pub enum HandleMsg {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Config {},
-    PoolInfo { pool_id: u64 },
-    AdapterInfo { address: HumanAddr },
+    PoolInfo {
+        pool_id: u64,
+    },
+    PoolInfos {
+        start_after: Option<u64>,
+        limit: Option<u32>,
+    },
+    AdapterInfo {
+        address: HumanAddr,
+    },
+    AdapterInfos {
+        start_after: Option<HumanAddr>,
+        limit: Option<u32>,
+    },
 }
 
 /// We currently take no arguments for migrations

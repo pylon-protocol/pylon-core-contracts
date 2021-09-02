@@ -69,7 +69,20 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
     match msg {
         QueryMsg::Config {} => QueryHandler::config(deps),
         QueryMsg::PoolInfo { pool_id } => QueryHandler::pool_info(deps, pool_id),
+        QueryMsg::PoolInfos { start_after, limit } => {
+            QueryHandler::pool_infos(deps, start_after, limit)
+        }
         QueryMsg::AdapterInfo { address } => QueryHandler::adapter_info(deps, address),
+        QueryMsg::AdapterInfos { start_after, limit } => QueryHandler::adapter_infos(
+            deps,
+            match start_after {
+                Some(start_after) => {
+                    Option::from(deps.api.canonical_address(&start_after).unwrap())
+                }
+                None => Option::None,
+            },
+            limit,
+        ),
     }
 }
 
