@@ -1,7 +1,7 @@
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{
-    Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResponse, MigrateResult,
-    Querier, StdResult, Storage,
+    Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResult, Querier, StdResult,
+    Storage,
 };
 use pylon_gateway::swap_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 use std::ops::Add;
@@ -9,7 +9,7 @@ use std::ops::Add;
 use crate::handler::execute as ExecHandler;
 use crate::handler::migrate as MigrateHandler;
 use crate::handler::query as QueryHandler;
-use crate::state::{config, state, user, vpool};
+use crate::state::{config, state, vpool};
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,

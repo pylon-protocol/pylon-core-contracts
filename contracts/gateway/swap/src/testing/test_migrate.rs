@@ -17,7 +17,7 @@ pub fn migrate() {
     let env = utils::initialize(&mut deps);
 
     let msg = MigrateMsg::Refund {};
-    let res = contract::migrate(&mut deps, env.clone(), msg.clone()).unwrap();
+    let res = contract::migrate(&mut deps, env, msg).unwrap();
     assert_eq!(res, MigrateResponse::default());
 
     let config: NewRefundConfig = ReadonlySingleton::new(&deps.storage, KEY_CONFIG)

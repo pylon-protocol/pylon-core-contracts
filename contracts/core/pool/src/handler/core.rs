@@ -86,7 +86,7 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
                 contract_addr: deps.api.human_address(&config.dp_token)?,
                 msg: to_binary(&Cw20HandleMsg::Mint {
                     recipient: env.message.sender.clone(),
-                    amount: dp_mint_amount.clone(),
+                    amount: dp_mint_amount,
                 })?,
                 send: vec![],
             })],
@@ -119,7 +119,7 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
                 deps,
                 Coin {
                     denom: config.stable_denom.clone(),
-                    amount: amount.into(),
+                    amount,
                 },
             )
             .unwrap()

@@ -23,11 +23,11 @@ pub fn handle_configure() {
     };
 
     let non_manager = mock_env(TEST_NON_MANAGER, &[]);
-    let _res = contract::handle(&mut deps, non_manager.clone(), msg.clone())
+    let _res = contract::handle(&mut deps, non_manager, msg.clone())
         .expect_err("should fail if non-manager called this method");
 
     let manager = mock_env(TEST_MANAGER, &[]);
-    let _res = contract::handle(&mut deps, manager.clone(), msg.clone()).unwrap();
+    let _res = contract::handle(&mut deps, manager, msg).unwrap();
 
     let config = config::read(&deps.storage).unwrap();
 
@@ -57,7 +57,7 @@ pub fn handle_refund() {
             &mut deps.storage,
             &deps.api.canonical_address(&buyer.address).unwrap(),
             &user::User {
-                amount: buyer.amount.clone(),
+                amount: buyer.amount,
             },
         )
         .unwrap();
@@ -69,7 +69,7 @@ pub fn handle_refund() {
         start_after: None,
         limit: None,
     };
-    let res = contract::handle(&mut deps, manager.clone(), msg.clone()).unwrap();
+    let res = contract::handle(&mut deps, manager, msg).unwrap();
     assert_eq!(res.messages.len(), 9); // except 0
 
     for buyer in &buyers {

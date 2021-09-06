@@ -21,8 +21,8 @@ pub fn refund<S: Storage, A: Api, Q: Querier>(deps: &mut Extern<S, A, Q>, _: Env
     Singleton::new(&mut deps.storage, KEY_CONFIG)
         .save(&NewRefundConfig {
             manager: config.owner.clone(),
-            refund_denom: vpool.x_denom.to_string(),
-            base_price: config.base_price.clone(),
+            refund_denom: vpool.x_denom,
+            base_price: config.base_price,
         })
         .unwrap();
 

@@ -1,25 +1,37 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::{Coin, Decimal, Uint128};
+use terra_cosmwasm::TerraQuerier;
 
 use crate::mock_querier::mock_dependencies;
-use crate::tax::{compute_tax, deduct_tax, query_tax_rate};
+use crate::mock_tax::MockTax;
+use crate::tax::{compute_tax, deduct_tax};
 
 #[test]
 fn tax_rate_querier() {
     let mut deps = mock_dependencies(20, &[]);
 
-    deps.querier.with_tax(Decimal::percent(1), &[]);
-    assert_eq!(query_tax_rate(&deps).unwrap(), Decimal256::percent(1),);
+    deps.querier
+        .with_tax(MockTax::new(Decimal::percent(1), &[]));
+
+    assert_eq!(
+        Decimal256::from(
+            TerraQuerier::new(&deps.querier)
+                .query_tax_rate()
+                .unwrap()
+                .rate
+        ),
+        Decimal256::percent(1),
+    );
 }
 
 #[test]
 fn test_compute_tax() {
     let mut deps = mock_dependencies(20, &[]);
 
-    deps.querier.with_tax(
+    deps.querier.with_tax(MockTax::new(
         Decimal::percent(1),
         &[(&"uusd".to_string(), &Uint128::from(1000000u128))],
-    );
+    ));
 
     // cap to 1000000
     assert_eq!(
@@ -38,10 +50,10 @@ fn test_compute_tax() {
 fn test_deduct_tax() {
     let mut deps = mock_dependencies(20, &[]);
 
-    deps.querier.with_tax(
+    deps.querier.with_tax(MockTax::new(
         Decimal::percent(1),
         &[(&"uusd".to_string(), &Uint128::from(1000000u128))],
-    );
+    ));
 
     // cap to 1000000
     assert_eq!(

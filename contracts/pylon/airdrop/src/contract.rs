@@ -15,8 +15,8 @@ use pylon_token::airdrop::{
 };
 
 use cw20::Cw20HandleMsg;
-use hex;
 use sha3::Digest;
+use std::cmp::Ordering;
 use std::convert::TryInto;
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
@@ -185,16 +185,14 @@ pub fn claim<S: Storage, A: Api, Q: Querier>(
 fn bytes_cmp(a: [u8; 32], b: [u8; 32]) -> std::cmp::Ordering {
     let mut i = 0;
     while i < 32 {
-        if a[i] > b[i] {
-            return std::cmp::Ordering::Greater;
-        } else if a[i] < b[i] {
-            return std::cmp::Ordering::Less;
+        let order = a[i].cmp(&b[i]);
+        match order {
+            Ordering::Equal => i += 1,
+            _ => return order,
         }
-
-        i += 1;
     }
 
-    return std::cmp::Ordering::Equal;
+    std::cmp::Ordering::Equal
 }
 
 pub fn query<S: Storage, A: Api, Q: Querier>(
@@ -228,10 +226,7 @@ pub fn query_merkle_root<S: Storage, A: Api, Q: Querier>(
     stage: u8,
 ) -> StdResult<MerkleRootResponse> {
     let merkle_root = read_merkle_root(&deps.storage, stage)?;
-    let resp = MerkleRootResponse {
-        stage: stage,
-        merkle_root: merkle_root,
-    };
+    let resp = MerkleRootResponse { stage, merkle_root };
 
     Ok(resp)
 }

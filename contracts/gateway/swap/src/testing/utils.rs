@@ -37,5 +37,5 @@ pub fn initialize(mut deps: &mut Extern<MockStorage, MockApi, CustomMockQuerier>
     let msg = init_msg();
     let _res = contract::init(&mut deps, env.clone(), msg).expect("testing: contract initialized");
 
-    return env;
+    env
 }

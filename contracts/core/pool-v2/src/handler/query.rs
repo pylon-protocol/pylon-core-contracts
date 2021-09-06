@@ -9,7 +9,7 @@ pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResu
     let config = config::read(&deps.storage)?;
 
     to_binary(&resp::ConfigResponse {
-        id: config.id.clone(),
+        id: config.id,
         name: config.name.clone(),
         factory: deps.api.human_address(&config.factory)?,
         beneficiary: deps.api.human_address(&config.beneficiary)?,
@@ -47,7 +47,7 @@ pub fn claimable_reward<S: Storage, A: Api, Q: Querier>(
     let reward = pool::claimable_rewards(deps)?;
 
     to_binary(&resp::ClaimableRewardResponse {
-        amount: reward.amount.into(),
-        fee: reward.fee.into(),
+        amount: reward.amount,
+        fee: reward.fee,
     })
 }

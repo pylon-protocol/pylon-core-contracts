@@ -28,5 +28,5 @@ pub fn initialize(mut deps: &mut Extern<MockStorage, MockApi, CustomMockQuerier>
     let _res = contract::handle(&mut deps, mock_env(TEST_TOKEN_POOL, &[]), msg)
         .expect("testing: dp token address registered");
 
-    return env;
+    env
 }

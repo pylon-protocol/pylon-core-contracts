@@ -102,17 +102,17 @@ fn handle_create_pool_and_register() {
         beneficiary: HumanAddr::from(TEST_BENEFICIARY),
         yield_adapter: HumanAddr::from(TEST_YIELD_ADAPTER),
     };
-    let res = contract::handle(&mut deps, env.clone(), msg).unwrap();
+    let res = contract::handle(&mut deps, env, msg).unwrap();
     assert_eq!(
         res.messages,
         vec![CosmosMsg::Wasm(WasmMsg::Instantiate {
-            code_id: config.pool_code_id.clone(),
+            code_id: config.pool_code_id,
             msg: to_binary(&InitMsg {
-                pool_id: prev_state.next_pool_id.clone(),
+                pool_id: prev_state.next_pool_id,
                 pool_name: TEST_POOL.into(),
                 beneficiary: HumanAddr::from(TEST_BENEFICIARY),
                 yield_adapter: HumanAddr::from(TEST_YIELD_ADAPTER),
-                dp_code_id: config.token_code_id.clone(),
+                dp_code_id: config.token_code_id,
             })
             .unwrap(),
             send: vec![],
@@ -124,7 +124,7 @@ fn handle_create_pool_and_register() {
         vec![
             log("action", "create_pool"),
             log("sender", TEST_CREATOR),
-            log("pool_id", prev_state.next_pool_id.clone()),
+            log("pool_id", prev_state.next_pool_id),
         ]
     );
     assert_eq!(None, res.data, "should be None");
@@ -132,17 +132,17 @@ fn handle_create_pool_and_register() {
     let next_state = state::read(&deps.storage).unwrap();
     assert_eq!(next_state.next_pool_id, prev_state.next_pool_id.add(1));
 
-    let pool = pool::read(&deps.storage, prev_state.next_pool_id.clone()).unwrap();
+    let pool = pool::read(&deps.storage, prev_state.next_pool_id).unwrap();
     assert_eq!(pool.status, pool::Status::Ready);
 
     let msg = HandleMsg::RegisterPool {
-        pool_id: prev_state.next_pool_id.clone(),
+        pool_id: prev_state.next_pool_id,
     };
     let res = contract::handle(&mut deps, mock_env(TEST_POOL, &[]), msg).unwrap();
     assert_eq!(0, res.messages.len(), "should be empty");
     assert_eq!(None, res.data, "should be None");
 
-    let pool = pool::read(&deps.storage, prev_state.next_pool_id.clone()).unwrap();
+    let pool = pool::read(&deps.storage, prev_state.next_pool_id).unwrap();
     assert_eq!(pool.status, pool::Status::Deployed);
     assert_eq!(
         pool.address,
@@ -162,14 +162,14 @@ fn handle_create_pool_with_unregistered_adapter() {
         beneficiary: HumanAddr::from(TEST_BENEFICIARY),
         yield_adapter: HumanAddr::from("mock_adapter"),
     };
-    let _res = contract::handle(&mut deps, env.clone(), msg)
+    let _res = contract::handle(&mut deps, env, msg)
         .expect_err("should fail if given adapter address is not registered");
 }
 
 #[test]
 fn handle_register_pool_which_is_not_ready() {
     let mut deps = mock_dependencies(20, &[]);
-    let env = utils::initialize(&mut deps);
+    let _ = utils::initialize(&mut deps);
 
     let msg = HandleMsg::RegisterPool { pool_id: 1234 };
     let _res = contract::handle(&mut deps, mock_env(TEST_POOL, &[]), msg)

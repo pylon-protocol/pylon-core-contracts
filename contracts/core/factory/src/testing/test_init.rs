@@ -16,7 +16,7 @@ fn proper_initialization() {
 
     let msg = utils::init_msg();
     let env = mock_env(TEST_CREATOR, &[]);
-    let res = contract::init(&mut deps, env.clone(), msg).unwrap();
+    let res = contract::init(&mut deps, env, msg).unwrap();
     assert_eq!(res, InitResponse::default());
 
     let config = config::read(&deps.storage).unwrap();

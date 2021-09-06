@@ -95,12 +95,12 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
 
     Ok(HandleResponse {
         messages: [
-            adapter::deposit(deps, &config.yield_adapter, received.into()).unwrap(),
+            adapter::deposit(deps, &config.yield_adapter, received).unwrap(),
             vec![CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: deps.api.human_address(&config.dp_token).unwrap(),
                 msg: to_binary(&Cw20HandleMsg::Mint {
                     recipient: env.message.sender.clone(),
-                    amount: return_amount.amount.clone(),
+                    amount: return_amount.amount,
                 })
                 .unwrap(),
                 send: vec![],
@@ -135,7 +135,7 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
                 deps,
                 Coin {
                     denom: config.input_denom.clone(),
-                    amount: amount.into(),
+                    amount,
                 },
             )
             .unwrap()
@@ -154,7 +154,7 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
             adapter::redeem(
                 deps,
                 &config.yield_adapter,
-                Uint256::from(amount).div(exchange_rate).into(),
+                Uint256::from(amount).div(exchange_rate),
             )?,
             vec![CosmosMsg::Bank(BankMsg::Send {
                 from_address: env.contract.address,
@@ -196,7 +196,7 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
             adapter::redeem(
                 deps,
                 &config.yield_adapter,
-                reward.total().div(exchange_rate).into(),
+                reward.total().div(exchange_rate),
             )
             .unwrap(),
             vec![
@@ -223,9 +223,9 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
                     )?],
                 }),
                 CosmosMsg::Wasm(WasmMsg::Execute {
-                    contract_addr: factory_config.fee_collector.clone(),
+                    contract_addr: factory_config.fee_collector,
                     msg: to_binary(&CollectorHandleMsg::Sweep {
-                        denom: adapter_config.input_denom.to_string(),
+                        denom: adapter_config.input_denom,
                     })
                     .unwrap(),
                     send: vec![],

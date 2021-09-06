@@ -47,7 +47,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
 
             to_binary(&adapter_resp::ConfigResponse {
                 input_denom: config.input_denom.clone(),
-                yield_token: deps.api.human_address(&config.yield_token.clone())?,
+                yield_token: deps.api.human_address(&config.yield_token)?,
             })
         }
         QueryMsg::ExchangeRate { input_denom: _ } => {
@@ -55,8 +55,8 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
             let epoch_state = anchor::epoch_state(&deps, &config.moneymarket)?;
 
             to_binary(&adapter_resp::ExchangeRateResponse {
-                exchange_rate: epoch_state.exchange_rate.clone(),
-                yield_token_supply: epoch_state.aterra_supply.clone(),
+                exchange_rate: epoch_state.exchange_rate,
+                yield_token_supply: epoch_state.aterra_supply,
             })
         }
         QueryMsg::Deposit { amount } => {

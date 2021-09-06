@@ -36,14 +36,14 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
         &mut deps.storage,
         &config::Config {
             owner: deps.api.canonical_address(&env.message.sender)?,
-            start_time: msg.start_time.clone(),
+            start_time: msg.start_time,
             finish_time: msg.start_time.add(msg.sale_period),
 
-            depositable: msg.depositable.clone(),
-            withdrawable: msg.withdrawable.clone(),
-            cliff_period: msg.cliff_period.clone(),
-            vesting_period: msg.vesting_period.clone(),
-            unbonding_period: msg.unbonding_period.clone(),
+            depositable: msg.depositable,
+            withdrawable: msg.withdrawable,
+            cliff_period: msg.cliff_period,
+            vesting_period: msg.vesting_period,
+            unbonding_period: msg.unbonding_period,
             reward_rate: Decimal256::from_uint256(
                 msg.sale_amount
                     .div(Decimal256::from_uint256(Uint256::from(msg.sale_period))),

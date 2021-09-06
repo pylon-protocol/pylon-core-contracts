@@ -1,4 +1,3 @@
-use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{
     to_binary, Api, Binary, CanonicalAddr, Extern, HumanAddr, Querier, QueryRequest, StdResult,
     Storage, WasmQuery,
@@ -10,7 +9,7 @@ use pylon_core::pool_v2_msg::QueryMsg as PoolQueryMSg;
 use pylon_core::pool_v2_resp as pool_resp;
 use pylon_utils::token;
 
-use crate::state::{adapter, config, pool, state};
+use crate::state::{adapter, config, pool};
 
 pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
     let config = config::read(&deps.storage).unwrap();
@@ -62,8 +61,8 @@ fn fetch_pool_info<S: Storage, A: Api, Q: Querier>(
         yield_adapter: pool_config.yield_adapter,
         yield_token: pool_config.yield_token,
         yield_token_balance,
-        accumulated_reward: Uint256::from(pool_claimable.amount),
-        accumulated_fee: Uint256::from(pool_claimable.fee),
+        accumulated_reward: pool_claimable.amount,
+        accumulated_fee: pool_claimable.fee,
     })
 }
 

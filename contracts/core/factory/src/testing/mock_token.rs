@@ -74,6 +74,14 @@ impl MockToken {
             balances: balances_to_map(balances),
         }
     }
+
+    pub fn with_infos(&mut self, infos: &[(&String, TokenInfoResponse)]) {
+        self.infos = infos_to_map(infos);
+    }
+
+    pub fn with_balances(&mut self, balances: &[(&String, &[(&String, &Uint128)])]) {
+        self.balances = balances_to_map(balances);
+    }
 }
 
 pub fn infos_to_map(

@@ -1,13 +1,3 @@
-use crate::contract;
-use crate::testing::constants::{
-    TEST_ADAPTER, TEST_ADAPTER_INPUT_DENOM, TEST_BENEFICIARY, TEST_FACTORY, TEST_FACTORY_FEE_RATE,
-    TEST_POOL_ID, TEST_POOL_NAME, TEST_TOKEN_POOL, TEST_TOKEN_POOL_SUPPLY, TEST_TOKEN_YIELD,
-    TEST_TOKEN_YIELD_SUPPLY, TEST_USER,
-};
-use crate::testing::mock_querier::mock_dependencies;
-use crate::testing::mock_tax::MockTax;
-use crate::testing::mock_token::{balances_to_map, MockToken};
-use crate::testing::utils;
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::testing::MOCK_CONTRACT_ADDR;
 use cosmwasm_std::{from_binary, Coin, Decimal, HumanAddr, Uint128};
@@ -17,6 +7,17 @@ use pylon_core::pool_v2_resp::{
 };
 use pylon_utils::tax::deduct_tax;
 use std::ops::Mul;
+
+use crate::contract;
+use crate::testing::constants::{
+    TEST_ADAPTER, TEST_ADAPTER_INPUT_DENOM, TEST_BENEFICIARY, TEST_FACTORY, TEST_FACTORY_FEE_RATE,
+    TEST_POOL_ID, TEST_POOL_NAME, TEST_TOKEN_POOL, TEST_TOKEN_POOL_SUPPLY, TEST_TOKEN_YIELD,
+    TEST_TOKEN_YIELD_SUPPLY, TEST_USER,
+};
+use crate::testing::mock_querier::mock_dependencies;
+use crate::testing::mock_tax::MockTax;
+use crate::testing::mock_token::MockToken;
+use crate::testing::utils;
 
 #[test]
 fn query_config() {
@@ -98,7 +99,7 @@ fn query_claimable_reward() {
     ));
 
     let mut mock_token = MockToken::default();
-    mock_token.balances = balances_to_map(&[
+    mock_token.with_balances(&[
         (
             &TEST_TOKEN_YIELD.to_string(),
             &[(

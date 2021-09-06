@@ -21,14 +21,14 @@ pub fn config<S: Storage, A: Api, Q: Querier>(
 pub fn exchange_rate<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     adapter: &CanonicalAddr,
-    input_denom: &String,
+    input_denom: &str,
 ) -> StdResult<Decimal256> {
     let resp = deps
         .querier
         .query::<adapter_resp::ExchangeRateResponse>(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: deps.api.human_address(adapter)?,
             msg: to_binary(&AdapterQueryMsg::ExchangeRate {
-                input_denom: input_denom.clone(),
+                input_denom: input_denom.to_string(),
             })?,
         }))?;
     Ok(resp.exchange_rate)

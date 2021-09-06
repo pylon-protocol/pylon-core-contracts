@@ -32,15 +32,15 @@ pub fn configure<S: Storage, A: Api, Q: Querier>(
         logs.push(log("new_owner", o));
     }
     if let Some(p) = pool_code_id {
-        config.pool_code_id = p.clone();
+        config.pool_code_id = p;
         logs.push(log("new_pid", p));
     }
     if let Some(t) = token_code_id {
-        config.token_code_id = t.clone();
+        config.token_code_id = t;
         logs.push(log("new_tid", t));
     }
     if let Some(f) = fee_rate {
-        config.fee_rate = f.clone();
+        config.fee_rate = f;
         logs.push(log("new_fee_rate", f));
     }
     if let Some(f) = fee_collector {
@@ -74,7 +74,7 @@ pub fn create_pool<S: Storage, A: Api, Q: Querier>(
     let mut state = state::read(&deps.storage)?;
     let mut pool = pool::read(&deps.storage, state.next_pool_id)?;
 
-    pool.id = state.next_pool_id.clone();
+    pool.id = state.next_pool_id;
     pool.status = pool::Status::Ready;
     pool.address = CanonicalAddr::default();
     pool::store(&mut deps.storage, pool.id, &pool)?;
@@ -86,7 +86,7 @@ pub fn create_pool<S: Storage, A: Api, Q: Querier>(
 
     Ok(HandleResponse {
         messages: vec![CosmosMsg::Wasm(WasmMsg::Instantiate {
-            code_id: config.pool_code_id.clone(),
+            code_id: config.pool_code_id,
             send: vec![],
             label: None,
             msg: to_binary(&InitMsg {
@@ -94,7 +94,7 @@ pub fn create_pool<S: Storage, A: Api, Q: Querier>(
                 pool_name,
                 beneficiary,
                 yield_adapter,
-                dp_code_id: config.token_code_id.clone(),
+                dp_code_id: config.token_code_id,
             })?,
         })],
         log: vec![

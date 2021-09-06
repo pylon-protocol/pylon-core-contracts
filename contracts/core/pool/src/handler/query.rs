@@ -61,7 +61,7 @@ pub fn claimable_reward<S: Storage, A: Api, Q: Querier>(
         deduct_tax(
             deps,
             Coin {
-                denom: config.stable_denom.clone(),
+                denom: config.stable_denom,
                 amount: (Uint256::from(atoken_balance).mul(epoch_state.exchange_rate)).into(),
             },
         )?

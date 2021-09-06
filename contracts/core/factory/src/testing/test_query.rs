@@ -12,9 +12,8 @@ use crate::testing::constants::{
     TEST_POOL_TOKEN_SUPPLY, TEST_TOKEN_CODE_ID, TEST_YIELD_ADAPTER, TEST_YIELD_TOKEN,
     TEST_YIELD_TOKEN_SUPPLY,
 };
-use crate::testing::mock_adapter::MockAdapter;
 use crate::testing::mock_querier::mock_dependencies;
-use crate::testing::mock_token::{balances_to_map, MockToken};
+use crate::testing::mock_token::MockToken;
 use crate::testing::utils;
 
 #[test]
@@ -43,7 +42,7 @@ fn query_pool_info() {
     let _ = utils::initialize(&mut deps);
 
     let mut mock_token = MockToken::default();
-    mock_token.balances = balances_to_map(&[(
+    mock_token.with_balances(&[(
         &TEST_YIELD_TOKEN.to_string(),
         &[(
             &TEST_POOL.to_string(),

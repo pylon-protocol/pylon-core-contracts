@@ -15,7 +15,7 @@ use crate::state::{config, state, user, vpool};
 
 pub fn configure<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
-    env: Env,
+    _: Env,
     total_sale_amount: Uint256,
     min_user_cap: Uint256,
     max_user_cap: Uint256,

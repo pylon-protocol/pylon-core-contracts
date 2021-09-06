@@ -39,7 +39,8 @@
 ### Deposit
 
 - swaps UST to this pool contract's DP token.
-- A native `BankSend` message for UST (`uusd`) must be included with the same `CosmosMsg` message context (`coins`), otherwise transaction will be reverted.
+- A native `BankSend` message for UST (`uusd`) must be included with the same `CosmosMsg` message context (`coins`),
+  otherwise transaction will be reverted.
 
 **Request**
 
@@ -78,7 +79,7 @@
 	{key: "action", value: "claim_reward"},
 	{key: "sender", value: "{address}"},
 	{key: "amount", value: "{amount}"},
-	{key: "fee", value: "{amount}"}	
+	{key: "fee", value: "{amount}"}
 ]
 ```
 

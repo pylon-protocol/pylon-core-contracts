@@ -15,6 +15,7 @@ use crate::state::{
 };
 
 use cw20::{Cw20HandleMsg, Cw20ReceiveMsg};
+use std::ops::{Mul, Sub};
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
@@ -252,8 +253,12 @@ fn compute_reward(config: &Config, state: &mut State, block_height: u64) {
 
 // withdraw reward to pending reward
 fn compute_staker_reward(state: &State, staker_info: &mut StakerInfo) -> StdResult<()> {
-    let pending_reward = (staker_info.bond_amount * state.global_reward_index
-        - staker_info.bond_amount * staker_info.reward_index)?;
+    let pending_reward = staker_info
+        .bond_amount
+        .mul(state.global_reward_index)
+        .sub(staker_info.bond_amount)
+        .unwrap()
+        .mul(staker_info.reward_index);
 
     staker_info.reward_index = state.global_reward_index;
     staker_info.pending_reward += pending_reward;

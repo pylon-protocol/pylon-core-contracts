@@ -3,6 +3,7 @@ use cosmwasm_std::CanonicalAddr;
 pub mod bank;
 pub mod config;
 pub mod poll;
+
 pub mod state;
 
 // this will set the first key after the provided key, by appending a 1 byte

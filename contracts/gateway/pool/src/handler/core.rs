@@ -154,8 +154,8 @@ pub fn withdraw_internal<S: Storage, A: Api, Q: Querier>(
             &withdrawal::Withdrawal {
                 amount,
                 accumulated,
-                period: config.unbonding_period.clone(),
-                emitted: env.block.time.clone(),
+                period: config.unbonding_period,
+                emitted: env.block.time,
             },
         )?;
         user.next_withdrawal_index = user.next_withdrawal_index.add(1);
@@ -188,6 +188,7 @@ pub fn withdraw_internal<S: Storage, A: Api, Q: Querier>(
     })
 }
 
+//noinspection RsExternalLinter
 pub fn claim_reward_internal<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
@@ -237,6 +238,7 @@ pub fn claim_reward_internal<S: Storage, A: Api, Q: Querier>(
     })
 }
 
+//noinspection RsExternalLinter
 pub fn claim_withdrawal_internal<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
@@ -261,7 +263,7 @@ pub fn claim_withdrawal_internal<S: Storage, A: Api, Q: Querier>(
     }
 
     let from = withdrawal::read(&deps.storage, &owner, user.claimed_withdrawal_index)?;
-    let to = withdrawal::read(&deps.storage, &owner, index.clone())?;
+    let to = withdrawal::read(&deps.storage, &owner, index)?;
     let amount = to.accumulated.sub(from.accumulated);
 
     user.claimed_withdrawal_index = index;

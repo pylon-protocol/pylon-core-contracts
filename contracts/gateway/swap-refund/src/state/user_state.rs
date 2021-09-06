@@ -1,6 +1,4 @@
-use cosmwasm_std::{
-    Api, CanonicalAddr, Extern, HumanAddr, Order, Querier, ReadonlyStorage, StdResult, Storage,
-};
+use cosmwasm_std::{CanonicalAddr, ReadonlyStorage, StdResult, Storage};
 use cosmwasm_storage::{Bucket, ReadonlyBucket};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};

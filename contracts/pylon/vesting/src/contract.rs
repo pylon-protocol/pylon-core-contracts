@@ -35,10 +35,10 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     env: Env,
     msg: HandleMsg,
 ) -> StdResult<HandleResponse> {
-    match msg.clone() {
+    match msg {
         HandleMsg::Claim {} => claim(deps, env),
         _ => {
-            assert_owner_privilege(deps, env.clone())?;
+            assert_owner_privilege(deps, env)?;
             match msg {
                 HandleMsg::UpdateConfig {
                     owner,
@@ -93,7 +93,7 @@ pub fn update_config<S: Storage, A: Api, Q: Querier>(
     })
 }
 
-fn assert_vesting_schedules(vesting_schedules: &Vec<(u64, u64, Uint128)>) -> StdResult<()> {
+fn assert_vesting_schedules(vesting_schedules: &[(u64, u64, Uint128)]) -> StdResult<()> {
     for vesting_schedule in vesting_schedules.iter() {
         if vesting_schedule.0 >= vesting_schedule.1 {
             return Err(StdError::generic_err(
@@ -102,7 +102,7 @@ fn assert_vesting_schedules(vesting_schedules: &Vec<(u64, u64, Uint128)>) -> Std
         }
     }
 
-    return Ok(());
+    Ok(())
 }
 
 pub fn register_vesting_accounts<S: Storage, A: Api, Q: Querier>(
@@ -186,7 +186,7 @@ fn compute_claim_amount(current_time: u64, vesting_info: &VestingInfo) -> Uint12
         claimable_amount += Uint128(passed_time as u128) * release_amount_per_time;
     }
 
-    return claimable_amount;
+    claimable_amount
 }
 
 pub fn query<S: Storage, A: Api, Q: Querier>(
@@ -269,7 +269,7 @@ pub fn query_vesting_accounts<S: Storage, A: Api, Q: Querier>(
 #[test]
 fn test_assert_vesting_schedules() {
     // valid
-    assert_vesting_schedules(&vec![
+    assert_vesting_schedules(&[
         (100u64, 101u64, Uint128::from(100u128)),
         (100u64, 110u64, Uint128::from(100u128)),
         (100u64, 200u64, Uint128::from(100u128)),
@@ -277,7 +277,7 @@ fn test_assert_vesting_schedules() {
     .unwrap();
 
     // invalid
-    let res = assert_vesting_schedules(&vec![
+    let res = assert_vesting_schedules(&[
         (100u64, 100u64, Uint128::from(100u128)),
         (100u64, 110u64, Uint128::from(100u128)),
         (100u64, 200u64, Uint128::from(100u128)),

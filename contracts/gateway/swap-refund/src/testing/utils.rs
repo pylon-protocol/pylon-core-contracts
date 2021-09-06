@@ -1,4 +1,4 @@
-use cosmwasm_bignumber::{Decimal256, Uint256};
+use cosmwasm_bignumber::Decimal256;
 use cosmwasm_std::testing::{mock_env, MockApi, MockQuerier, MockStorage};
 use cosmwasm_std::{Env, Extern, HumanAddr};
 use std::str::FromStr;
@@ -19,5 +19,5 @@ pub fn initialize(mut deps: &mut Extern<MockStorage, MockApi, MockQuerier>) -> E
     let msg = init_msg();
     let _res = contract::init(&mut deps, env.clone(), msg).expect("testing: contract initialized");
 
-    return env;
+    env
 }

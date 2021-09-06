@@ -12,15 +12,15 @@ pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResu
 
     to_binary(&resp::ConfigResponse {
         owner: deps.api.human_address(&config.owner)?,
-        start_time: config.start_time.clone(),
+        start_time: config.start_time,
         sale_period: period,
         sale_amount: Uint256::from(period).mul(config.reward_rate),
 
-        depositable: config.depositable.clone(),
-        withdrawable: config.withdrawable.clone(),
-        clff_period: config.cliff_period.clone(),
-        vesting_period: config.vesting_period.clone(),
-        unbonding_period: config.unbonding_period.clone(),
+        depositable: config.depositable,
+        withdrawable: config.withdrawable,
+        clff_period: config.cliff_period,
+        vesting_period: config.vesting_period,
+        unbonding_period: config.unbonding_period,
 
         staking_token: deps.api.human_address(&config.staking_token)?,
         reward_token: deps.api.human_address(&config.reward_token)?,
@@ -80,26 +80,20 @@ pub fn pending_withdrawals<S: Storage, A: Api, Q: Querier>(
     page: Option<u32>,
     limit: Option<u32>,
 ) -> StdResult<Binary> {
-    let page = match page {
-        Some(page) => page,
-        None => 0,
-    };
+    let page = page.unwrap_or(0);
 
     to_binary(&resp::PendingWithdrawalsResponse {
         withdrawals: withdrawal::batch_read(
             deps,
             &deps.api.canonical_address(&owner)?,
-            u64::from(page.mul(match limit {
-                Some(limit) => limit,
-                None => 0,
-            })),
+            u64::from(page.mul(limit.unwrap_or(0))),
             limit,
         )?
         .iter()
         .map(|elem| resp::Withdrawal {
-            amount: elem.amount.clone(),
-            period: elem.period.clone(),
-            emitted: elem.emitted.clone(),
+            amount: elem.amount,
+            period: elem.period,
+            emitted: elem.emitted,
         })
         .collect(),
     })

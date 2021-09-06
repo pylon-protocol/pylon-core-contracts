@@ -5,7 +5,7 @@ use cosmwasm_std::{
 };
 use terra_cosmwasm::TerraQueryWrapper;
 
-use crate::testing::constants::{TEST_POOL, TEST_YIELD_ADAPTER};
+use crate::testing::constants::TEST_POOL;
 use crate::testing::mock_adapter::MockAdapter;
 use crate::testing::mock_pool::MockPool;
 use crate::testing::mock_token::MockToken;
@@ -19,7 +19,7 @@ pub fn mock_dependencies(
 
     Extern {
         storage: MockStorage::default(),
-        api: api.clone(),
+        api,
         querier: CustomMockQuerier::new(
             MockQuerier::new(&[(&contract_addr, contract_balance)]),
             canonical_length,

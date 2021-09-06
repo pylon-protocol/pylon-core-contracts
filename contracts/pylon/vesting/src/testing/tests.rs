@@ -19,7 +19,7 @@ fn proper_initialization() {
         genesis_time: 12345u64,
     };
 
-    let env = mock_env("addr0000", &vec![]);
+    let env = mock_env("addr0000", &[]);
     let _res = init(&mut deps, env, msg).unwrap();
 
     assert_eq!(
@@ -42,7 +42,7 @@ fn update_config() {
         genesis_time: 12345u64,
     };
 
-    let env = mock_env("addr0000", &vec![]);
+    let env = mock_env("addr0000", &[]);
     let _res = init(&mut deps, env, msg).unwrap();
 
     let msg = HandleMsg::UpdateConfig {
@@ -50,7 +50,7 @@ fn update_config() {
         pylon_token: None,
         genesis_time: None,
     };
-    let env = mock_env("owner", &vec![]);
+    let env = mock_env("owner", &[]);
     let _res = handle(&mut deps, env, msg).unwrap();
 
     assert_eq!(
@@ -67,7 +67,7 @@ fn update_config() {
         pylon_token: None,
         genesis_time: None,
     };
-    let env = mock_env("owner", &vec![]);
+    let env = mock_env("owner", &[]);
     let res = handle(&mut deps, env, msg);
     match res {
         Err(StdError::Unauthorized { .. }) => {}
@@ -79,7 +79,7 @@ fn update_config() {
         pylon_token: Some(HumanAddr::from("pylon_token2")),
         genesis_time: Some(1u64),
     };
-    let env = mock_env("owner2", &vec![]);
+    let env = mock_env("owner2", &[]);
     let _res = handle(&mut deps, env, msg).unwrap();
 
     assert_eq!(
@@ -102,7 +102,7 @@ fn register_vesting_accounts() {
         genesis_time: 100u64,
     };
 
-    let env = mock_env("addr0000", &vec![]);
+    let env = mock_env("addr0000", &[]);
     let _res = init(&mut deps, env, msg).unwrap();
 
     let msg = HandleMsg::RegisterVestingAccounts {
@@ -213,7 +213,7 @@ fn claim() {
         genesis_time: 100u64,
     };
 
-    let env = mock_env("addr0000", &vec![]);
+    let env = mock_env("addr0000", &[]);
     let _res = init(&mut deps, env, msg).unwrap();
 
     let msg = HandleMsg::RegisterVestingAccounts {
@@ -227,7 +227,7 @@ fn claim() {
         }],
     };
     let env = mock_env("owner", &[]);
-    let _res = handle(&mut deps, env, msg.clone()).unwrap();
+    let _res = handle(&mut deps, env, msg).unwrap();
 
     let mut env = mock_env("addr0000", &[]);
     env.block.time = 100;
@@ -270,7 +270,7 @@ fn claim() {
     );
 
     env.block.time = 102;
-    let res = handle(&mut deps, env.clone(), msg.clone()).unwrap();
+    let res = handle(&mut deps, env, msg).unwrap();
     assert_eq!(
         res.log,
         vec![

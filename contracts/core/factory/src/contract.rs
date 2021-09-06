@@ -14,9 +14,9 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<InitResponse> {
     let config = config::Config {
         owner: deps.api.canonical_address(&env.message.sender)?,
-        pool_code_id: msg.pool_code_id.clone(),
-        token_code_id: msg.token_code_id.clone(),
-        fee_rate: msg.fee_rate.clone(),
+        pool_code_id: msg.pool_code_id,
+        token_code_id: msg.token_code_id,
+        fee_rate: msg.fee_rate,
         fee_collector: deps.api.canonical_address(&msg.fee_collector)?,
     };
 

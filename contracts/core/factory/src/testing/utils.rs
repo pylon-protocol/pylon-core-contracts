@@ -30,5 +30,5 @@ pub fn initialize(mut deps: &mut Extern<MockStorage, MockApi, CustomMockQuerier>
     };
     let _res = contract::handle(&mut deps, env.clone(), msg).expect("testing: adapter registered");
 
-    return env;
+    env
 }

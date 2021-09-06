@@ -1,15 +1,11 @@
 use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
-
 use cosmwasm_std::{
-    from_binary, from_slice, to_binary, Api, Coin, Extern, HumanAddr, Querier, QuerierResult,
-    QueryRequest, SystemError, WasmQuery,
+    from_slice, to_binary, Api, Coin, Extern, HumanAddr, Querier, QuerierResult, QueryRequest,
+    SystemError,
 };
 use terra_cosmwasm::{TaxCapResponse, TaxRateResponse, TerraQuery, TerraQueryWrapper, TerraRoute};
 
-use crate::testing::constants::TEST_STAKING;
-use crate::testing::mock_staking::MockStaking;
-use crate::testing::mock_tax::MockTax;
-use crate::testing::mock_token::MockToken;
+use crate::mock_tax::MockTax;
 
 pub fn mock_dependencies(
     canonical_length: usize,
@@ -32,8 +28,6 @@ pub fn mock_dependencies(
 pub struct CustomMockQuerier {
     base: MockQuerier<TerraQueryWrapper>,
     tax: MockTax,
-    token: MockToken,
-    staking: MockStaking,
     canonical_length: usize,
 }
 
@@ -75,22 +69,6 @@ impl CustomMockQuerier {
                     panic!("DO NOT ENTER HERE")
                 }
             }
-            QueryRequest::Wasm(WasmQuery::Smart {
-                contract_addr,
-                msg: bin_msg,
-            }) => {
-                if contract_addr.to_string().starts_with("token_") {
-                    self.token
-                        .handle_query(contract_addr, from_binary(bin_msg).unwrap())
-                } else {
-                    match contract_addr.to_string().as_str() {
-                        TEST_STAKING => self.staking.handle_query(from_binary(bin_msg).unwrap()),
-                        _ => Err(SystemError::UnsupportedRequest {
-                            kind: contract_addr.to_string(),
-                        }),
-                    }
-                }
-            }
             _ => self.base.handle_query(request),
         }
     }
@@ -105,21 +83,11 @@ impl CustomMockQuerier {
         CustomMockQuerier {
             base,
             tax: MockTax::default(),
-            token: MockToken::default(),
-            staking: MockStaking::default(),
             canonical_length,
         }
     }
 
     pub fn with_tax(&mut self, tax: MockTax) {
         self.tax = tax;
-    }
-
-    pub fn with_token(&mut self, token: MockToken) {
-        self.token = token;
-    }
-
-    pub fn with_staking(&mut self, staking: MockStaking) {
-        self.staking = staking;
     }
 }

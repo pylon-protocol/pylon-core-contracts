@@ -1,6 +1,6 @@
-use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::{CanonicalAddr, HumanAddr, ReadonlyStorage, StdResult, Storage};
-use cosmwasm_storage::{Bucket, ReadonlyBucket, ReadonlySingleton, Singleton};
+use cosmwasm_bignumber::Uint256;
+use cosmwasm_std::{CanonicalAddr, ReadonlyStorage, StdResult, Storage};
+use cosmwasm_storage::{Bucket, ReadonlyBucket};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

@@ -17,18 +17,18 @@ pub struct Config {
 }
 
 pub fn store_config<S: Storage>(storage: &mut S, config: &Config) -> StdResult<()> {
-    Ok(singleton::<S, Config>(storage, KEY_CONFIG).save(&config)?)
+    singleton::<S, Config>(storage, KEY_CONFIG).save(&config)
 }
 
 pub fn read_config<S: Storage>(storage: &S) -> StdResult<Config> {
-    Ok(singleton_read::<S, Config>(storage, KEY_CONFIG).load()?)
+    singleton_read::<S, Config>(storage, KEY_CONFIG).load()
 }
 
 pub fn read_vesting_info<S: ReadonlyStorage>(
     storage: &S,
     address: &CanonicalAddr,
 ) -> StdResult<VestingInfo> {
-    Ok(bucket_read::<S, VestingInfo>(PREFIX_KEY_VESTING_INFO, storage).load(address.as_slice())?)
+    bucket_read::<S, VestingInfo>(PREFIX_KEY_VESTING_INFO, storage).load(address.as_slice())
 }
 
 pub fn store_vesting_info<S: Storage>(
@@ -36,8 +36,8 @@ pub fn store_vesting_info<S: Storage>(
     address: &CanonicalAddr,
     vesting_info: &VestingInfo,
 ) -> StdResult<()> {
-    Ok(bucket::<S, VestingInfo>(PREFIX_KEY_VESTING_INFO, storage)
-        .save(address.as_slice(), vesting_info)?)
+    bucket::<S, VestingInfo>(PREFIX_KEY_VESTING_INFO, storage)
+        .save(address.as_slice(), vesting_info)
 }
 
 const MAX_LIMIT: u32 = 30;

@@ -22,7 +22,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     let adapter_config = adapter::config(deps, &adapter)?;
 
     let config = config::Config {
-        id: msg.pool_id.clone(),
+        id: msg.pool_id,
         name: msg.pool_name.clone(),
         this: deps.api.canonical_address(&env.contract.address)?,
         factory: deps.api.canonical_address(&env.message.sender)?,

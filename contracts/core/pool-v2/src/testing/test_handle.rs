@@ -17,7 +17,7 @@ use crate::testing::constants::{
 use crate::testing::mock_adapter::{Cw20HookMsg as AdapterHookMsg, HandleMsg as AdapterHandlerMsg};
 use crate::testing::mock_querier::mock_dependencies;
 use crate::testing::mock_tax::MockTax;
-use crate::testing::mock_token::{balances_to_map, MockToken};
+use crate::testing::mock_token::MockToken;
 use crate::testing::utils;
 
 #[test]
@@ -34,7 +34,7 @@ fn handle_deposit() {
 
     let coin = Coin {
         denom: TEST_ADAPTER_INPUT_DENOM.to_string(),
-        amount: Uint128::from(10000000 as u64),
+        amount: Uint128::from(10000000_u64),
     };
     let coin_with_tax = deduct_tax(&deps, coin.clone()).unwrap();
     let user = mock_env(TEST_USER, &[coin.clone()]);
@@ -48,13 +48,13 @@ fn handle_deposit() {
             CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: HumanAddr::from(TEST_ADAPTER_TARGET),
                 msg: to_binary(&AdapterHandlerMsg::DepositStable {}).unwrap(),
-                send: vec![coin.clone()],
+                send: vec![coin],
             }),
             CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: HumanAddr::from(TEST_TOKEN_POOL),
                 msg: to_binary(&Cw20HandleMsg::Mint {
-                    recipient: user.message.sender.clone(),
-                    amount: coin_with_tax.amount.clone(),
+                    recipient: user.message.sender,
+                    amount: coin_with_tax.amount,
                 })
                 .unwrap(),
                 send: vec![]
@@ -75,7 +75,7 @@ fn handle_redeem() {
     ));
     let _ = utils::initialize(&mut deps);
 
-    let amount = Uint128::from(10000000 as u64);
+    let amount = Uint128::from(10000000_u64);
     let amount_with_tax = deduct_tax(
         &deps,
         Coin {
@@ -97,20 +97,17 @@ fn handle_redeem() {
 
     let msg = HandleMsg::Receive(Cw20ReceiveMsg {
         sender: HumanAddr::from(TEST_USER),
-        amount: amount.clone(),
+        amount,
         msg: Some(to_binary(&Cw20HookMsg::Redeem {}).unwrap()),
     });
-    let res = contract::handle(&mut deps, user.clone(), msg).unwrap();
+    let res = contract::handle(&mut deps, user, msg).unwrap();
     assert_eq!(res.data, None, "should be none");
     assert_eq!(
         res.messages,
         vec![
             CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: HumanAddr::from(TEST_TOKEN_POOL),
-                msg: to_binary(&Cw20HandleMsg::Burn {
-                    amount: amount.clone()
-                })
-                .unwrap(),
+                msg: to_binary(&Cw20HandleMsg::Burn { amount }).unwrap(),
                 send: vec![]
             }),
             CosmosMsg::Wasm(WasmMsg::Execute {
@@ -130,7 +127,7 @@ fn handle_redeem() {
                 to_address: HumanAddr::from(TEST_USER),
                 amount: vec![Coin {
                     denom: TEST_ADAPTER_INPUT_DENOM.to_string(),
-                    amount: amount_with_tax.clone(),
+                    amount: amount_with_tax,
                 }],
             })
         ]
@@ -149,7 +146,7 @@ fn handle_earn() {
     ));
 
     let mut mock_token = MockToken::default();
-    mock_token.balances = balances_to_map(&[
+    mock_token.with_balances(&[
         (
             &TEST_TOKEN_YIELD.to_string(),
             &[(
@@ -171,7 +168,7 @@ fn handle_earn() {
     let beneficiary = mock_env(TEST_BENEFICIARY, &[]);
 
     let msg = HandleMsg::Earn {};
-    let res = contract::handle(&mut deps, beneficiary.clone(), msg).unwrap();
+    let res = contract::handle(&mut deps, beneficiary, msg).unwrap();
     let reward = deduct_tax(
         &deps,
         Coin {

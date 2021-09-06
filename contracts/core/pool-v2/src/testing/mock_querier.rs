@@ -20,7 +20,7 @@ pub fn mock_dependencies(
 
     Extern {
         storage: MockStorage::default(),
-        api: api.clone(),
+        api,
         querier: CustomMockQuerier::new(
             MockQuerier::new(&[(&contract_addr, contract_balance)]),
             canonical_length,

@@ -26,7 +26,7 @@ pub fn configure<S: Storage, A: Api, Q: Querier>(
     refund_denom: Option<String>,
     base_price: Option<Decimal256>,
 ) -> StdResult<HandleResponse> {
-    check_manager(&deps.storage, env.clone())?;
+    check_manager(&deps.storage, env)?;
 
     let mut config = config::read(&deps.storage).unwrap();
 

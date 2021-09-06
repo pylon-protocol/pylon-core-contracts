@@ -34,9 +34,9 @@ impl MockFactory {
         match msg {
             QueryMsg::Config {} => Ok(to_binary(&ConfigResponse {
                 owner: self.owner.clone(),
-                pool_code_id: self.pool_code_id.clone(),
-                token_code_id: self.token_code_id.clone(),
-                fee_rate: self.fee_rate.clone(),
+                pool_code_id: self.pool_code_id,
+                token_code_id: self.token_code_id,
+                fee_rate: self.fee_rate,
                 fee_collector: self.fee_collector.clone(),
             })),
             _ => Err(SystemError::UnsupportedRequest {

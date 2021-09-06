@@ -80,7 +80,7 @@ pub fn sweep<S: Storage, A: Api, Q: Querier>(
                 denom: denom.to_string(),
             },
             AssetInfo::Token {
-                contract_addr: pylon_token.clone(),
+                contract_addr: pylon_token,
             },
         ],
     )?;

@@ -1,8 +1,10 @@
+use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::testing::{mock_env, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{Api, HumanAddr, InitResponse};
+use std::str::FromStr;
 
 use crate::contract;
-use crate::state::{config, state, user, vpool};
+use crate::state::{config, state, vpool};
 use crate::testing::constants::{
     TEST_ADDITIONAL_CAP_PER_TOKEN, TEST_BASE_PRICE, TEST_BENEFICIARY, TEST_MAX_STAKE_AMOUNT,
     TEST_MAX_USER_CAP, TEST_MIN_STAKE_AMOUNT, TEST_MIN_USER_CAP, TEST_OWNER, TEST_POOL_LIQ_X,
@@ -10,8 +12,6 @@ use crate::testing::constants::{
 };
 use crate::testing::mock_querier::mock_dependencies;
 use crate::testing::utils;
-use cosmwasm_bignumber::{Decimal256, Uint256};
-use std::str::FromStr;
 
 #[test]
 fn proper_initialization() {
@@ -19,7 +19,7 @@ fn proper_initialization() {
 
     let msg = utils::init_msg();
     let env = mock_env(TEST_OWNER, &[]);
-    let res = contract::init(&mut deps, env.clone(), msg).unwrap();
+    let res = contract::init(&mut deps, env, msg).unwrap();
     assert_eq!(res, InitResponse::default());
 
     let config = config::read(&deps.storage).unwrap();

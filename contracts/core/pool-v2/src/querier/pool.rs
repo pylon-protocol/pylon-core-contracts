@@ -15,7 +15,7 @@ pub struct Reward {
 
 impl Reward {
     pub fn total(&self) -> Uint256 {
-        return self.amount.add(self.fee);
+        self.amount.add(self.fee)
     }
 }
 
@@ -37,12 +37,12 @@ pub fn claimable_rewards<S: Storage, A: Api, Q: Querier>(
             deps,
             Coin {
                 denom: config.input_denom.clone(),
-                amount: (Uint256::from(yield_token_balance).mul(exchange_rate)).into(),
+                amount: (yield_token_balance.mul(exchange_rate)).into(),
             },
         )?
         .amount,
     );
-    let amount = pvl.sub(Uint256::from(dp_total_supply));
+    let amount = pvl.sub(dp_total_supply);
     let factory_config = factory::config(deps, &config.factory)?;
     let fee = amount.mul(factory_config.fee_rate);
 

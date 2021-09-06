@@ -42,7 +42,7 @@ fn update_config() {
     };
 
     let env = mock_env("addr0000", &[]);
-    let _res = init(&mut deps, env.clone(), msg).unwrap();
+    let _res = init(&mut deps, env, msg).unwrap();
 
     // update owner
     let env = mock_env("owner0000", &[]);
@@ -79,7 +79,7 @@ fn register_merkle_root() {
     };
 
     let env = mock_env("addr0000", &[]);
-    let _res = init(&mut deps, env.clone(), msg).unwrap();
+    let _res = init(&mut deps, env, msg).unwrap();
 
     // register new merkle root
     let env = mock_env("owner0000", &[]);
@@ -186,7 +186,7 @@ fn claim() {
         true,
         from_binary::<IsClaimedResponse>(
             &query(
-                &mut deps,
+                &deps,
                 QueryMsg::IsClaimed {
                     stage: 1,
                     address: HumanAddr::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
@@ -198,7 +198,7 @@ fn claim() {
         .is_claimed
     );
 
-    let res = handle(&mut deps, env.clone(), msg.clone());
+    let res = handle(&mut deps, env, msg);
     match res {
         Err(StdError::GenericErr { msg, .. }) => assert_eq!(msg, "Already claimed"),
         _ => panic!("DO NOT ENTER HERE"),
@@ -220,7 +220,7 @@ fn claim() {
         "terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8".to_string(),
         &[],
     );
-    let res = handle(&mut deps, env.clone(), msg.clone()).unwrap();
+    let res = handle(&mut deps, env, msg).unwrap();
     assert_eq!(
         res.messages,
         vec![CosmosMsg::Wasm(WasmMsg::Execute {

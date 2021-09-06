@@ -1,17 +1,12 @@
-use cosmwasm_bignumber::{Decimal256, Uint256};
+use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::testing::mock_env;
 use cosmwasm_std::{from_binary, Coin, HumanAddr, Uint128};
 use pylon_gateway::swap_msg::{HandleMsg, QueryMsg};
 use pylon_gateway::swap_resp::AvailableCapOfResponse;
 use pylon_token::gov::StakerResponse;
-use std::ops::{Add, Mul};
-use std::str::FromStr;
 
 use crate::contract;
-use crate::testing::constants::{
-    TEST_ADDITIONAL_CAP_PER_TOKEN, TEST_MAX_STAKE_AMOUNT, TEST_MAX_USER_CAP, TEST_MIN_STAKE_AMOUNT,
-    TEST_MIN_USER_CAP, TEST_OWNER, TEST_POOL_X_DENOM, TEST_USER,
-};
+use crate::testing::constants::{TEST_MIN_STAKE_AMOUNT, TEST_OWNER, TEST_POOL_X_DENOM, TEST_USER};
 use crate::testing::mock_querier::mock_dependencies;
 use crate::testing::mock_staking::MockStaking;
 use crate::testing::utils;
@@ -40,14 +35,14 @@ fn sale() {
     )]));
 
     let msg = HandleMsg::Deposit {};
-    let res = contract::handle(&mut deps, user.clone(), msg).unwrap();
+    let res = contract::handle(&mut deps, user, msg).unwrap();
     println!("{:?}", res);
 
     let mut owner = mock_env(TEST_OWNER, &[]);
     owner.block.time = 1;
 
     let msg = HandleMsg::Earn {};
-    let res = contract::handle(&mut deps, owner.clone(), msg).unwrap();
+    let res = contract::handle(&mut deps, owner, msg).unwrap();
     println!("{:?}", res);
 }
 
@@ -71,7 +66,7 @@ fn calculate_user_cap() {
         },
     )]));
     let cap_res: AvailableCapOfResponse =
-        from_binary(&contract::query(&deps, msg.clone()).unwrap()).unwrap();
+        from_binary(&contract::query(&deps, msg).unwrap()).unwrap();
     assert_eq!(
         cap_res,
         AvailableCapOfResponse {

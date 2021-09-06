@@ -7,7 +7,7 @@ use crate::querier::staking::staker;
 use crate::querier::swap::calculate_user_cap;
 use crate::querier::vpool::{calculate_current_price, calculate_withdraw_amount};
 use crate::state::{config, state, user, vpool};
-use std::ops::{Div, Mul, Sub};
+use std::ops::{Mul, Sub};
 
 pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
     let config = config::read(&deps.storage)?;

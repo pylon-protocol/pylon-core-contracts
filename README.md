@@ -2,7 +2,7 @@
 
 ## Components
 
-* [Core](./contracts/core) - Official implementation of Pylon Protocol 
+* [Core](./contracts/core) - Official implementation of Pylon Protocol
 * [Gateway](./contracts/gateway) - Contracts for pylon gateway
 * [Pylon](./contracts/pylon) - Contracts for pylon token utilities
 
@@ -56,7 +56,8 @@ docker run --rm -v "$(pwd)":/code \
   cosmwasm/workspace-optimizer:0.10.4
 ```
 
-This performs several optimizations which can significantly reduce the final size of the contract binaries, which will be available inside the `artifacts/` directory.
+This performs several optimizations which can significantly reduce the final size of the contract binaries, which will
+be available inside the `artifacts/` directory.
 
 ## License
 

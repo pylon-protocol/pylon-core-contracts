@@ -56,8 +56,8 @@ impl MockAdapter {
             })),
             QueryMsg::ExchangeRate { input_denom: _ } => {
                 Ok(to_binary(&adapter_resp::ExchangeRateResponse {
-                    exchange_rate: self.exchange_rate.clone(),
-                    yield_token_supply: self.yield_token_supply.clone(),
+                    exchange_rate: self.exchange_rate,
+                    yield_token_supply: self.yield_token_supply,
                 }))
             }
             QueryMsg::Deposit { amount } => {

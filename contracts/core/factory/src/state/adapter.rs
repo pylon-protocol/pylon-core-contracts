@@ -1,5 +1,5 @@
 use cosmwasm_std::{
-    Api, CanonicalAddr, Extern, HumanAddr, Order, Querier, ReadonlyStorage, StdResult, Storage,
+    Api, CanonicalAddr, Extern, Order, Querier, ReadonlyStorage, StdResult, Storage,
 };
 use cosmwasm_storage::{Bucket, ReadonlyBucket};
 use schemars::JsonSchema;
@@ -48,7 +48,7 @@ pub fn batch_read<S: Storage, A: Api, Q: Querier>(
         .range(start.as_deref(), None, Order::Ascending)
         .take(limit)
         .map(|elem: StdResult<(Vec<u8>, Adapter)>| {
-            let (k, v) = elem.unwrap();
+            let (_, v) = elem.unwrap();
             Ok(v)
         })
         .collect()
