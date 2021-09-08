@@ -2,11 +2,13 @@ use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::{log, to_binary, CosmosMsg, HumanAddr, LogAttribute, StdError, WasmMsg};
 use cosmwasm_std::{Api, Env, Extern, HandleResponse, Querier, StdResult, Storage};
 use cw20::Cw20HandleMsg;
+use pylon_launchpad::lockup_msg::ConfigureMsg;
+use std::cmp::{max, min};
 use std::ops::{Add, Div, Mul, Sub};
 
+use crate::handler::validator::{validate_config, validate_config_message, validate_sender};
 use crate::lib_staking as staking;
 use crate::state;
-use std::cmp::{max, min};
 
 pub fn update<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
@@ -66,12 +68,7 @@ pub fn deposit_internal<S: Storage, A: Api, Q: Querier>(
     sender: HumanAddr,
     amount: Uint256,
 ) -> StdResult<HandleResponse> {
-    if !env.message.sender.eq(&env.contract.address) {
-        return Err(StdError::generic_err(format!(
-            "Lockup: cannot execute internal function with unauthorized sender. (sender: {})",
-            env.message.sender,
-        )));
-    }
+    validate_sender(&env, &env.contract.address, "deposit_internal")?;
     let config: state::Config = state::read_config(&deps.storage)?;
 
     // check time range // open_deposit flag
@@ -109,13 +106,7 @@ pub fn withdraw_internal<S: Storage, A: Api, Q: Querier>(
     sender: HumanAddr,
     amount: Uint256,
 ) -> StdResult<HandleResponse> {
-    if !env.message.sender.eq(&env.contract.address) {
-        return Err(StdError::generic_err(format!(
-            "Lockup: cannot execute internal function with unauthorized sender. (sender: {})",
-            env.message.sender,
-        )));
-    }
-
+    validate_sender(&env, &env.contract.address, "withdraw_internal")?;
     let config: state::Config = state::read_config(&deps.storage)?;
 
     let in_temp_period = env.block.time.gt(&config.temp_withdraw_start_time)
@@ -166,13 +157,7 @@ pub fn claim_internal<S: Storage, A: Api, Q: Querier>(
     env: Env,
     sender: HumanAddr,
 ) -> StdResult<HandleResponse> {
-    if !env.message.sender.eq(&env.contract.address) {
-        return Err(StdError::generic_err(format!(
-            "Lockup: cannot execute internal function with unauthorized sender. (sender: {})",
-            env.message.sender,
-        )));
-    }
-
+    validate_sender(&env, &env.contract.address, "claim_internal")?;
     let config: state::Config = state::read_config(&deps.storage)?;
 
     // check time range // open_claim flag
@@ -214,21 +199,17 @@ pub fn claim_internal<S: Storage, A: Api, Q: Querier>(
 pub fn configure<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
-    owner: Option<HumanAddr>,
-    start_time: Option<u64>,
-    cliff_time: Option<u64>,
-    finish_time: Option<u64>,
+    msg: ConfigureMsg,
 ) -> StdResult<HandleResponse> {
     let mut config = state::read_config(&deps.storage).unwrap();
-    if config
-        .owner
-        .ne(&deps.api.canonical_address(&env.message.sender).unwrap())
-    {
-        return Err(StdError::generic_err(format!(
-            "Lockup: cannot execute add_reward message with unauthorized sender. expected: {}, actual: {}",
-            deps.api.human_address(&config.owner).unwrap(), env.message.sender,
-        )));
-    }
+    validate_sender(
+        &env,
+        &deps.api.human_address(&config.owner).unwrap(),
+        "add_reward",
+    )?;
+
+    // validate
+    validate_config_message(&env, &msg)?;
 
     let remaining = Uint256::from(
         config
@@ -237,40 +218,45 @@ pub fn configure<S: Storage, A: Api, Q: Querier>(
     );
 
     let mut logs: Vec<LogAttribute> = vec![log("action", "configure")];
-    if let Some(owner) = owner {
+    if let Some(owner) = msg.owner {
         config.owner = deps.api.canonical_address(&owner).unwrap();
         logs.push(log("new_owner", owner));
     }
-    if let Some(start_time) = start_time {
-        if env.block.time.gt(&start_time) {
-            return Err(StdError::generic_err(
-                "Lockup: cannot change start_time. reason: now > start_time",
-            ));
-        }
+    if let Some(start_time) = msg.start_time {
         config.start_time = start_time;
         logs.push(log("new_start_time", start_time));
     }
-    if let Some(cliff_time) = cliff_time {
-        if env.block.time.gt(&cliff_time) {
-            return Err(StdError::generic_err(
-                "Lockup: cannot change cliff_time. reason: now > cliff_time",
-            ));
-        }
+    if let Some(cliff_time) = msg.cliff_time {
         config.cliff_time = cliff_time;
         logs.push(log("new_cliff_time", cliff_time));
     }
-    if let Some(finish_time) = finish_time {
-        if env.block.time.gt(&finish_time) {
-            return Err(StdError::generic_err(
-                "Lockup: cannot change finish_time. reason: now > finish_time",
-            ));
-        }
+    if let Some(finish_time) = msg.finish_time {
         config.finish_time = finish_time;
         config.reward_rate = Decimal256::from_uint256(config.reward_rate.mul(remaining).div(
             Decimal256::from_uint256(Uint256::from(finish_time.sub(env.block.time))),
         ));
         logs.push(log("new_finish_time", finish_time));
     }
+    if let Some(temp_withdraw_start_time) = msg.temp_withdraw_start_time {
+        config.temp_withdraw_start_time = temp_withdraw_start_time;
+        logs.push(log(
+            "new_temp_withdraw_start_time",
+            temp_withdraw_start_time,
+        ));
+    }
+    if let Some(temp_withdraw_finish_time) = msg.temp_withdraw_finish_time {
+        config.temp_withdraw_finish_time = temp_withdraw_finish_time;
+        logs.push(log(
+            "new_temp_withdraw_finish_time",
+            temp_withdraw_finish_time,
+        ));
+    }
+
+    // validate
+    validate_config(&config)?;
+
+    // store
+    state::store_config(&mut deps.storage, &config).unwrap();
 
     Ok(HandleResponse {
         messages: vec![],
@@ -295,8 +281,7 @@ pub fn add_reward<S: Storage, A: Api, Q: Querier>(
         )));
     }
 
-    let reward_rate_before = config.reward_rate.clone();
-
+    let reward_rate_before = config.reward_rate;
     let remaining = Uint256::from(
         config
             .finish_time
@@ -351,8 +336,7 @@ pub fn sub_reward<S: Storage, A: Api, Q: Querier>(
         )));
     }
 
-    let reward_rate_before = config.reward_rate.clone();
-
+    let reward_rate_before = config.reward_rate;
     let remaining = Uint256::from(
         config
             .finish_time

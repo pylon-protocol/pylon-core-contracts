@@ -64,12 +64,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
         }
         HandleMsg::ClaimInternal { sender } => Core::claim_internal(deps, env, sender),
         // owner
-        HandleMsg::Configure {
-            owner,
-            start_time,
-            cliff_time,
-            finish_time,
-        } => Core::configure(deps, env, owner, start_time, cliff_time, finish_time),
+        HandleMsg::Configure(msg) => Core::configure(deps, env, msg),
         HandleMsg::AddReward { amount } => Core::add_reward(deps, env, amount),
         HandleMsg::SubReward { amount } => Core::sub_reward(deps, env, amount),
     }

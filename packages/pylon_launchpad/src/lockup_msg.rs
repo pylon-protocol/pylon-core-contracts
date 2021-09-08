@@ -15,42 +15,31 @@ pub struct InitMsg {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct ConfigureMsg {
+    pub owner: Option<HumanAddr>,
+    pub start_time: Option<u64>,
+    pub cliff_time: Option<u64>,
+    pub finish_time: Option<u64>,
+    pub temp_withdraw_start_time: Option<u64>,
+    pub temp_withdraw_finish_time: Option<u64>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum HandleMsg {
     // core
     Receive(Cw20ReceiveMsg),
-    Update {
-        target: Option<HumanAddr>,
-    },
-    Withdraw {
-        amount: Uint256,
-    },
+    Update { target: Option<HumanAddr> },
+    Withdraw { amount: Uint256 },
     Claim {},
     // internal
-    DepositInternal {
-        sender: HumanAddr,
-        amount: Uint256,
-    },
-    WithdrawInternal {
-        sender: HumanAddr,
-        amount: Uint256,
-    },
-    ClaimInternal {
-        sender: HumanAddr,
-    },
+    DepositInternal { sender: HumanAddr, amount: Uint256 },
+    WithdrawInternal { sender: HumanAddr, amount: Uint256 },
+    ClaimInternal { sender: HumanAddr },
     // owner
-    Configure {
-        owner: Option<HumanAddr>,
-        start_time: Option<u64>,
-        cliff_time: Option<u64>,
-        finish_time: Option<u64>,
-    },
-    SubReward {
-        amount: Uint256,
-    },
-    AddReward {
-        amount: Uint256,
-    },
+    Configure(ConfigureMsg),
+    SubReward { amount: Uint256 },
+    AddReward { amount: Uint256 },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
