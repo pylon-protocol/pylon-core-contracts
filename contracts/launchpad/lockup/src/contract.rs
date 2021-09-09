@@ -37,7 +37,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
                 finish: msg.start.add(msg.period),
                 inverse: true,
             },
-            temp_deposit_config: config::DepositConfig::default(),
+            temp_deposit_config: config::TempDepositConfig::default(),
             temp_withdraw_time: time_range::TimeRange::default(),
             // reward
             reward_token: msg.reward_token,

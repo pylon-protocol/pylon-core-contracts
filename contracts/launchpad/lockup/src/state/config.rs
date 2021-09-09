@@ -37,6 +37,29 @@ impl Validator for DepositConfig {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct TempDepositConfig {
+    pub time: TimeRange,
+    pub user_cap: Uint256,
+}
+
+impl Default for TempDepositConfig {
+    fn default() -> Self {
+        TempDepositConfig {
+            time: TimeRange::default(),
+            user_cap: Uint256::zero(),
+        }
+    }
+}
+
+impl Validator for TempDepositConfig {
+    fn validate(&self) -> StdResult<()> {
+        self.time.validate()?;
+
+        Ok(())
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct DistributionConfig {
     pub time: TimeRange,
     pub reward_rate: Decimal256,
@@ -76,7 +99,7 @@ pub struct Config {
     pub share_token: HumanAddr,
     pub deposit_config: DepositConfig,
     pub withdraw_time: TimeRange,
-    pub temp_deposit_config: DepositConfig,
+    pub temp_deposit_config: TempDepositConfig,
     pub temp_withdraw_time: TimeRange,
     // reward
     pub reward_token: HumanAddr,
