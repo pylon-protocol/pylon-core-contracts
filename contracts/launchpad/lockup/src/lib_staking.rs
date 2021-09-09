@@ -3,14 +3,14 @@ use std::ops::{Add, Div, Mul, Sub};
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::{Api, Extern, Querier, StdError, StdResult, Storage};
 
-use crate::state;
+use crate::state::{config, reward, user};
 
 pub fn calculate_reward_per_token<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
-    reward: &state::Reward,
+    reward: &reward::Reward,
     timestamp: &u64,
 ) -> StdResult<Decimal256> {
-    let config: state::Config = state::read_config(&deps.storage)?;
+    let config = config::read(&deps.storage).unwrap().distribution_config;
 
     let period = Uint256::from(timestamp.sub(reward.last_update_time));
     let total_deposit = reward.total_deposit;
@@ -26,8 +26,8 @@ pub fn calculate_reward_per_token<S: Storage, A: Api, Q: Querier>(
 
 pub fn calculate_rewards<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
-    reward: &state::Reward,
-    user: &state::User,
+    reward: &reward::Reward,
+    user: &user::User,
     timestamp: Option<u64>,
 ) -> StdResult<Uint256> {
     let mut rpt = reward

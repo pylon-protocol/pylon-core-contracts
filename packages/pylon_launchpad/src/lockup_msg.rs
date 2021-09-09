@@ -15,13 +15,45 @@ pub struct InitMsg {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct ConfigureMsg {
-    pub owner: Option<HumanAddr>,
-    pub start_time: Option<u64>,
-    pub cliff_time: Option<u64>,
-    pub finish_time: Option<u64>,
-    pub temp_withdraw_start_time: Option<u64>,
-    pub temp_withdraw_finish_time: Option<u64>,
+#[serde(rename_all = "snake_case")]
+pub enum DistributionMsg {
+    SubReward { amount: Uint256 },
+    AddReward { amount: Uint256 },
+    ShortenPeriod { time: u64 },
+    LengthenPeriod { time: u64 },
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ConfigureMsg {
+    Owner {
+        address: HumanAddr,
+    },
+    Deposit {
+        start: Option<u64>,
+        finish: Option<u64>,
+        user_cap: Option<Uint256>,
+        total_cap: Option<Uint256>,
+    },
+    TempDeposit {
+        start: Option<u64>,
+        finish: Option<u64>,
+        user_cap: Option<Uint256>,
+        total_cap: Option<Uint256>,
+    },
+    Withdraw {
+        start: Option<u64>,
+        finish: Option<u64>,
+    },
+    TempWithdraw {
+        start: Option<u64>,
+        finish: Option<u64>,
+    },
+    Claim {
+        start: Option<u64>,
+        finish: Option<u64>,
+    },
+    Distribution(DistributionMsg),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -38,8 +70,6 @@ pub enum HandleMsg {
     ClaimInternal { sender: HumanAddr },
     // owner
     Configure(ConfigureMsg),
-    SubReward { amount: Uint256 },
-    AddReward { amount: Uint256 },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

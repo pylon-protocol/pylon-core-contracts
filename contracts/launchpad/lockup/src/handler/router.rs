@@ -4,10 +4,9 @@ use cosmwasm_std::{
     StdError, StdResult, Storage, WasmMsg,
 };
 use cw20::Cw20ReceiveMsg;
-
 use pylon_launchpad::lockup_msg::{Cw20HookMsg, HandleMsg};
 
-use crate::state;
+use crate::state::config;
 
 pub fn receive<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
@@ -19,8 +18,8 @@ pub fn receive<S: Storage, A: Api, Q: Querier>(
     if let Some(msg) = cw20_msg.msg {
         match from_binary(&msg)? {
             Cw20HookMsg::Deposit {} => {
-                let config: state::Config = state::read_config(&deps.storage)?;
-                if deps.api.canonical_address(&sender)? != config.share_token {
+                let config = config::read(&deps.storage)?;
+                if sender.ne(&config.share_token) {
                     return Err(StdError::unauthorized());
                 }
 

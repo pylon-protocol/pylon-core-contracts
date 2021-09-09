@@ -4,36 +4,63 @@ use cosmwasm_std::{
     Querier, StdResult, Storage,
 };
 use pylon_launchpad::lockup_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
-use std::ops::Add;
 
+use crate::handler::configure as Config;
 use crate::handler::core as Core;
 use crate::handler::query as Query;
 use crate::handler::router as Router;
-use crate::state;
+use crate::state::{config, reward, time_range};
+use std::ops::{Add, Mul};
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
     msg: InitMsg,
 ) -> StdResult<InitResponse> {
-    state::store_config(
+    config::store(
         &mut deps.storage,
-        &state::Config {
-            owner: deps.api.canonical_address(&env.message.sender)?,
-            share_token: deps.api.canonical_address(&msg.share_token)?,
-            reward_token: deps.api.canonical_address(&msg.reward_token)?,
-            start_time: msg.start,
-            cliff_time: msg.start.add(msg.cliff),
-            finish_time: msg.start.add(msg.period),
-            temp_withdraw_start_time: 0,
-            temp_withdraw_finish_time: 0,
-            reward_rate: msg.reward_rate,
+        &config::Config {
+            owner: env.message.sender,
+            // share
+            share_token: msg.share_token,
+            deposit_config: config::DepositConfig {
+                time: time_range::TimeRange {
+                    start: msg.start,
+                    finish: msg.start.add(msg.period),
+                    inverse: false,
+                },
+                user_cap: Uint256::zero(),
+                total_cap: Uint256::zero(),
+            },
+            withdraw_time: time_range::TimeRange {
+                start: msg.start,
+                finish: msg.start.add(msg.period),
+                inverse: true,
+            },
+            temp_deposit_config: config::DepositConfig::default(),
+            temp_withdraw_time: time_range::TimeRange::default(),
+            // reward
+            reward_token: msg.reward_token,
+            claim_time: time_range::TimeRange {
+                start: msg.cliff,
+                finish: msg.start.add(msg.period),
+                inverse: false,
+            },
+            distribution_config: config::DistributionConfig {
+                time: time_range::TimeRange {
+                    start: msg.start,
+                    finish: msg.start.add(msg.period),
+                    inverse: false,
+                },
+                reward_rate: msg.reward_rate,
+                total_reward_amount: Uint256::from(msg.period).mul(msg.reward_rate),
+            },
         },
     )?;
 
-    state::store_reward(
+    reward::store(
         &mut deps.storage,
-        &state::Reward {
+        &reward::Reward {
             total_deposit: Uint256::zero(),
             last_update_time: msg.start,
             reward_per_token_stored: Decimal256::zero(),
@@ -64,9 +91,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
         }
         HandleMsg::ClaimInternal { sender } => Core::claim_internal(deps, env, sender),
         // owner
-        HandleMsg::Configure(msg) => Core::configure(deps, env, msg),
-        HandleMsg::AddReward { amount } => Core::add_reward(deps, env, amount),
-        HandleMsg::SubReward { amount } => Core::sub_reward(deps, env, amount),
+        HandleMsg::Configure(msg) => Config::configure(deps, env, msg),
     }
 }
 
