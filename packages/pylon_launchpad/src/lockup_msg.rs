@@ -39,7 +39,6 @@ pub enum ConfigureMsg {
         start: Option<u64>,
         finish: Option<u64>,
         user_cap: Option<Uint256>,
-        total_cap: Option<Uint256>,
     },
     Withdraw {
         start: Option<u64>,

@@ -1,9 +1,12 @@
-use crate::handler::validate_sender;
-use crate::state::config;
 use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::{log, Api, Env, Extern, HandleResponse, Querier, StdError, StdResult, Storage};
+use cosmwasm_std::{
+    log, Api, Env, Extern, HandleResponse, HumanAddr, Querier, StdError, StdResult, Storage,
+};
 use pylon_launchpad::lockup_msg::{ConfigureMsg, DistributionMsg};
 use std::ops::{Add, Div, Mul, Sub};
+
+use crate::handler::validate_sender;
+use crate::state::config;
 
 pub fn configure<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
@@ -11,13 +14,157 @@ pub fn configure<S: Storage, A: Api, Q: Querier>(
     msg: ConfigureMsg,
 ) -> StdResult<HandleResponse> {
     match msg {
-        // TODO: handle more configure messages
+        ConfigureMsg::Owner { address } => configure_owner(deps, env, address),
+        ConfigureMsg::Deposit {
+            start,
+            finish,
+            user_cap,
+            total_cap,
+        } => configure_deposit(deps, env, start, finish, user_cap, total_cap),
+        ConfigureMsg::TempDeposit {
+            start,
+            finish,
+            user_cap,
+        } => configure_temp_deposit(deps, env, start, finish, user_cap),
+        ConfigureMsg::Withdraw { start, finish } => {
+            let mut config = config::read(&deps.storage).unwrap();
+            let mut withdraw_time = config.withdraw_time;
+            validate_sender(&env, &config.owner, "configure_withdraw")?;
+
+            let mut logs = vec![log("action", "configure_withdraw")];
+            logs.append(&mut withdraw_time.configure(start, finish));
+
+            config.withdraw_time = withdraw_time;
+            config::store(&mut deps.storage, &config).unwrap();
+
+            Ok(HandleResponse {
+                messages: vec![],
+                log: logs,
+                data: None,
+            })
+        }
+        ConfigureMsg::TempWithdraw { start, finish } => {
+            let mut config = config::read(&deps.storage).unwrap();
+            let mut temp_withdraw_time = config.temp_withdraw_time;
+            validate_sender(&env, &config.owner, "configure_temp_withdraw")?;
+
+            let mut logs = vec![log("action", "configure_temp_withdraw")];
+            logs.append(&mut temp_withdraw_time.configure(start, finish));
+
+            config.temp_withdraw_time = temp_withdraw_time;
+            config::store(&mut deps.storage, &config).unwrap();
+
+            Ok(HandleResponse {
+                messages: vec![],
+                log: logs,
+                data: None,
+            })
+        }
+        ConfigureMsg::Claim { start, finish } => {
+            let mut config = config::read(&deps.storage).unwrap();
+            let mut claim_time = config.claim_time;
+            validate_sender(&env, &config.owner, "configure_claim")?;
+
+            let mut logs = vec![log("action", "configure_claim")];
+            logs.append(&mut claim_time.configure(start, finish));
+
+            config.claim_time = claim_time;
+            config::store(&mut deps.storage, &config).unwrap();
+
+            Ok(HandleResponse {
+                messages: vec![],
+                log: logs,
+                data: None,
+            })
+        }
         ConfigureMsg::Distribution(msg) => configure_distribution(deps, env, msg),
-        _ => Err(StdError::NotFound {
-            kind: "".to_string(),
-            backtrace: None,
-        }),
     }
+}
+
+fn configure_owner<S: Storage, A: Api, Q: Querier>(
+    deps: &mut Extern<S, A, Q>,
+    env: Env,
+    owner: HumanAddr,
+) -> StdResult<HandleResponse> {
+    let mut config = config::read(&deps.storage).unwrap();
+    validate_sender(&env, &config.owner, "configure_owner")?;
+
+    let prev_owner = config.owner;
+    config.owner = owner;
+
+    config::store(&mut deps.storage, &config).unwrap();
+
+    Ok(HandleResponse {
+        messages: vec![],
+        log: vec![
+            log("action", "configure_owner"),
+            log("prev_owner", prev_owner),
+            log("next_owner", config.owner),
+        ],
+        data: None,
+    })
+}
+
+fn configure_deposit<S: Storage, A: Api, Q: Querier>(
+    deps: &mut Extern<S, A, Q>,
+    env: Env,
+    start: Option<u64>,
+    finish: Option<u64>,
+    user_cap: Option<Uint256>,
+    total_cap: Option<Uint256>,
+) -> StdResult<HandleResponse> {
+    let mut config = config::read(&deps.storage).unwrap();
+    let mut deposit_config = config.deposit_config;
+    validate_sender(&env, &config.owner, "configure_deposit")?;
+
+    let mut logs = vec![log("action", "configure_deposit")];
+    logs.append(&mut deposit_config.time.configure(start, finish));
+    if let Some(user_cap) = user_cap {
+        deposit_config.user_cap = user_cap;
+        logs.push(log("new_user_cap", user_cap));
+    }
+    if let Some(total_cap) = total_cap {
+        deposit_config.total_cap = total_cap;
+        logs.push(log("new_total_cap", total_cap));
+    }
+
+    config.deposit_config = deposit_config;
+    config::store(&mut deps.storage, &config).unwrap();
+
+    Ok(HandleResponse {
+        messages: vec![],
+        log: logs,
+        data: None,
+    })
+}
+
+fn configure_temp_deposit<S: Storage, A: Api, Q: Querier>(
+    deps: &mut Extern<S, A, Q>,
+    env: Env,
+    start: Option<u64>,
+    finish: Option<u64>,
+    user_cap: Option<Uint256>,
+) -> StdResult<HandleResponse> {
+    let mut config = config::read(&deps.storage).unwrap();
+    let mut temp_deposit_config = config.temp_deposit_config;
+    validate_sender(&env, &config.owner, "configure_temp_deposit")?;
+
+    let mut logs = vec![log("action", "configure_temp_deposit")];
+    logs.append(&mut temp_deposit_config.time.configure(start, finish));
+    if let Some(user_cap) = user_cap {
+        temp_deposit_config.user_cap = user_cap;
+        logs.push(log("new_user_cap", user_cap));
+    }
+
+    config.temp_deposit_config = temp_deposit_config;
+
+    config::store(&mut deps.storage, &config).unwrap();
+
+    Ok(HandleResponse {
+        messages: vec![],
+        log: logs,
+        data: None,
+    })
 }
 
 fn configure_distribution<S: Storage, A: Api, Q: Querier>(

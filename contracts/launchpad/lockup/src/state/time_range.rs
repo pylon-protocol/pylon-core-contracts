@@ -1,4 +1,4 @@
-use cosmwasm_std::{Env, StdError, StdResult};
+use cosmwasm_std::{log, Env, LogAttribute, StdError, StdResult};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::ops::Sub;
@@ -60,5 +60,18 @@ impl TimeRange {
         } else {
             self.start < env.block.time && env.block.time < self.finish
         }
+    }
+
+    pub fn configure(&mut self, start: Option<u64>, finish: Option<u64>) -> Vec<LogAttribute> {
+        let mut logs = vec![];
+        if let Some(start) = start {
+            self.start = start;
+            logs.push(log("new_start_time", start));
+        }
+        if let Some(finish) = finish {
+            self.finish = finish;
+            logs.push(log("new_finish_time", finish));
+        }
+        logs
     }
 }
