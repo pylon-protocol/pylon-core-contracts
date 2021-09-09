@@ -4,13 +4,13 @@ use cosmwasm_std::{
     Querier, StdResult, Storage,
 };
 use pylon_launchpad::lockup_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
+use std::ops::{Add, Mul};
 
 use crate::handler::configure as Config;
 use crate::handler::core as Core;
 use crate::handler::query as Query;
 use crate::handler::router as Router;
 use crate::state::{config, reward, time_range};
-use std::ops::{Add, Mul};
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
