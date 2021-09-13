@@ -7,6 +7,9 @@ use std::ops::{Add, Div, Mul, Sub};
 
 use crate::handler::validate_sender;
 use crate::state::config;
+use crate::state::time_range::TimeRange;
+
+const MAX_WITHDRAW_STRATEGY: usize = 4;
 
 pub fn configure<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
@@ -21,42 +24,30 @@ pub fn configure<S: Storage, A: Api, Q: Querier>(
             user_cap,
             total_cap,
         } => configure_deposit(deps, env, start, finish, user_cap, total_cap),
-        ConfigureMsg::TempDeposit {
-            start,
-            finish,
-            user_cap,
-        } => configure_temp_deposit(deps, env, start, finish, user_cap),
-        ConfigureMsg::Withdraw { start, finish } => {
+        ConfigureMsg::Withdraw { strategy } => {
             let mut config = config::read(&deps.storage).unwrap();
-            let mut withdraw_time = config.withdraw_time;
             validate_sender(&env, &config.owner, "configure_withdraw")?;
 
-            let mut logs = vec![log("action", "configure_withdraw")];
-            logs.append(&mut withdraw_time.configure(start, finish));
+            if strategy.len().gt(&MAX_WITHDRAW_STRATEGY) {
+                return Err(StdError::generic_err(format!(
+                    "Lockup: withdraw strategy length exceeds limit. limit: {}, now: {}"
+                    MAX_WITHDRAW_STRATEGY, strategy.len(),
+                )));
+            }
 
-            config.withdraw_time = withdraw_time;
+            config.withdraw_time = strategy
+                .iter()
+                .map(|(start, finish, inverse)| TimeRange {
+                    start: *start,
+                    finish: *finish,
+                    inverse: *inverse,
+                })
+                .collect();
             config::store(&mut deps.storage, &config).unwrap();
 
             Ok(HandleResponse {
                 messages: vec![],
-                log: logs,
-                data: None,
-            })
-        }
-        ConfigureMsg::TempWithdraw { start, finish } => {
-            let mut config = config::read(&deps.storage).unwrap();
-            let mut temp_withdraw_time = config.temp_withdraw_time;
-            validate_sender(&env, &config.owner, "configure_temp_withdraw")?;
-
-            let mut logs = vec![log("action", "configure_temp_withdraw")];
-            logs.append(&mut temp_withdraw_time.configure(start, finish));
-
-            config.temp_withdraw_time = temp_withdraw_time;
-            config::store(&mut deps.storage, &config).unwrap();
-
-            Ok(HandleResponse {
-                messages: vec![],
-                log: logs,
+                log: vec![log("action", "configure_withdraw")],
                 data: None,
             })
         }
@@ -129,35 +120,6 @@ fn configure_deposit<S: Storage, A: Api, Q: Querier>(
     }
 
     config.deposit_config = deposit_config;
-    config::store(&mut deps.storage, &config).unwrap();
-
-    Ok(HandleResponse {
-        messages: vec![],
-        log: logs,
-        data: None,
-    })
-}
-
-fn configure_temp_deposit<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
-    env: Env,
-    start: Option<u64>,
-    finish: Option<u64>,
-    user_cap: Option<Uint256>,
-) -> StdResult<HandleResponse> {
-    let mut config = config::read(&deps.storage).unwrap();
-    let mut temp_deposit_config = config.temp_deposit_config;
-    validate_sender(&env, &config.owner, "configure_temp_deposit")?;
-
-    let mut logs = vec![log("action", "configure_temp_deposit")];
-    logs.append(&mut temp_deposit_config.time.configure(start, finish));
-    if let Some(user_cap) = user_cap {
-        temp_deposit_config.user_cap = user_cap;
-        logs.push(log("new_user_cap", user_cap));
-    }
-
-    config.temp_deposit_config = temp_deposit_config;
-
     config::store(&mut deps.storage, &config).unwrap();
 
     Ok(HandleResponse {

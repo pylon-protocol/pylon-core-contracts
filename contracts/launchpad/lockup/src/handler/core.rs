@@ -76,8 +76,27 @@ pub fn deposit_internal<S: Storage, A: Api, Q: Querier>(
     let mut reward = reward::read(&deps.storage).unwrap();
     let mut user = user::read(&deps.storage, &owner).unwrap();
 
+    // check total cap
     reward.total_deposit = reward.total_deposit.add(amount);
+    if config.deposit_config.total_cap.ne(&Uint256::zero())
+        && reward.total_deposit.gt(&config.deposit_config.total_cap)
+    {
+        return Err(StdError::generic_err(format!(
+            "Lockup: deposit amount exceeds total cap. cap: {}",
+            config.deposit_config.total_cap,
+        )));
+    }
+
+    // check user cap
     user.amount = user.amount.add(amount);
+    if config.deposit_config.user_cap.ne(&Uint256::zero())
+        && user.amount.gt(&config.deposit_config.user_cap)
+    {
+        return Err(StdError::generic_err(format!(
+            "Lockup: deposit amount exceeds user cap. cap: {}",
+            config.deposit_config.user_cap,
+        )));
+    }
 
     reward::store(&mut deps.storage, &reward).unwrap();
     user::store(&mut deps.storage, &owner, &user).unwrap();

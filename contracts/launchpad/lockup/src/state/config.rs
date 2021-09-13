@@ -37,29 +37,6 @@ impl Validator for DepositConfig {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct TempDepositConfig {
-    pub time: TimeRange,
-    pub user_cap: Uint256,
-}
-
-impl Default for TempDepositConfig {
-    fn default() -> Self {
-        TempDepositConfig {
-            time: TimeRange::default(),
-            user_cap: Uint256::zero(),
-        }
-    }
-}
-
-impl Validator for TempDepositConfig {
-    fn validate(&self) -> StdResult<()> {
-        self.time.validate()?;
-
-        Ok(())
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct DistributionConfig {
     pub time: TimeRange,
     pub reward_rate: Decimal256,
@@ -98,9 +75,7 @@ pub struct Config {
     // share
     pub share_token: HumanAddr,
     pub deposit_config: DepositConfig,
-    pub withdraw_time: TimeRange,
-    pub temp_deposit_config: TempDepositConfig,
-    pub temp_withdraw_time: TimeRange,
+    pub withdraw_time: Vec<TimeRange>,
     // reward
     pub reward_token: HumanAddr,
     pub claim_time: TimeRange,
@@ -111,9 +86,7 @@ impl Validator for Config {
     fn validate(&self) -> StdResult<()> {
         // share
         self.deposit_config.validate()?;
-        self.withdraw_time.validate()?;
-        self.temp_deposit_config.validate()?;
-        self.temp_withdraw_time.validate()?;
+        self.withdraw_time.iter().map(|time| time.validate());
 
         // reward
         self.claim_time.validate()?;
@@ -161,21 +134,24 @@ fn check_time_range(
 
 impl Config {
     pub fn check_deposit_time(&self, env: &Env) -> StdResult<()> {
-        check_time_range(
-            env,
-            &self.deposit_config.time,
-            Option::from(&self.temp_deposit_config.time),
-            "deposit",
-        )
+        check_time_range(env, &self.deposit_config.time, Option::None, "deposit")
     }
 
     pub fn check_withdraw_time(&self, env: &Env) -> StdResult<()> {
-        check_time_range(
-            env,
-            &self.withdraw_time,
-            Option::from(&self.temp_withdraw_time),
-            "withdraw",
-        )
+        for (time, is_in_range) in self
+            .withdraw_time
+            .iter()
+            .map(|time| (time, time.is_in_range(&env)))
+        {
+            if is_in_range {
+                Ok(());
+            }
+        }
+
+        Err(StdError::generic_err(format!(
+            "Lockup: failed to validate withdraw time. time: {}"
+            time,
+        )))
     }
 
     pub fn check_claim_time(&self, env: &Env) -> StdResult<()> {

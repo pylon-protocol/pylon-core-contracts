@@ -35,18 +35,8 @@ pub enum ConfigureMsg {
         user_cap: Option<Uint256>,
         total_cap: Option<Uint256>,
     },
-    TempDeposit {
-        start: Option<u64>,
-        finish: Option<u64>,
-        user_cap: Option<Uint256>,
-    },
     Withdraw {
-        start: Option<u64>,
-        finish: Option<u64>,
-    },
-    TempWithdraw {
-        start: Option<u64>,
-        finish: Option<u64>,
+        strategy: Vec<(u64, u64, bool)>,
     },
     Claim {
         start: Option<u64>,
