@@ -1,64 +1,66 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::{
     Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResponse, MigrateResult,
-    Querier, StdError, StdResult, Storage,
+    Querier, StdResult, Storage,
 };
 use pylon_gateway::pool_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
-use std::ops::{Add, Div};
+use std::ops::{Add, Mul};
 
+use crate::handler::configure as Config;
 use crate::handler::core as Core;
 use crate::handler::query as Query;
 use crate::handler::router as Router;
-use crate::state::{config, state};
+use crate::state::{config, reward, time_range};
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
     msg: InitMsg,
 ) -> StdResult<InitResponse> {
-    if msg.sale_period.lt(&0) {
-        return Err(StdError::generic_err(
-            "Gateway/Pool: sale period cannot be zero",
-        ));
-    }
-    if msg.cliff_period.add(msg.vesting_period) != msg.sale_period {
-        return Err(StdError::generic_err(
-            "Gateway/Pool: sale period must equals with cliff + vesting period",
-        ));
-    }
-    if msg.sale_amount.is_zero() {
-        return Err(StdError::generic_err(
-            "Gateway/Pool: sale amount cannot be zero",
-        ));
-    }
-
     config::store(
         &mut deps.storage,
         &config::Config {
-            owner: deps.api.canonical_address(&env.message.sender)?,
-            start_time: msg.start_time,
-            finish_time: msg.start_time.add(msg.sale_period),
-
-            depositable: msg.depositable,
-            withdrawable: msg.withdrawable,
-            cliff_period: msg.cliff_period,
-            vesting_period: msg.vesting_period,
-            unbonding_period: msg.unbonding_period,
-            reward_rate: Decimal256::from_uint256(
-                msg.sale_amount
-                    .div(Decimal256::from_uint256(Uint256::from(msg.sale_period))),
-            ),
-
-            staking_token: deps.api.canonical_address(&msg.staking_token)?,
-            reward_token: deps.api.canonical_address(&msg.reward_token)?,
+            owner: env.message.sender,
+            // share
+            share_token: msg.share_token,
+            deposit_config: config::DepositConfig {
+                time: time_range::TimeRange {
+                    start: msg.start,
+                    finish: msg.start.add(msg.period),
+                    inverse: false,
+                },
+                user_cap: Uint256::zero(),
+                total_cap: Uint256::zero(),
+            },
+            withdraw_time: vec![time_range::TimeRange {
+                start: msg.start,
+                finish: msg.start.add(msg.period),
+                inverse: true,
+            }],
+            // reward
+            reward_token: msg.reward_token,
+            claim_time: time_range::TimeRange {
+                start: msg.cliff,
+                finish: msg.start.add(msg.period),
+                inverse: false,
+            },
+            distribution_config: config::DistributionConfig {
+                time: time_range::TimeRange {
+                    start: msg.start,
+                    finish: msg.start.add(msg.period),
+                    inverse: false,
+                },
+                reward_rate: msg.reward_rate,
+                total_reward_amount: Uint256::from(msg.period).mul(msg.reward_rate),
+            },
         },
     )?;
 
-    state::store(
+    reward::store(
         &mut deps.storage,
-        &state::State {
+        &reward::Reward {
             total_deposit: Uint256::zero(),
-            last_update_time: msg.start_time,
+            last_update_time: msg.start,
             reward_per_token_stored: Decimal256::zero(),
         },
     )?;
@@ -72,23 +74,22 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     msg: HandleMsg,
 ) -> StdResult<HandleResponse> {
     match msg {
+        // common
+        HandleMsg::Update { target } => Core::update(deps, env, target),
         // router
         HandleMsg::Receive(msg) => Router::receive(deps, env, msg),
         HandleMsg::Withdraw { amount } => Router::withdraw(deps, env, amount),
-        HandleMsg::ClaimReward {} => Router::claim_reward(deps, env),
-        HandleMsg::ClaimWithdrawal { index } => Router::claim_withdrawal(deps, env, index),
+        HandleMsg::Claim {} => Router::claim(deps, env),
         // internal
-        HandleMsg::Update { target } => Core::update(deps, env, target),
         HandleMsg::DepositInternal { sender, amount } => {
             Core::deposit_internal(deps, env, sender, amount)
         }
         HandleMsg::WithdrawInternal { sender, amount } => {
             Core::withdraw_internal(deps, env, sender, amount)
         }
-        HandleMsg::ClaimRewardInternal { sender } => Core::claim_reward_internal(deps, env, sender),
-        HandleMsg::ClaimWithdrawalInternal { sender, index } => {
-            Core::claim_withdrawal_internal(deps, env, sender, index)
-        }
+        HandleMsg::ClaimInternal { sender } => Core::claim_internal(deps, env, sender),
+        // owner
+        HandleMsg::Configure(msg) => Config::configure(deps, env, msg),
     }
 }
 
@@ -98,26 +99,33 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
 ) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => Query::config(deps),
-        QueryMsg::Reward {} => Query::reward(deps),
-        QueryMsg::BalanceOf { address } => Query::balance_of(deps, address),
-        QueryMsg::ClaimableReward { address, timestamp } => {
-            Query::claimable_reward(deps, address, timestamp)
-        }
-        QueryMsg::ClaimableWithdrawal { address, index } => {
-            Query::claimable_withdrawal(deps, address, index)
-        }
-        QueryMsg::PendingWithdrawals {
-            address,
-            page,
+        QueryMsg::Stakers {
+            start_after,
             limit,
-        } => Query::pending_withdrawals(deps, address, page, limit),
+            timestamp,
+        } => Query::stakers(
+            deps,
+            match start_after {
+                Some(start_after) => {
+                    Option::from(deps.api.canonical_address(&start_after).unwrap())
+                }
+                None => Option::None,
+            },
+            limit,
+            timestamp,
+        ),
+        QueryMsg::Reward {} => Query::reward(deps),
+        QueryMsg::BalanceOf { owner } => Query::balance_of(deps, owner),
+        QueryMsg::ClaimableReward { owner, timestamp } => {
+            Query::claimable_reward(deps, owner, timestamp)
+        }
     }
 }
 
 pub fn migrate<S: Storage, A: Api, Q: Querier>(
-    _: &mut Extern<S, A, Q>,
-    _: Env,
-    _: MigrateMsg,
+    _deps: &mut Extern<S, A, Q>,
+    _env: Env,
+    _msg: MigrateMsg,
 ) -> MigrateResult {
     Ok(MigrateResponse::default())
 }

@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DepositConfig",
+  "type": "object",
+  "required": [
+    "time",
+    "total_cap",
+    "user_cap"
+  ],
+  "properties": {
+    "time": {
+      "$ref": "#/definitions/TimeRange"
+    },
+    "total_cap": {
+      "$ref": "#/definitions/Uint256"
+    },
+    "user_cap": {
+      "$ref": "#/definitions/Uint256"
+    }
+  },
+  "definitions": {
+    "TimeRange": {
+      "type": "object",
+      "required": [
+        "finish",
+        "inverse",
+        "start"
+      ],
+      "properties": {
+        "finish": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        },
+        "inverse": {
+          "type": "boolean"
+        },
+        "start": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0.0
+        }
+      }
+    },
+    "Uint256": {
+      "type": "string"
+    }
+  }
+}

@@ -1,5 +1,10 @@
-pub mod config;
+use cosmwasm_std::StdResult;
 
-pub mod state;
+pub mod config;
+pub mod reward;
+pub mod time_range;
 pub mod user;
-pub mod withdrawal;
+
+pub trait Validator {
+    fn validate(&self) -> StdResult<()>;
+}

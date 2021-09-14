@@ -1,34 +1,19 @@
-use cosmwasm_bignumber::Uint256;
-use cosmwasm_std::{to_binary, Api, Binary, Extern, HumanAddr, Querier, StdResult, Storage};
+use cosmwasm_std::{
+    to_binary, Api, Binary, CanonicalAddr, Extern, HumanAddr, Querier, StdResult, Storage,
+};
 use pylon_gateway::pool_resp as resp;
-use std::ops::{Mul, Sub};
 
-use crate::querier::pool;
-use crate::state::{config, state, user, withdrawal};
+use crate::handler::util_staking;
+use crate::state::{config, reward, user};
 
 pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
     let config = config::read(&deps.storage)?;
-    let period = config.finish_time.sub(config.start_time);
 
-    to_binary(&resp::ConfigResponse {
-        owner: deps.api.human_address(&config.owner)?,
-        start_time: config.start_time,
-        sale_period: period,
-        sale_amount: Uint256::from(period).mul(config.reward_rate),
-
-        depositable: config.depositable,
-        withdrawable: config.withdrawable,
-        clff_period: config.cliff_period,
-        vesting_period: config.vesting_period,
-        unbonding_period: config.unbonding_period,
-
-        staking_token: deps.api.human_address(&config.staking_token)?,
-        reward_token: deps.api.human_address(&config.reward_token)?,
-    })
+    to_binary(&config) // TODO: marshal config
 }
 
 pub fn reward<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
-    let reward = state::read(&deps.storage)?;
+    let reward = reward::read(&deps.storage)?;
 
     to_binary(&resp::RewardResponse {
         total_deposit: reward.total_deposit,
@@ -36,11 +21,32 @@ pub fn reward<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResu
     })
 }
 
+pub fn stakers<S: Storage, A: Api, Q: Querier>(
+    deps: &Extern<S, A, Q>,
+    start_after: Option<CanonicalAddr>,
+    limit: Option<u32>,
+    timestamp: Option<u64>,
+) -> StdResult<Binary> {
+    let reward = reward::read(&deps.storage)?;
+    let users = user::batch_read(deps, start_after, limit)?;
+
+    let mut stakers: Vec<resp::Staker> = Vec::new();
+    for (address, user) in users.iter() {
+        stakers.push(resp::Staker {
+            address: address.clone(),
+            staked: user.amount,
+            reward: util_staking::calculate_rewards(deps, &reward, &user, timestamp)?,
+        });
+    }
+
+    to_binary(&resp::StakersResponse { stakers })
+}
+
 pub fn balance_of<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     owner: HumanAddr,
 ) -> StdResult<Binary> {
-    let user = user::read(&deps.storage, &deps.api.canonical_address(&owner)?)?;
+    let user = user::read(&deps.storage, &deps.api.canonical_address(&owner).unwrap()).unwrap();
 
     to_binary(&resp::BalanceOfResponse {
         amount: user.amount,
@@ -52,49 +58,16 @@ pub fn claimable_reward<S: Storage, A: Api, Q: Querier>(
     owner: HumanAddr,
     timestamp: Option<u64>,
 ) -> StdResult<Binary> {
-    let reward = state::read(&deps.storage)?;
-    let user = user::read(&deps.storage, &deps.api.canonical_address(&owner)?)?;
+    let config = config::read(&deps.storage).unwrap();
+    let reward = reward::read(&deps.storage).unwrap();
+    let user = user::read(&deps.storage, &deps.api.canonical_address(&owner).unwrap()).unwrap();
 
     to_binary(&resp::ClaimableRewardResponse {
-        amount: pool::calculate_rewards(deps, &reward, &user, timestamp)?,
-    })
-}
-
-pub fn claimable_withdrawal<S: Storage, A: Api, Q: Querier>(
-    deps: &Extern<S, A, Q>,
-    owner: HumanAddr,
-    index: u64,
-) -> StdResult<Binary> {
-    to_binary(&resp::ClaimableWithdrawalResponse {
-        amount: pool::calculate_withdrawal_amount(
+        amount: util_staking::calculate_rewards(
             deps,
-            &deps.api.canonical_address(&owner)?,
-            index,
+            &reward,
+            &user,
+            timestamp.map(|t| config.distribution_config.applicable_reward_time(t)),
         )?,
-    })
-}
-
-pub fn pending_withdrawals<S: Storage, A: Api, Q: Querier>(
-    deps: &Extern<S, A, Q>,
-    owner: HumanAddr,
-    page: Option<u32>,
-    limit: Option<u32>,
-) -> StdResult<Binary> {
-    let page = page.unwrap_or(0);
-
-    to_binary(&resp::PendingWithdrawalsResponse {
-        withdrawals: withdrawal::batch_read(
-            deps,
-            &deps.api.canonical_address(&owner)?,
-            u64::from(page.mul(limit.unwrap_or(0))),
-            limit,
-        )?
-        .iter()
-        .map(|elem| resp::Withdrawal {
-            amount: elem.amount,
-            period: elem.period,
-            emitted: elem.emitted,
-        })
-        .collect(),
     })
 }

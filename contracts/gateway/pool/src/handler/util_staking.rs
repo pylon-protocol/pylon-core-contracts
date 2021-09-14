@@ -1,16 +1,19 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::{Api, CanonicalAddr, Extern, Querier, StdError, StdResult, Storage};
+use cosmwasm_std::{Api, Extern, Querier, StdError, StdResult, Storage};
+use std::cmp::max;
 use std::ops::{Add, Div, Mul, Sub};
 
-use crate::state::{config, state, user, withdrawal};
+use crate::state::{config, reward, user};
 
 pub fn calculate_reward_per_token<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
-    reward: &state::State,
-    timestamp: &u64,
+    reward: &reward::Reward,
+    timestamp: u64,
 ) -> StdResult<Decimal256> {
-    let config = config::read(&deps.storage)?;
-    let period = Uint256::from(timestamp.sub(reward.last_update_time));
+    let config = config::read(&deps.storage).unwrap().distribution_config;
+
+    let period =
+        Uint256::from(max(timestamp, reward.last_update_time).sub(reward.last_update_time));
     let total_deposit = reward.total_deposit;
 
     if total_deposit.eq(&Uint256::zero()) {
@@ -24,7 +27,7 @@ pub fn calculate_reward_per_token<S: Storage, A: Api, Q: Querier>(
 
 pub fn calculate_rewards<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
-    reward: &state::State,
+    reward: &reward::Reward,
     user: &user::User,
     timestamp: Option<u64>,
 ) -> StdResult<Uint256> {
@@ -40,28 +43,9 @@ pub fn calculate_rewards<S: Storage, A: Api, Q: Querier>(
         }
 
         if reward.last_update_time.ne(&timestamp) {
-            rpt = rpt.add(calculate_reward_per_token(deps, reward, &timestamp)?);
+            rpt = rpt.add(calculate_reward_per_token(deps, reward, timestamp)?);
         }
     }
 
     Ok(user.reward.add(rpt * user.amount))
-}
-
-pub fn calculate_withdrawal_amount<S: Storage, A: Api, Q: Querier>(
-    deps: &Extern<S, A, Q>,
-    owner: &CanonicalAddr,
-    index: u64,
-) -> StdResult<Uint256> {
-    let user = user::read(&deps.storage, owner)?;
-    if user.claimed_withdrawal_index.gt(&index) {
-        return Err(StdError::generic_err(format!(
-            "Gateway/Pool: index should be greater than claimed_index. {} > {}",
-            user.claimed_withdrawal_index, index,
-        )));
-    }
-
-    let from = withdrawal::read(&deps.storage, owner, user.claimed_withdrawal_index)?;
-    let to = withdrawal::read(&deps.storage, owner, index)?;
-
-    Ok(to.accumulated.sub(from.accumulated))
 }

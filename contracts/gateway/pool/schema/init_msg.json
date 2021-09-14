@@ -3,24 +3,18 @@
   "title": "InitMsg",
   "type": "object",
   "required": [
-    "open_claim",
-    "open_deposit",
-    "open_withdraw",
+    "cliff",
     "period",
     "reward_rate",
     "reward_token",
     "share_token",
-    "start_time"
+    "start"
   ],
   "properties": {
-    "open_claim": {
-      "type": "boolean"
-    },
-    "open_deposit": {
-      "type": "boolean"
-    },
-    "open_withdraw": {
-      "type": "boolean"
+    "cliff": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
     },
     "period": {
       "type": "integer",
@@ -36,7 +30,7 @@
     "share_token": {
       "$ref": "#/definitions/HumanAddr"
     },
-    "start_time": {
+    "start": {
       "type": "integer",
       "format": "uint64",
       "minimum": 0.0

@@ -20,7 +20,19 @@
       ],
       "properties": {
         "update": {
-          "type": "object"
+          "type": "object",
+          "properties": {
+            "target": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/HumanAddr"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -57,28 +69,21 @@
     {
       "type": "object",
       "required": [
-        "exit"
+        "deposit_internal"
       ],
       "properties": {
-        "exit": {
-          "type": "object"
-        }
-      }
-    },
-    {
-      "type": "object",
-      "required": [
-        "set_deposit_availability"
-      ],
-      "properties": {
-        "set_deposit_availability": {
+        "deposit_internal": {
           "type": "object",
           "required": [
-            "availability"
+            "amount",
+            "sender"
           ],
           "properties": {
-            "availability": {
-              "type": "boolean"
+            "amount": {
+              "$ref": "#/definitions/Uint256"
+            },
+            "sender": {
+              "$ref": "#/definitions/HumanAddr"
             }
           }
         }
@@ -87,17 +92,21 @@
     {
       "type": "object",
       "required": [
-        "set_withdraw_availability"
+        "withdraw_internal"
       ],
       "properties": {
-        "set_withdraw_availability": {
+        "withdraw_internal": {
           "type": "object",
           "required": [
-            "availability"
+            "amount",
+            "sender"
           ],
           "properties": {
-            "availability": {
-              "type": "boolean"
+            "amount": {
+              "$ref": "#/definitions/Uint256"
+            },
+            "sender": {
+              "$ref": "#/definitions/HumanAddr"
             }
           }
         }
@@ -106,19 +115,30 @@
     {
       "type": "object",
       "required": [
-        "set_claim_availability"
+        "claim_internal"
       ],
       "properties": {
-        "set_claim_availability": {
+        "claim_internal": {
           "type": "object",
           "required": [
-            "availability"
+            "sender"
           ],
           "properties": {
-            "availability": {
-              "type": "boolean"
+            "sender": {
+              "$ref": "#/definitions/HumanAddr"
             }
           }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "configure"
+      ],
+      "properties": {
+        "configure": {
+          "$ref": "#/definitions/ConfigureMsg"
         }
       }
     }
@@ -127,6 +147,157 @@
     "Binary": {
       "description": "Binary is a wrapper around Vec<u8> to add base64 de/serialization with serde. It also adds some helper methods to help encode inline.\n\nThis is only needed as serde-json-{core,wasm} has a horrible encoding for Vec<u8>",
       "type": "string"
+    },
+    "ConfigureMsg": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "owner"
+          ],
+          "properties": {
+            "owner": {
+              "type": "object",
+              "required": [
+                "address"
+              ],
+              "properties": {
+                "address": {
+                  "$ref": "#/definitions/HumanAddr"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "deposit"
+          ],
+          "properties": {
+            "deposit": {
+              "type": "object",
+              "properties": {
+                "finish": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "uint64",
+                  "minimum": 0.0
+                },
+                "start": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "uint64",
+                  "minimum": 0.0
+                },
+                "total_cap": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Uint256"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "user_cap": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/Uint256"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "withdraw"
+          ],
+          "properties": {
+            "withdraw": {
+              "type": "object",
+              "required": [
+                "strategy"
+              ],
+              "properties": {
+                "strategy": {
+                  "type": "array",
+                  "items": {
+                    "type": "array",
+                    "items": [
+                      {
+                        "type": "integer",
+                        "format": "uint64",
+                        "minimum": 0.0
+                      },
+                      {
+                        "type": "integer",
+                        "format": "uint64",
+                        "minimum": 0.0
+                      },
+                      {
+                        "type": "boolean"
+                      }
+                    ],
+                    "maxItems": 3,
+                    "minItems": 3
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "claim"
+          ],
+          "properties": {
+            "claim": {
+              "type": "object",
+              "properties": {
+                "finish": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "uint64",
+                  "minimum": 0.0
+                },
+                "start": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "distribution"
+          ],
+          "properties": {
+            "distribution": {
+              "$ref": "#/definitions/DistributionMsg"
+            }
+          }
+        }
+      ]
     },
     "Cw20ReceiveMsg": {
       "description": "Cw20ReceiveMsg should be de/serialized under `Receive()` variant in a HandleMsg",
@@ -153,6 +324,90 @@
           "$ref": "#/definitions/HumanAddr"
         }
       }
+    },
+    "DistributionMsg": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "sub_reward"
+          ],
+          "properties": {
+            "sub_reward": {
+              "type": "object",
+              "required": [
+                "amount"
+              ],
+              "properties": {
+                "amount": {
+                  "$ref": "#/definitions/Uint256"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "add_reward"
+          ],
+          "properties": {
+            "add_reward": {
+              "type": "object",
+              "required": [
+                "amount"
+              ],
+              "properties": {
+                "amount": {
+                  "$ref": "#/definitions/Uint256"
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "shorten_period"
+          ],
+          "properties": {
+            "shorten_period": {
+              "type": "object",
+              "required": [
+                "time"
+              ],
+              "properties": {
+                "time": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "lengthen_period"
+          ],
+          "properties": {
+            "lengthen_period": {
+              "type": "object",
+              "required": [
+                "time"
+              ],
+              "properties": {
+                "time": {
+                  "type": "integer",
+                  "format": "uint64",
+                  "minimum": 0.0
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "HumanAddr": {
       "type": "string"
