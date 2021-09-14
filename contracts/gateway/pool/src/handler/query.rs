@@ -7,13 +7,13 @@ use crate::handler::util_staking;
 use crate::state::{config, reward, user};
 
 pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
-    let config = config::read(&deps.storage)?;
+    let config = config::read(&deps.storage).unwrap();
 
     to_binary(&config) // TODO: marshal config
 }
 
 pub fn reward<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<Binary> {
-    let reward = reward::read(&deps.storage)?;
+    let reward = reward::read(&deps.storage).unwrap();
 
     to_binary(&resp::RewardResponse {
         total_deposit: reward.total_deposit,
@@ -27,7 +27,8 @@ pub fn stakers<S: Storage, A: Api, Q: Querier>(
     limit: Option<u32>,
     timestamp: Option<u64>,
 ) -> StdResult<Binary> {
-    let reward = reward::read(&deps.storage)?;
+    let config = config::read(&deps.storage).unwrap();
+    let reward = reward::read(&deps.storage).unwrap();
     let users = user::batch_read(deps, start_after, limit)?;
 
     let mut stakers: Vec<resp::Staker> = Vec::new();
@@ -35,7 +36,12 @@ pub fn stakers<S: Storage, A: Api, Q: Querier>(
         stakers.push(resp::Staker {
             address: address.clone(),
             staked: user.amount,
-            reward: util_staking::calculate_rewards(deps, &reward, &user, timestamp)?,
+            reward: util_staking::calculate_rewards(
+                deps,
+                &reward,
+                &user,
+                timestamp.map(|t| config.distribution_config.applicable_reward_time(t)),
+            )?,
         });
     }
 
