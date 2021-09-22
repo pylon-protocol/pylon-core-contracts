@@ -1,12 +1,16 @@
-use cosmwasm_std::{Api, Extern, HumanAddr, Querier, StdError, StdResult, Storage, Uint128};
+use cosmwasm_std::{
+    Api, CanonicalAddr, Extern, HumanAddr, Order, Querier, StdError, StdResult, Storage, Uint128,
+};
 use pylon_token::common::OrderBy;
 use pylon_token::gov::{
     ConfigResponse, ExecuteMsg, PollResponse, PollStatus, PollsResponse, StakerResponse,
-    StateResponse, VotersResponse, VotersResponseItem,
+    StakersResponse, StateResponse, VotersResponse, VotersResponseItem,
 };
 
 use crate::querier::gov;
 use crate::state::{bank, config, poll, state};
+use pylon_token::gov::QueryMsg::Stakers;
+use std::ops::Deref;
 
 pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<ConfigResponse> {
     let config = config::read(&deps.storage).load()?;
@@ -201,5 +205,56 @@ pub fn staker<S: Storage, A: Api, Q: Querier>(
         },
         share: token_manager.share,
         locked_balance: token_manager.locked_balance,
+    })
+}
+
+pub fn stakers<S: Storage, A: Api, Q: Querier>(
+    deps: &Extern<S, A, Q>,
+    start_over: Option<HumanAddr>,
+    limit: Option<u32>,
+    order: Option<OrderBy>,
+) -> StdResult<StakersResponse> {
+    let state = state::read(&deps.storage).load().unwrap();
+    let config = config::read(&deps.storage).load().unwrap();
+    let start = start_over.map(|x| deps.api.canonical_address(&x).unwrap());
+    let stakers = bank::batch_read(deps, start, limit, order.map(|o| o.into())).unwrap();
+
+    Ok(StakersResponse {
+        stakers: stakers
+            .iter()
+            .map(|(staker, manager)| -> (HumanAddr, StakerResponse) {
+                let mut locked_balance = manager.locked_balance.clone();
+                locked_balance.retain(|(poll_id, _)| {
+                    let poll = poll::read(&deps.storage)
+                        .load(&poll_id.to_be_bytes())
+                        .unwrap();
+                    poll.status == PollStatus::InProgress
+                });
+
+                let total_balance = (gov::load_token_balance(
+                    &deps,
+                    &deps.api.human_address(&config.pylon_token).unwrap(),
+                    &state.contract_addr,
+                )
+                .unwrap()
+                    - state.total_deposit)
+                    .unwrap();
+
+                (
+                    staker.clone(),
+                    StakerResponse {
+                        balance: if !state.total_share.is_zero() {
+                            manager
+                                .share
+                                .multiply_ratio(total_balance, state.total_share)
+                        } else {
+                            Uint128::zero()
+                        },
+                        share: manager.share,
+                        locked_balance,
+                    },
+                )
+            })
+            .collect(),
     })
 }

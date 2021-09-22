@@ -113,9 +113,14 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
     msg: QueryMsg,
 ) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Config {} => to_binary(&QueryHandler::config(&deps)?),
-        QueryMsg::State {} => to_binary(&QueryHandler::state(&deps)?),
+        QueryMsg::Config {} => to_binary(&QueryHandler::config(deps)?),
+        QueryMsg::State {} => to_binary(&QueryHandler::state(deps)?),
         QueryMsg::Staker { address } => to_binary(&QueryHandler::staker(deps, address)?),
+        QueryMsg::Stakers {
+            start_after,
+            limit,
+            order,
+        } => to_binary(&QueryHandler::stakers(deps, start_after, limit, order)?),
         QueryMsg::Poll { poll_id } => to_binary(&QueryHandler::poll(deps, poll_id)?),
         QueryMsg::Polls {
             filter,

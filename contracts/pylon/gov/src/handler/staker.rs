@@ -28,7 +28,7 @@ pub fn stake_voting_tokens<S: Storage, A: Api, Q: Querier>(
 
     // balance already increased, so subtract deposit amount
     let token_balance = gov::load_token_balance(
-        &deps,
+        deps,
         &deps.api.human_address(&config.pylon_token)?,
         &state.contract_addr,
     )?;
@@ -73,7 +73,7 @@ pub fn withdraw_voting_tokens<S: Storage, A: Api, Q: Querier>(
 
         // Load total share & total balance except proposal deposit amount
         let token_balance = gov::load_token_balance(
-            &deps,
+            deps,
             &deps.api.human_address(&config.pylon_token)?,
             &state.contract_addr,
         )?;
@@ -132,7 +132,7 @@ fn compute_locked_balance<S: Storage, A: Api, Q: Querier>(
 
         if poll.status != PollStatus::InProgress {
             // remove voter info from the poll
-            poll::store_voter(&mut deps.storage, *poll_id).remove(&voter.as_slice());
+            poll::store_voter(&mut deps.storage, *poll_id).remove(voter.as_slice());
         }
 
         poll.status == PollStatus::InProgress

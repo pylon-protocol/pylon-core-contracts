@@ -1,6 +1,6 @@
 use cosmwasm_std::testing::{mock_env, MockApi, MockStorage, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{
-    coins, from_binary, log, to_binary, Api, CanonicalAddr, Coin, CosmosMsg, Decimal, Env, Extern,
+    coins, from_binary, log, to_binary, Api, CanonicalAddr, CosmosMsg, Decimal, Extern,
     HandleResponse, HumanAddr, StdError, Uint128, WasmMsg,
 };
 use cw20::{Cw20HandleMsg, Cw20ReceiveMsg};
@@ -13,116 +13,10 @@ use pylon_token::gov::{
 
 use crate::contract::{handle, init, query};
 use crate::querier::gov;
-use crate::state::{bank, config, poll, state};
+use crate::state::{bank, poll, state};
+use crate::testing::constants::*;
 use crate::testing::mock_querier::{mock_dependencies, WasmMockQuerier};
-
-const VOTING_TOKEN: &str = "voting_token";
-const TEST_CREATOR: &str = "creator";
-const TEST_VOTER: &str = "voter1";
-const TEST_VOTER_2: &str = "voter2";
-const TEST_VOTER_3: &str = "voter3";
-const DEFAULT_QUORUM: u64 = 30u64;
-const DEFAULT_THRESHOLD: u64 = 50u64;
-const DEFAULT_VOTING_PERIOD: u64 = 10000u64;
-const DEFAULT_FIX_PERIOD: u64 = 10u64;
-const DEFAULT_TIMELOCK_PERIOD: u64 = 10000u64;
-const DEFAULT_EXPIRATION_PERIOD: u64 = 20000u64;
-const DEFAULT_PROPOSAL_DEPOSIT: u128 = 10000000000u128;
-
-fn mock_init(mut deps: &mut Extern<MockStorage, MockApi, WasmMockQuerier>) {
-    let msg = InitMsg {
-        quorum: Decimal::percent(DEFAULT_QUORUM),
-        threshold: Decimal::percent(DEFAULT_THRESHOLD),
-        voting_period: DEFAULT_VOTING_PERIOD,
-        timelock_period: DEFAULT_TIMELOCK_PERIOD,
-        expiration_period: DEFAULT_EXPIRATION_PERIOD,
-        proposal_deposit: Uint128(DEFAULT_PROPOSAL_DEPOSIT),
-        snapshot_period: DEFAULT_FIX_PERIOD,
-    };
-
-    let env = mock_env(TEST_CREATOR, &[]);
-    let _res = init(&mut deps, env.clone(), msg).expect("contract successfully handles InitMsg");
-
-    let msg = HandleMsg::RegisterContracts {
-        pylon_token: HumanAddr::from(VOTING_TOKEN),
-    };
-    let _res =
-        handle(&mut deps, env, msg).expect("contract successfully handles RegisterContracts");
-}
-
-fn mock_env_height(sender: &str, sent: &[Coin], height: u64, time: u64) -> Env {
-    let mut env = mock_env(sender, sent);
-    env.block.height = height;
-    env.block.time = time;
-    env
-}
-
-fn init_msg() -> InitMsg {
-    InitMsg {
-        quorum: Decimal::percent(DEFAULT_QUORUM),
-        threshold: Decimal::percent(DEFAULT_THRESHOLD),
-        voting_period: DEFAULT_VOTING_PERIOD,
-        timelock_period: DEFAULT_TIMELOCK_PERIOD,
-        expiration_period: DEFAULT_EXPIRATION_PERIOD,
-        proposal_deposit: Uint128(DEFAULT_PROPOSAL_DEPOSIT),
-        snapshot_period: DEFAULT_FIX_PERIOD,
-    }
-}
-
-#[test]
-fn proper_initialization() {
-    let mut deps = mock_dependencies(20, &[]);
-
-    let msg = init_msg();
-    let env = mock_env(TEST_CREATOR, &coins(2, VOTING_TOKEN));
-    let res = init(&mut deps, env.clone(), msg).unwrap();
-    assert_eq!(0, res.messages.len());
-
-    let config = config::read(&deps.storage).load().unwrap();
-    assert_eq!(
-        config,
-        config::Config {
-            pylon_token: CanonicalAddr::default(),
-            owner: deps
-                .api
-                .canonical_address(&HumanAddr::from(TEST_CREATOR))
-                .unwrap(),
-            quorum: Decimal::percent(DEFAULT_QUORUM),
-            threshold: Decimal::percent(DEFAULT_THRESHOLD),
-            voting_period: DEFAULT_VOTING_PERIOD,
-            timelock_period: DEFAULT_TIMELOCK_PERIOD,
-            expiration_period: DEFAULT_EXPIRATION_PERIOD,
-            proposal_deposit: Uint128(DEFAULT_PROPOSAL_DEPOSIT),
-            snapshot_period: DEFAULT_FIX_PERIOD
-        }
-    );
-
-    let msg = HandleMsg::RegisterContracts {
-        pylon_token: HumanAddr::from(VOTING_TOKEN),
-    };
-    let _res = handle(&mut deps, env, msg).unwrap();
-    let config = config::read(&deps.storage).load().unwrap();
-    assert_eq!(
-        config.pylon_token,
-        deps.api
-            .canonical_address(&HumanAddr::from(VOTING_TOKEN))
-            .unwrap()
-    );
-
-    let state = state::read(&deps.storage).load().unwrap();
-    assert_eq!(
-        state,
-        state::State {
-            contract_addr: deps
-                .api
-                .canonical_address(&HumanAddr::from(MOCK_CONTRACT_ADDR))
-                .unwrap(),
-            poll_count: 0,
-            total_share: Uint128::zero(),
-            total_deposit: Uint128::zero(),
-        }
-    );
-}
+use crate::testing::utils::*;
 
 #[test]
 fn poll_not_found() {
