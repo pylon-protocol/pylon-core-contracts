@@ -8,7 +8,7 @@ use std::str::FromStr;
 
 use crate::contract;
 use crate::state::{config, reward, user};
-use crate::testing::constants::{TEST_POOL_START, TEST_SHARE_TOKEN, TEST_USER};
+use crate::testing::constants::*;
 use crate::testing::utils;
 
 const DEPOSIT_AMOUNT: u64 = 1000000u64;

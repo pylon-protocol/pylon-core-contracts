@@ -26,16 +26,28 @@ impl Default for TimeRange {
 impl Display for TimeRange {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         if self.inverse {
-            write!(f, "(~ {}, {} ~)", self.start, self.finish)
-        } else {
+            if self.start != 0 && self.finish != 0 {
+                write!(f, "(~ {}, {} ~)", self.start, self.finish)
+            } else if self.start == 0 {
+                write!(f, "{} ~)", self.finish)
+            } else {
+                write!(f, "(~ {})", self.start)
+            }
+        }
+        /* not inverse */
+        else if self.start != 0 && self.finish != 0 {
             write!(f, "({} ~ {})", self.start, self.finish)
+        } else if self.start == 0 {
+            write!(f, "(~ {})", self.finish)
+        } else {
+            write!(f, "({} ~)", self.start)
         }
     }
 }
 
 impl Validator for TimeRange {
     fn validate(&self) -> StdResult<()> {
-        if self.start.gt(&self.finish) {
+        if (self.start != 0 && self.finish != 0) && self.start.gt(&self.finish) {
             return Err(StdError::generic_err(
                 "Lockup: time range validation failed. reason: finish < start",
             ));
@@ -56,8 +68,20 @@ impl TimeRange {
 
     pub fn is_in_range(&self, env: &Env) -> bool {
         if self.inverse {
+            if self.start == 0 {
+                return self.finish < env.block.time;
+            }
+            if self.finish == 0 {
+                return env.block.time < self.start;
+            }
             env.block.time < self.start || self.finish < env.block.time
         } else {
+            if self.start == 0 {
+                return env.block.time < self.finish;
+            }
+            if self.finish == 0 {
+                return self.start < env.block.time;
+            }
             self.start < env.block.time && env.block.time < self.finish
         }
     }

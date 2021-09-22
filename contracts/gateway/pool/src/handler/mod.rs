@@ -2,6 +2,7 @@ use cosmwasm_std::{Env, HumanAddr, StdError, StdResult};
 
 pub mod configure;
 pub mod core;
+pub mod migrate;
 pub mod query;
 pub mod router;
 mod util_staking;

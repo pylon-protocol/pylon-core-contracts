@@ -6,7 +6,7 @@ use pylon_gateway::pool_msg::HandleMsg;
 
 use crate::contract;
 use crate::state::{reward, user};
-use crate::testing::constants::{TEST_POOL_START, TEST_SHARE_TOKEN, TEST_USER};
+use crate::testing::constants::*;
 use crate::testing::utils;
 
 const WITHDRAW_AMOUNT: u64 = 1000000u64;

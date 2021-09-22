@@ -2,16 +2,14 @@ use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::testing::{mock_dependencies, mock_env};
 use cosmwasm_std::HumanAddr;
 use pylon_gateway::pool_msg::{ConfigureMsg, DistributionMsg, HandleMsg};
+use std::ops::{Add, Mul, Sub};
+use std::str::FromStr;
 
 use crate::contract;
 use crate::state::config;
 use crate::state::time_range::TimeRange;
-use crate::testing::constants::{
-    TEST_POOL_PERIOD, TEST_POOL_REWARD_RATE, TEST_POOL_START, TEST_USER,
-};
+use crate::testing::constants::*;
 use crate::testing::utils;
-use std::ops::{Add, Div, Mul, Sub};
-use std::str::FromStr;
 
 #[test]
 fn handle_configure_owner() {

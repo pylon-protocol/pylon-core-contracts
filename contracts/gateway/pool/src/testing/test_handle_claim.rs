@@ -6,7 +6,7 @@ use pylon_gateway::pool_msg::HandleMsg;
 
 use crate::contract;
 use crate::state::user;
-use crate::testing::constants::{TEST_POOL_CLIFF, TEST_REWARD_TOKEN, TEST_USER};
+use crate::testing::constants::*;
 use crate::testing::utils;
 
 #[test]

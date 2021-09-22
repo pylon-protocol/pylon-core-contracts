@@ -1,13 +1,13 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::testing::mock_dependencies;
+use cosmwasm_std::{Api, HumanAddr};
+use pylon_gateway::pool_msg::HandleMsg;
 use std::ops::{Add, Div, Mul};
 
 use crate::contract;
 use crate::state::{config, reward, user};
-use crate::testing::constants::{TEST_POOL_PERIOD, TEST_POOL_START, TEST_USER};
+use crate::testing::constants::*;
 use crate::testing::utils;
-use cosmwasm_std::{Api, HumanAddr};
-use pylon_gateway::pool_msg::HandleMsg;
 
 const DEPOSIT_AMOUNT: u64 = 1000000u64;
 

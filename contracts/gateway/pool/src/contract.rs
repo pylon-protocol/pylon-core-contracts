@@ -8,6 +8,7 @@ use std::ops::{Add, Mul};
 
 use crate::handler::configure as Config;
 use crate::handler::core as Core;
+use crate::handler::migrate as Migrate;
 use crate::handler::query as Query;
 use crate::handler::router as Router;
 use crate::state::{config, reward, time_range};
@@ -26,7 +27,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
             deposit_config: config::DepositConfig {
                 time: time_range::TimeRange {
                     start: msg.start,
-                    finish: msg.start.add(msg.period),
+                    finish: 0,
                     inverse: false,
                 },
                 user_cap: Uint256::zero(),
@@ -41,7 +42,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
             reward_token: msg.reward_token,
             claim_time: time_range::TimeRange {
                 start: msg.cliff,
-                finish: msg.start.add(msg.period),
+                finish: 0,
                 inverse: false,
             },
             distribution_config: config::DistributionConfig {
@@ -123,9 +124,9 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
 }
 
 pub fn migrate<S: Storage, A: Api, Q: Querier>(
-    _deps: &mut Extern<S, A, Q>,
-    _env: Env,
-    _msg: MigrateMsg,
+    deps: &mut Extern<S, A, Q>,
+    env: Env,
+    msg: MigrateMsg,
 ) -> MigrateResult {
-    Ok(MigrateResponse::default())
+    Migrate::handle(deps, env, msg)
 }

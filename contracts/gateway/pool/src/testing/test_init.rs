@@ -27,7 +27,7 @@ fn proper_initialization() {
             deposit_config: config::DepositConfig {
                 time: time_range::TimeRange {
                     start: msg.start,
-                    finish: msg.start.add(msg.period),
+                    finish: 0,
                     inverse: false,
                 },
                 user_cap: Uint256::zero(),
@@ -42,7 +42,7 @@ fn proper_initialization() {
             reward_token: msg.reward_token,
             claim_time: time_range::TimeRange {
                 start: msg.cliff,
-                finish: msg.start.add(msg.period),
+                finish: 0,
                 inverse: false,
             },
             distribution_config: config::DistributionConfig {

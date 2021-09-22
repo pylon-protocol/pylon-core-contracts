@@ -147,7 +147,7 @@ impl Config {
         for (_, is_in_range) in self
             .withdraw_time
             .iter()
-            .map(|time| (time, time.is_in_range(&env)))
+            .map(|time| (time, time.is_in_range(env)))
         {
             if is_in_range {
                 return Ok(());
