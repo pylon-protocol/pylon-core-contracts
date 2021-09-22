@@ -178,7 +178,7 @@ pub fn end<S: Storage, A: Api, Q: Querier>(
         )
     } else {
         let token_balance = gov::load_token_balance(
-            &deps,
+            deps,
             &deps.api.human_address(&config.pylon_token)?,
             &state.contract_addr,
         )?;
@@ -361,7 +361,7 @@ pub fn snapshot<S: Storage, A: Api, Q: Querier>(
     let state = state::store(&mut deps.storage).load()?;
 
     let token_balance = gov::load_token_balance(
-        &deps,
+        deps,
         &deps.api.human_address(&config.pylon_token)?,
         &state.contract_addr,
     )?;
@@ -403,7 +403,7 @@ pub fn cast_vote<S: Storage, A: Api, Q: Querier>(
 
     // Check the voter already has a vote on the poll
     if poll::read_voter(&deps.storage, poll_id)
-        .load(&sender_address_raw.as_slice())
+        .load(sender_address_raw.as_slice())
         .is_ok()
     {
         return Err(StdError::generic_err("User has already voted."));
@@ -414,7 +414,7 @@ pub fn cast_vote<S: Storage, A: Api, Q: Querier>(
 
     // convert share to amount
     let token_balance = gov::load_token_balance(
-        &deps,
+        deps,
         &deps.api.human_address(&config.pylon_token)?,
         &state.contract_addr,
     )?;
@@ -449,7 +449,7 @@ pub fn cast_vote<S: Storage, A: Api, Q: Querier>(
 
     // store poll voter && and update poll data
     poll::store_voter(&mut deps.storage, poll_id)
-        .save(&sender_address_raw.as_slice(), &vote_info)?;
+        .save(sender_address_raw.as_slice(), &vote_info)?;
 
     // processing snapshot
     let time_to_end = a_poll.end_height - env.block.height;

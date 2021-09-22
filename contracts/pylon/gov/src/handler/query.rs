@@ -1,6 +1,4 @@
-use cosmwasm_std::{
-    Api, CanonicalAddr, Extern, HumanAddr, Order, Querier, StdError, StdResult, Storage, Uint128,
-};
+use cosmwasm_std::{Api, Extern, HumanAddr, Querier, StdError, StdResult, Storage, Uint128};
 use pylon_token::common::OrderBy;
 use pylon_token::gov::{
     ConfigResponse, ExecuteMsg, PollResponse, PollStatus, PollsResponse, StakerResponse,
@@ -9,8 +7,6 @@ use pylon_token::gov::{
 
 use crate::querier::gov;
 use crate::state::{bank, config, poll, state};
-use pylon_token::gov::QueryMsg::Stakers;
-use std::ops::Deref;
 
 pub fn config<S: Storage, A: Api, Q: Querier>(deps: &Extern<S, A, Q>) -> StdResult<ConfigResponse> {
     let config = config::read(&deps.storage).load()?;
@@ -190,7 +186,7 @@ pub fn staker<S: Storage, A: Api, Q: Querier>(
     });
 
     let total_balance = (gov::load_token_balance(
-        &deps,
+        deps,
         &deps.api.human_address(&config.pylon_token)?,
         &state.contract_addr,
     )? - state.total_deposit)?;
@@ -232,7 +228,7 @@ pub fn stakers<S: Storage, A: Api, Q: Querier>(
                 });
 
                 let total_balance = (gov::load_token_balance(
-                    &deps,
+                    deps,
                     &deps.api.human_address(&config.pylon_token).unwrap(),
                     &state.contract_addr,
                 )
