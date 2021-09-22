@@ -1,7 +1,5 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::{
-    log, Api, Env, Extern, HandleResponse, HumanAddr, Querier, StdError, StdResult, Storage,
-};
+use cosmwasm_std::{log, Api, Env, Extern, HandleResponse, Querier, StdError, StdResult, Storage};
 use pylon_gateway::pool_msg::{ConfigureMsg, DistributionMsg};
 use std::ops::{Add, Div, Mul, Sub};
 

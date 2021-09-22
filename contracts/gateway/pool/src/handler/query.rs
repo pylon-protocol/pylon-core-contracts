@@ -39,7 +39,7 @@ pub fn stakers<S: Storage, A: Api, Q: Querier>(
             reward: util_staking::calculate_rewards(
                 deps,
                 &reward,
-                &user,
+                user,
                 timestamp.map(|t| config.distribution_config.applicable_reward_time(t)),
             )?,
         });
