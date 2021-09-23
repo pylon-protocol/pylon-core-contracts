@@ -1,7 +1,7 @@
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{
-    Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResult, Querier, StdResult,
-    Storage,
+    Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResponse, MigrateResult,
+    Querier, StdResult, Storage,
 };
 use pylon_gateway::swap_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 use std::ops::Add;
@@ -93,5 +93,6 @@ pub fn migrate<S: Storage, A: Api, Q: Querier>(
 ) -> MigrateResult {
     match msg {
         MigrateMsg::Refund {} => MigrateHandler::refund(deps, env),
+        MigrateMsg::General {} => Ok(MigrateResponse::default()),
     }
 }

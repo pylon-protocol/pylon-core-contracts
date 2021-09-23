@@ -182,8 +182,7 @@ fn claim() {
         ]
     );
 
-    assert_eq!(
-        true,
+    assert!(
         from_binary::<IsClaimedResponse>(
             &query(
                 &deps,

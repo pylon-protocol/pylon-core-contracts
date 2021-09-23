@@ -61,7 +61,7 @@ pub fn refund<S: Storage, A: Api, Q: Querier>(
         )));
     }
 
-    let users = user::batch_read(&deps, start_after, limit).unwrap();
+    let users = user::batch_read(deps, start_after, limit).unwrap();
     let mut msgs: Vec<CosmosMsg> = Vec::new();
     for (address, info) in users.iter() {
         let user_state =

@@ -1,4 +1,4 @@
-use cosmwasm_std::{Api, Extern, HumanAddr, Querier, StdError, StdResult, Storage, Uint128};
+use cosmwasm_std::{Api, Extern, HumanAddr, Order, Querier, StdError, StdResult, Storage, Uint128};
 use pylon_token::common::OrderBy;
 use pylon_token::gov::{
     ConfigResponse, ExecuteMsg, PollResponse, PollStatus, PollsResponse, StakerResponse,
@@ -213,7 +213,7 @@ pub fn stakers<S: Storage, A: Api, Q: Querier>(
     let state = state::read(&deps.storage).load().unwrap();
     let config = config::read(&deps.storage).load().unwrap();
     let start = start_over.map(|x| deps.api.canonical_address(&x).unwrap());
-    let stakers = bank::batch_read(deps, start, limit, order.map(|o| o.into())).unwrap();
+    let stakers = bank::batch_read(deps, start, limit, order.map(Order::from)).unwrap();
 
     Ok(StakersResponse {
         stakers: stakers

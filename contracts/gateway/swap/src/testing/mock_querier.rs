@@ -23,7 +23,6 @@ pub fn mock_dependencies(
         api,
         querier: CustomMockQuerier::new(
             MockQuerier::new(&[(&contract_addr, contract_balance)]),
-            canonical_length,
             api,
         ),
     }
@@ -34,7 +33,6 @@ pub struct CustomMockQuerier {
     tax: MockTax,
     token: MockToken,
     staking: MockStaking,
-    canonical_length: usize,
 }
 
 impl Querier for CustomMockQuerier {
@@ -97,24 +95,21 @@ impl CustomMockQuerier {
 }
 
 impl CustomMockQuerier {
-    pub fn new<A: Api>(
-        base: MockQuerier<TerraQueryWrapper>,
-        canonical_length: usize,
-        _api: A,
-    ) -> Self {
+    pub fn new<A: Api>(base: MockQuerier<TerraQueryWrapper>, _api: A) -> Self {
         CustomMockQuerier {
             base,
             tax: MockTax::default(),
             token: MockToken::default(),
             staking: MockStaking::default(),
-            canonical_length,
         }
     }
 
+    #[allow(dead_code)]
     pub fn with_tax(&mut self, tax: MockTax) {
         self.tax = tax;
     }
 
+    #[allow(dead_code)]
     pub fn with_token(&mut self, token: MockToken) {
         self.token = token;
     }

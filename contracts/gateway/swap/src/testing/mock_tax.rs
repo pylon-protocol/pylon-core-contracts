@@ -9,6 +9,7 @@ pub struct MockTax {
 }
 
 impl MockTax {
+    #[allow(dead_code)]
     pub fn new(rate: Decimal, caps: &[(&String, &Uint128)]) -> Self {
         let mut owner_map: HashMap<String, Uint128> = HashMap::new();
         for (denom, cap) in caps.iter() {

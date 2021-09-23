@@ -10,9 +10,9 @@ pub enum OrderBy {
     Desc,
 }
 
-impl Into<Order> for OrderBy {
-    fn into(self) -> Order {
-        if self == OrderBy::Asc {
+impl From<OrderBy> for Order {
+    fn from(order: OrderBy) -> Self {
+        if order == OrderBy::Asc {
             Order::Ascending
         } else {
             Order::Descending

@@ -73,7 +73,7 @@ pub fn sweep<S: Storage, A: Api, Q: Querier>(
     let terraswap_factory_raw = deps.api.human_address(&config.terraswap_factory)?;
 
     let pair_info: PairInfo = query_pair_info(
-        &deps,
+        deps,
         &terraswap_factory_raw,
         &[
             AssetInfo::NativeToken {
@@ -85,7 +85,7 @@ pub fn sweep<S: Storage, A: Api, Q: Querier>(
         ],
     )?;
 
-    let amount = query_balance(&deps, &env.contract.address, denom.to_string())?;
+    let amount = query_balance(deps, &env.contract.address, denom.to_string())?;
     let swap_asset = Asset {
         info: AssetInfo::NativeToken {
             denom: denom.to_string(),
@@ -94,7 +94,7 @@ pub fn sweep<S: Storage, A: Api, Q: Querier>(
     };
 
     // deduct tax first
-    let amount = (swap_asset.deduct_tax(&deps)?).amount;
+    let amount = (swap_asset.deduct_tax(deps)?).amount;
     Ok(HandleResponse {
         messages: vec![
             CosmosMsg::Wasm(WasmMsg::Execute {
@@ -141,7 +141,7 @@ pub fn distribute<S: Storage, A: Api, Q: Querier>(
 
     let config: Config = read_config(&deps.storage)?;
     let amount = query_token_balance(
-        &deps,
+        deps,
         &deps.api.human_address(&config.pylon_token)?,
         &env.contract.address,
     )?;

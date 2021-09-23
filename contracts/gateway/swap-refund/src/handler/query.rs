@@ -43,7 +43,7 @@ pub fn buyers<S: Storage, A: Api, Q: Querier>(
     start_after: Option<CanonicalAddr>,
     limit: Option<u32>,
 ) -> StdResult<Binary> {
-    let users = user::batch_read(&deps, start_after, limit).unwrap();
+    let users = user::batch_read(deps, start_after, limit).unwrap();
 
     let mut buyers: Vec<Buyer> = Vec::new();
     for (address, user) in users.iter() {
@@ -68,7 +68,7 @@ pub fn simulate<S: Storage, A: Api, Q: Querier>(
     limit: Option<u32>,
 ) -> StdResult<Binary> {
     let config = config::read(&deps.storage).unwrap();
-    let users = user::batch_read(&deps, start_after, limit).unwrap();
+    let users = user::batch_read(deps, start_after, limit).unwrap();
 
     let mut total_tax = Uint256::zero();
     let mut buyers: Vec<Buyer> = Vec::new();

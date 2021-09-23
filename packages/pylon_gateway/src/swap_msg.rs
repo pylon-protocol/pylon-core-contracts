@@ -52,4 +52,5 @@ pub enum QueryMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub enum MigrateMsg {
     Refund {},
+    General {},
 }

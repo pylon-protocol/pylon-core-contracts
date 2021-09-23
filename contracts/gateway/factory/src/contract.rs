@@ -4,6 +4,7 @@ use cosmwasm_std::{
 };
 use pylon_gateway::factory_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 
+#[allow(dead_code)]
 pub fn init<S: Storage, A: Api, Q: Querier>(
     _deps: &mut Extern<S, A, Q>,
     _env: Env,
@@ -12,6 +13,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     Ok(InitResponse::default())
 }
 
+#[allow(dead_code)]
 pub fn handle<S: Storage, A: Api, Q: Querier>(
     _deps: &mut Extern<S, A, Q>,
     _env: Env,
@@ -20,6 +22,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     Ok(HandleResponse::default())
 }
 
+#[allow(dead_code)]
 pub fn query<S: Storage, A: Api, Q: Querier>(
     _deps: &Extern<S, A, Q>,
     _msg: QueryMsg,
@@ -27,6 +30,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
     Ok(Binary::default())
 }
 
+#[allow(dead_code)]
 pub fn migrate<S: Storage, A: Api, Q: Querier>(
     _deps: &mut Extern<S, A, Q>,
     _env: Env,

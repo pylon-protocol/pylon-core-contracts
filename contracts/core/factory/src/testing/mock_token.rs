@@ -75,6 +75,7 @@ impl MockToken {
         }
     }
 
+    #[allow(dead_code)]
     pub fn with_infos(&mut self, infos: &[(&String, TokenInfoResponse)]) {
         self.infos = infos_to_map(infos);
     }

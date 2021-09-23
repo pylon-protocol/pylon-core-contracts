@@ -7,6 +7,7 @@ use pylon_core::factory_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 use crate::handler::{core as CoreHandler, query as QueryHandler};
 use crate::state::{config, state};
 
+#[allow(dead_code)]
 pub fn init<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
@@ -28,6 +29,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     Ok(InitResponse::default())
 }
 
+#[allow(dead_code)]
 pub fn handle<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
@@ -62,6 +64,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     }
 }
 
+#[allow(dead_code)]
 pub fn query<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     msg: QueryMsg,
@@ -86,6 +89,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
     }
 }
 
+#[allow(dead_code)]
 pub fn migrate<S: Storage, A: Api, Q: Querier>(
     _deps: &mut Extern<S, A, Q>,
     _env: Env,

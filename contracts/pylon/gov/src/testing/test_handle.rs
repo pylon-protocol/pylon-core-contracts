@@ -774,7 +774,7 @@ fn happy_days_end_poll() {
         .canonical_address(&HumanAddr::from(TEST_VOTER))
         .unwrap();
     let voter = poll::read_voter(&deps.storage, 1u64)
-        .load(&voter_addr_raw.as_slice())
+        .load(voter_addr_raw.as_slice())
         .unwrap();
     assert_eq!(
         voter,
@@ -785,7 +785,7 @@ fn happy_days_end_poll() {
     );
 
     let token_manager = bank::read(&deps.storage)
-        .load(&voter_addr_raw.as_slice())
+        .load(voter_addr_raw.as_slice())
         .unwrap();
     assert_eq!(
         token_manager.locked_balance,
@@ -1654,7 +1654,7 @@ fn withdraw_voting_tokens_remove_not_in_progress_poll_voter_info() {
         .unwrap();
     poll::store_voter(&mut deps.storage, 1u64)
         .save(
-            &voter_addr_raw.as_slice(),
+            voter_addr_raw.as_slice(),
             &VoterInfo {
                 vote: VoteOption::Yes,
                 balance: Uint128(5u128),
@@ -1663,7 +1663,7 @@ fn withdraw_voting_tokens_remove_not_in_progress_poll_voter_info() {
         .unwrap();
     poll::store_voter(&mut deps.storage, 2u64)
         .save(
-            &voter_addr_raw.as_slice(),
+            voter_addr_raw.as_slice(),
             &VoterInfo {
                 vote: VoteOption::Yes,
                 balance: Uint128(5u128),
@@ -1672,7 +1672,7 @@ fn withdraw_voting_tokens_remove_not_in_progress_poll_voter_info() {
         .unwrap();
     bank::store(&mut deps.storage)
         .save(
-            &voter_addr_raw.as_slice(),
+            voter_addr_raw.as_slice(),
             &bank::TokenManager {
                 share: Uint128(11u128),
                 locked_balance: vec![
@@ -1703,7 +1703,7 @@ fn withdraw_voting_tokens_remove_not_in_progress_poll_voter_info() {
 
     let _ = handle(&mut deps, env, msg).unwrap();
     let voter = poll::read_voter(&deps.storage, 1u64)
-        .load(&voter_addr_raw.as_slice())
+        .load(voter_addr_raw.as_slice())
         .unwrap();
     assert_eq!(
         voter,
@@ -1712,15 +1712,12 @@ fn withdraw_voting_tokens_remove_not_in_progress_poll_voter_info() {
             balance: Uint128(5u128),
         }
     );
-    assert_eq!(
-        poll::read_voter(&deps.storage, 2u64)
-            .load(&voter_addr_raw.as_slice())
-            .is_err(),
-        true
-    );
+    assert!(poll::read_voter(&deps.storage, 2u64)
+        .load(voter_addr_raw.as_slice())
+        .is_err());
 
     let token_manager = bank::read(&deps.storage)
-        .load(&voter_addr_raw.as_slice())
+        .load(voter_addr_raw.as_slice())
         .unwrap();
     assert_eq!(
         token_manager.locked_balance,

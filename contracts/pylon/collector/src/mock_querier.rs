@@ -122,7 +122,7 @@ impl Querier for WasmMockQuerier {
             Ok(v) => v,
             Err(e) => {
                 return Err(SystemError::InvalidRequest {
-                    error: format!("Parsing query request: {}", e),
+                    error: format!("Parsing query request: {:?}", e),
                     request: bin_request.into(),
                 })
             }
@@ -168,7 +168,7 @@ impl WasmMockQuerier {
             QueryRequest::Wasm(WasmQuery::Smart {
                 contract_addr: _,
                 msg,
-            }) => match from_binary(&msg).unwrap() {
+            }) => match from_binary(msg).unwrap() {
                 QueryMsg::Pair { asset_infos } => {
                     let key = asset_infos[0].to_string() + asset_infos[1].to_string().as_str();
                     match self.terraswap_factory_querier.pairs.get(&key) {
@@ -218,7 +218,7 @@ impl WasmMockQuerier {
                         Ok(v) => v,
                         Err(e) => {
                             return Err(SystemError::InvalidRequest {
-                                error: format!("Parsing query request: {}", e),
+                                error: format!("Parsing query request: {:?}", e),
                                 request: key.into(),
                             })
                         }

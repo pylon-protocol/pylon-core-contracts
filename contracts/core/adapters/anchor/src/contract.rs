@@ -9,6 +9,7 @@ use crate::anchor;
 use crate::config;
 use crate::msg::{InitMsg, MigrateMsg};
 
+#[allow(dead_code)]
 pub fn init<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
@@ -29,6 +30,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     Ok(InitResponse::default())
 }
 
+#[allow(dead_code)]
 pub fn handle<S: Storage, A: Api, Q: Querier>(
     _deps: &mut Extern<S, A, Q>,
     _env: Env,
@@ -37,6 +39,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     Ok(HandleResponse::default())
 }
 
+#[allow(dead_code)]
 pub fn query<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
     msg: QueryMsg,
@@ -52,7 +55,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
         }
         QueryMsg::ExchangeRate { input_denom: _ } => {
             let config = config::read(&deps.storage)?;
-            let epoch_state = anchor::epoch_state(&deps, &config.moneymarket)?;
+            let epoch_state = anchor::epoch_state(deps, &config.moneymarket)?;
 
             to_binary(&adapter_resp::ExchangeRateResponse {
                 exchange_rate: epoch_state.exchange_rate,
@@ -82,6 +85,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
     }
 }
 
+#[allow(dead_code)]
 pub fn migrate<S: Storage, A: Api, Q: Querier>(
     _deps: &mut Extern<S, A, Q>,
     _env: Env,

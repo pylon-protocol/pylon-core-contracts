@@ -78,6 +78,6 @@ pub fn handle_refund() {
             &deps.api.canonical_address(&buyer.address).unwrap(),
         )
         .unwrap();
-        assert_eq!(user_state.processed, true);
+        assert!(user_state.processed);
     }
 }
