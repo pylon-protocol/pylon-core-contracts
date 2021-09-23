@@ -146,7 +146,7 @@ fn test_bond_tokens() {
         }
     );
 
-    // failed with unautorized
+    // failed with unauthorized
     let msg = HandleMsg::Receive(Cw20ReceiveMsg {
         sender: HumanAddr::from("addr0000"),
         amount: Uint128(100u128),

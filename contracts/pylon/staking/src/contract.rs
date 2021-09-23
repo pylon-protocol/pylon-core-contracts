@@ -256,9 +256,8 @@ fn compute_staker_reward(state: &State, staker_info: &mut StakerInfo) -> StdResu
     let pending_reward = staker_info
         .bond_amount
         .mul(state.global_reward_index)
-        .sub(staker_info.bond_amount)
-        .unwrap()
-        .mul(staker_info.reward_index);
+        .sub((staker_info.bond_amount).mul(staker_info.reward_index))
+        .unwrap();
 
     staker_info.reward_index = state.global_reward_index;
     staker_info.pending_reward += pending_reward;
