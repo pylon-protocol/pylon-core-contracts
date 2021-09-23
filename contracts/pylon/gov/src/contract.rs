@@ -1,8 +1,8 @@
 use cosmwasm_std::{
     to_binary, Api, Binary, CanonicalAddr, Decimal, Env, Extern, HandleResponse, InitResponse,
-    InitResult, Querier, StdError, StdResult, Storage, Uint128,
+    InitResult, MigrateResponse, MigrateResult, Querier, StdError, StdResult, Storage, Uint128,
 };
-use pylon_token::gov::{HandleMsg, InitMsg, QueryMsg};
+use pylon_token::gov::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 
 use crate::handler::{
     core as CoreHandler, poll as PollHandler, query as QueryHandler, staker as StakerHandler,
@@ -147,4 +147,12 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
             order_by,
         )?),
     }
+}
+
+pub fn migrate<S: Storage, A: Api, Q: Querier>(
+    _deps: &mut Extern<S, A, Q>,
+    _env: Env,
+    _msg: MigrateMsg,
+) -> MigrateResult {
+    Ok(MigrateResponse::default())
 }
