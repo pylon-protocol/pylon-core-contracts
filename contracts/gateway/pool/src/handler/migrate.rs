@@ -8,8 +8,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::ops::Mul;
 
-use crate::state::config;
 use crate::state::time_range::TimeRange;
+use crate::state::{config, reward, user};
 
 pub fn handle<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
@@ -82,6 +82,10 @@ fn migrate_from_v1<S: Storage, A: Api, Q: Querier>(
     )
     .unwrap();
 
+    config::read(&deps.storage).unwrap();
+    reward::read(&deps.storage).unwrap();
+    user::batch_read(deps, None, None).unwrap();
+
     Ok(MigrateResponse::default())
 }
 
@@ -153,6 +157,10 @@ fn migrate_from_v1_temp<S: Storage, A: Api, Q: Querier>(
         },
     )
     .unwrap();
+
+    config::read(&deps.storage).unwrap();
+    reward::read(&deps.storage).unwrap();
+    user::batch_read(deps, None, None).unwrap();
 
     Ok(MigrateResponse::default())
 }
