@@ -24,3 +24,7 @@ local.config.ts
 # IDEs
 *.iml
 .idea
+
+# ignore compiled objects
+/artifacts/
+**/artifacts/
