@@ -85,7 +85,7 @@ pub fn deposit_internal<S: Storage, A: Api, Q: Querier>(
         && reward.total_deposit.gt(&config.deposit_config.total_cap)
     {
         return Err(StdError::generic_err(format!(
-            "Lockup: deposit amount exceeds total cap. cap: {}",
+            "Gateway/Pool: deposit amount exceeds total cap. cap: {}",
             config.deposit_config.total_cap,
         )));
     }
@@ -96,7 +96,7 @@ pub fn deposit_internal<S: Storage, A: Api, Q: Querier>(
         && user.amount.gt(&config.deposit_config.user_cap)
     {
         return Err(StdError::generic_err(format!(
-            "Lockup: deposit amount exceeds user cap. cap: {}",
+            "Gateway/Pool: deposit amount exceeds user cap. cap: {}",
             config.deposit_config.user_cap,
         )));
     }
@@ -133,7 +133,7 @@ pub fn withdraw_internal<S: Storage, A: Api, Q: Querier>(
 
     if amount > user.amount {
         return Err(StdError::generic_err(
-            "Staking: amount must be smaller than user.amount",
+            "Gateway/Pool: amount must be smaller than user.amount",
         ));
     }
 

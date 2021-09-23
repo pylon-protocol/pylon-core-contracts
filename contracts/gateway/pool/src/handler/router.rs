@@ -27,7 +27,7 @@ pub fn receive<S: Storage, A: Api, Q: Querier>(
             }
         }
     } else {
-        Err(StdError::generic_err("Staking: unsupported message"))
+        Err(StdError::generic_err("Gateway/Pool: unsupported message"))
     }
 }
 

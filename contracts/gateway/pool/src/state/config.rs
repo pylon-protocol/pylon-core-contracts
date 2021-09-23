@@ -50,7 +50,7 @@ impl Validator for DistributionConfig {
         let calculated_total_rewards = Uint256::from(self.time.period()).mul(self.reward_rate);
         if calculated_total_rewards.ne(&self.total_reward_amount) {
             return Err(StdError::generic_err(format!(
-                "Lockup: distribution config validation failed. reason: total reward mismatch, expected: {}, actual: {}",
+                "Gateway/Pool: distribution config validation failed. reason: total reward mismatch, expected: {}, actual: {}",
                 self.total_reward_amount, calculated_total_rewards
             )));
         }
@@ -109,12 +109,12 @@ fn generate_time_range_error(
 ) -> StdResult<()> {
     if let Some(temp) = temp {
         Err(StdError::generic_err(format!(
-            "Lockup: current blocktime does not satisfies configured {} time range. origin: {}, temp: {}",
+            "Gateway/Pool: current blocktime does not satisfies configured {} time range. origin: {}, temp: {}",
             action, origin, temp,
         )))
     } else {
         Err(StdError::generic_err(format!(
-            "Lockup: current blocktime does not satisfies configured {} time range. origin: {}",
+            "Gateway/Pool: current blocktime does not satisfies configured {} time range. origin: {}",
             action, origin,
         )))
     }
@@ -155,7 +155,7 @@ impl Config {
         }
 
         Err(StdError::generic_err(
-            "Lockup: failed to validate withdraw time.",
+            "Gateway/Pool: failed to validate withdraw time.",
         ))
     }
 

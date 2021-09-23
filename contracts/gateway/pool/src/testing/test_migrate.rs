@@ -1,9 +1,8 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::testing::{mock_dependencies, mock_env, MOCK_CONTRACT_ADDR};
-use cosmwasm_std::{to_binary, Api, HumanAddr, MigrateResponse, Uint128};
+use cosmwasm_std::{Api, HumanAddr, MigrateResponse, Uint128};
 use cosmwasm_storage::Singleton;
-use cw20::Cw20ReceiveMsg;
-use pylon_gateway::pool_msg::{Cw20HookMsg, HandleMsg, MigrateMsg};
+use pylon_gateway::pool_msg::{HandleMsg, MigrateMsg};
 use std::ops::Mul;
 use std::str::FromStr;
 

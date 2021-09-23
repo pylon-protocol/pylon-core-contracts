@@ -49,7 +49,7 @@ impl Validator for TimeRange {
     fn validate(&self) -> StdResult<()> {
         if (self.start != 0 && self.finish != 0) && self.start.gt(&self.finish) {
             return Err(StdError::generic_err(
-                "Lockup: time range validation failed. reason: finish < start",
+                "Gateway/Pool: time range validation failed. reason: finish < start",
             ));
         }
 

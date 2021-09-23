@@ -106,11 +106,6 @@ fn handle_deposit_internal_check_deposit_time() {
     contract_self.block.time = TEST_POOL_START - 1; // should fail
 
     let deposit_amount = Uint256::from(DEPOSIT_AMOUNT);
-    let user_addr = deps
-        .api
-        .canonical_address(&HumanAddr::from(TEST_USER))
-        .unwrap();
-
     let msg = HandleMsg::DepositInternal {
         sender: HumanAddr::from(TEST_USER),
         amount: deposit_amount,

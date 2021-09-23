@@ -70,7 +70,7 @@ pub fn configure<S: Storage, A: Api, Q: Querier>(
 
             if strategy.len().gt(&MAX_WITHDRAW_STRATEGY) {
                 return Err(StdError::generic_err(format!(
-                    "Lockup: withdraw strategy length exceeds limit. limit: {}, now: {}",
+                    "Gateway/Pool: withdraw strategy length exceeds limit. limit: {}, now: {}",
                     MAX_WITHDRAW_STRATEGY,
                     strategy.len(),
                 )));
@@ -130,7 +130,7 @@ fn adjust_reward<S: Storage, A: Api, Q: Querier>(
 
     if remove && env.block.time.gt(&dist_config.time.finish) {
         return Err(StdError::generic_err(format!(
-            "Lockup: sale finished. execution_time: {}, finish_time: {}",
+            "Gateway/Pool: sale finished. execution_time: {}, finish_time: {}",
             env.block.time, dist_config.time.finish,
         )));
     }
