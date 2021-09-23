@@ -1,0 +1,141 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "HandleMsg",
+  "anyOf": [
+    {
+      "type": "object",
+      "required": [
+        "configure"
+      ],
+      "properties": {
+        "configure": {
+          "type": "object",
+          "required": [
+            "fee_collector",
+            "owner",
+            "pool_code_id",
+            "token_code_id"
+          ],
+          "properties": {
+            "fee_collector": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "owner": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "pool_code_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            },
+            "token_code_id": {
+              "type": "integer",
+              "format": "uint64",
+              "minimum": 0.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "create_pool"
+      ],
+      "properties": {
+        "create_pool": {
+          "type": "object",
+          "required": [
+            "beneficiary",
+            "pool_name",
+            "yield_adapter"
+          ],
+          "properties": {
+            "beneficiary": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "pool_name": {
+              "type": "string"
+            },
+            "yield_adapter": {
+              "$ref": "#/definitions/HumanAddr"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "register_pool"
+      ],
+      "properties": {
+        "register_pool": {
+          "type": "object",
+          "required": [
+            "pool_id"
+          ],
+          "properties": {
+            "pool_id": {
+              "$ref": "#/definitions/Uint256"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "register_adapter"
+      ],
+      "properties": {
+        "register_adapter": {
+          "type": "object",
+          "required": [
+            "address",
+            "fee_rate"
+          ],
+          "properties": {
+            "address": {
+              "$ref": "#/definitions/HumanAddr"
+            },
+            "fee_rate": {
+              "$ref": "#/definitions/Decimal256"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "unregister_adapter"
+      ],
+      "properties": {
+        "unregister_adapter": {
+          "type": "object",
+          "required": [
+            "address"
+          ],
+          "properties": {
+            "address": {
+              "$ref": "#/definitions/HumanAddr"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "Decimal256": {
+      "description": "A fixed-point decimal value with 18 fractional digits, i.e. Decimal256(1_000_000_000_000_000_000) == 1.0 The greatest possible value that can be represented is 115792089237316195423570985008687907853269984665640564039457.584007913129639935 (which is (2^128 - 1) / 10^18)",
+      "type": "string"
+    },
+    "HumanAddr": {
+      "type": "string"
+    },
+    "Uint256": {
+      "type": "string"
+    }
+  }
+}

@@ -2,12 +2,12 @@ use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::Coin;
 use cosmwasm_std::{to_binary, Api, Binary, Extern, HumanAddr, Querier, StdResult, Storage};
 use moneymarket::querier::deduct_tax;
+use pylon_core::pool_resp as resp;
 use std::ops::{Div, Mul, Sub};
+use std::str::FromStr;
 
 use crate::config;
 use crate::querier;
-use pylon_core::pool_resp as resp;
-use std::str::FromStr;
 
 pub fn deposit_amount<S: Storage, A: Api, Q: Querier>(
     deps: &Extern<S, A, Q>,
@@ -61,7 +61,7 @@ pub fn claimable_reward<S: Storage, A: Api, Q: Querier>(
         deduct_tax(
             deps,
             Coin {
-                denom: config.stable_denom.clone(),
+                denom: config.stable_denom,
                 amount: (Uint256::from(atoken_balance).mul(epoch_state.exchange_rate)).into(),
             },
         )?

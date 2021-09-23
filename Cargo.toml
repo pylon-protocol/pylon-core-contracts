@@ -1,9 +1,21 @@
 [workspace]
 members = [
     "packages/*",
-    "contracts/core/*",
-    "contracts/launchpad/*",
-    "contracts/token/*",
+    "contracts/core/factory",
+    "contracts/core/pool",
+    "contracts/core/pool-v2",
+    "contracts/core/token",
+    "contracts/core/adapters/anchor",
+    "contracts/gateway/factory",
+    "contracts/gateway/pool",
+    "contracts/gateway/swap",
+    "contracts/gateway/swap-refund",
+    "contracts/pylon/airdrop",
+    "contracts/pylon/collector",
+    "contracts/pylon/community",
+    "contracts/pylon/gov",
+    "contracts/pylon/staking",
+    "contracts/pylon/vesting",
 ]
 
 [profile.release]

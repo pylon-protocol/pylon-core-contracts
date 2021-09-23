@@ -87,6 +87,11 @@ pub enum QueryMsg {
     Staker {
         address: HumanAddr,
     },
+    Stakers {
+        start_after: Option<HumanAddr>,
+        limit: Option<u32>,
+        order: Option<OrderBy>,
+    },
     Poll {
         poll_id: u64,
     },
@@ -156,6 +161,11 @@ pub struct StakerResponse {
     pub balance: Uint128,
     pub share: Uint128,
     pub locked_balance: Vec<(u64, VoterInfo)>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema)]
+pub struct StakersResponse {
+    pub stakers: Vec<(HumanAddr, StakerResponse)>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema)]

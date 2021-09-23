@@ -86,7 +86,7 @@ pub fn deposit<S: Storage, A: Api, Q: Querier>(
                 contract_addr: deps.api.human_address(&config.dp_token)?,
                 msg: to_binary(&Cw20HandleMsg::Mint {
                     recipient: env.message.sender.clone(),
-                    amount: dp_mint_amount.clone(),
+                    amount: dp_mint_amount,
                 })?,
                 send: vec![],
             })],
@@ -115,9 +115,18 @@ pub fn redeem<S: Storage, A: Api, Q: Querier>(
         deps,
         Coin {
             denom: config.stable_denom.clone(),
-            amount: amount.into(),
+            amount: deduct_tax(
+                deps,
+                Coin {
+                    denom: config.stable_denom.clone(),
+                    amount,
+                },
+            )
+            .unwrap()
+            .amount,
         },
-    )?;
+    )
+    .unwrap();
 
     Ok(HandleResponse {
         messages: [
@@ -226,12 +235,12 @@ pub fn earn<S: Storage, A: Api, Q: Querier>(
 
 pub fn configure<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
+    env: Env,
     beneficiary: HumanAddr,
     fee_collector: HumanAddr,
-    env: Env,
 ) -> StdResult<HandleResponse> {
     let mut config = config::read(&deps.storage)?;
-    if config.owner != deps.api.canonical_address(&env.message.sender)? {
+    if config.owner != deps.api.canonical_address(&env.message.sender).unwrap() {
         return Err(StdError::generic_err(format!(
             "Pool: cannot execute configure function with unauthorized sender. (sender: {})",
             env.message.sender,

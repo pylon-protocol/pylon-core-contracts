@@ -1,0 +1,38 @@
+1{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Config",
+  "type": "object",
+  "required": [
+    "beneficiary",
+    "finish",
+    "owner",
+    "start",
+    "this"
+  ],
+  "properties": {
+    "beneficiary": {
+      "$ref": "#/definitions/HumanAddr"
+    },
+    "finish": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "owner": {
+      "$ref": "#/definitions/HumanAddr"
+    },
+    "start": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "this": {
+      "$ref": "#/definitions/HumanAddr"
+    }
+  },
+  "definitions": {
+    "HumanAddr": {
+      "type": "string"
+    }
+  }
+}

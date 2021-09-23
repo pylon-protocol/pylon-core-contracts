@@ -1,10 +1,8 @@
+use core_pool::config::Config;
+use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
+use pylon_core::pool_msg::{HandleMsg, InitMsg, QueryMsg};
 use std::env::current_dir;
 use std::fs::create_dir_all;
-
-use cosmwasm_schema::{export_schema, remove_schemas, schema_for};
-
-use core_pool::config::Config;
-use pylon_core::pool_msg::{HandleMsg, InitMsg, QueryMsg};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

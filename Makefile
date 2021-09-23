@@ -5,9 +5,9 @@ all: build deploy
 
 build:
 	docker run --rm -v "$(PWD)":/code \
-	  --mount type=volume,source="$(BASENAME)_cache",target=/code/target \
-	  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
-	  cosmwasm/workspace-optimizer:0.10.3
+  	  --mount type=volume,source="$(BASENAME)_cache",target=/code/target \
+  	  --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry \
+  	  cosmwasm/workspace-optimizer:0.12.1
 
 deploy:
 ifndef network
@@ -21,3 +21,6 @@ deploy-columbus:
 
 deploy-tequila:
 	make deploy network=tequila
+
+deploy-local:
+	make deploy network=local
