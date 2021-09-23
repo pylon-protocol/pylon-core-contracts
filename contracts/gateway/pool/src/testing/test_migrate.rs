@@ -281,7 +281,7 @@ fn migrate_v1_temp() {
     sender.block.time = TEST_POOL_START - 1;
     let err = contract::handle(&mut deps, sender.clone(), msg.clone())
         .expect_err("testing: should fail to handle deposit message");
-    utils::assert_generic_err("v1_deposit after start_time", err);
+    utils::assert_generic_err("v1_temp_deposit after start_time", err);
 
     // after start_time
     sender.block.time = TEST_POOL_START + 1;
@@ -338,13 +338,13 @@ fn migrate_v1_temp() {
     sender.block.time = TEST_POOL_START + 1;
     let err = contract::handle(&mut deps, sender.clone(), msg.clone())
         .expect_err("testing: should fail to handle withdraw message");
-    utils::assert_generic_err("v1_withdraw after start_time", err);
+    utils::assert_generic_err("v1_temp_withdraw after start_time", err);
 
     // before temp_start_time
     sender.block.time = TEST_POOL_CLIFF - 1;
     let err = contract::handle(&mut deps, sender.clone(), msg.clone())
         .expect_err("testing: should fail to handle withdraw message");
-    utils::assert_generic_err("v1_withdraw after start_time", err);
+    utils::assert_generic_err("v1_temp_withdraw before temp_start_time", err);
 
     // after temp_start_time
     sender.block.time = TEST_POOL_CLIFF + 1;
@@ -360,13 +360,13 @@ fn migrate_v1_temp() {
     sender.block.time = TEST_POOL_CLIFF + (TEST_POOL_PERIOD / 4) + 1;
     let err = contract::handle(&mut deps, sender.clone(), msg.clone())
         .expect_err("testing: should fail to handle withdraw message");
-    utils::assert_generic_err("v1_withdraw after start_time", err);
+    utils::assert_generic_err("v1_temp_withdraw after temp_finish_time", err);
 
     // before finish_time
     sender.block.time = TEST_POOL_START + TEST_POOL_PERIOD - 1;
     let err = contract::handle(&mut deps, sender.clone(), msg.clone())
         .expect_err("testing: should fail to handle withdraw message");
-    utils::assert_generic_err("v1_withdraw before finish_time", err);
+    utils::assert_generic_err("v1_temp_withdraw before finish_time", err);
 
     // after finish_time
     sender.block.time = TEST_POOL_START + TEST_POOL_PERIOD + 1;
@@ -382,7 +382,7 @@ fn migrate_v1_temp() {
     sender.block.time = TEST_POOL_CLIFF - 1;
     let err = contract::handle(&mut deps, sender.clone(), msg.clone())
         .expect_err("testing: should fail to handle claim message");
-    utils::assert_generic_err("v1_claim after start_time", err);
+    utils::assert_generic_err("v1_temp_claim after start_time", err);
 
     // after cliff_time
     sender.block.time = TEST_POOL_CLIFF + 1;
