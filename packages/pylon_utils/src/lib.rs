@@ -1,11 +1,11 @@
 pub mod tax;
 pub mod token;
 
-#[cfg(test)]
-mod mock_querier;
+pub mod mock_tax;
+pub mod mock_token;
 
 #[cfg(test)]
-mod mock_tax;
+mod mock_querier;
 
 #[cfg(test)]
 mod testing;

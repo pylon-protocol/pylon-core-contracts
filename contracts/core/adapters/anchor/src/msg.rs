@@ -1,10 +1,9 @@
-use cosmwasm_std::HumanAddr;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct InitMsg {
-    pub moneymarket: HumanAddr,
+pub struct InstantiateMsg {
+    pub moneymarket: String,
 }
 
 /// We currently take no arguments for migrations

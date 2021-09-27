@@ -1,12 +1,11 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::HumanAddr;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ConfigResponse {
-    pub owner: HumanAddr,
-    pub beneficiary: HumanAddr,
+    pub owner: String,
+    pub beneficiary: String,
     pub start: u64,
     pub finish: u64,
     pub price: Decimal256,

@@ -1,4 +1,5 @@
 // =============== ACCOUNTS
+pub const TEST_CREATOR: &str = "creator";
 pub const TEST_USER: &str = "user";
 pub const TEST_BENEFICIARY: &str = "beneficiary";
 
@@ -14,13 +15,21 @@ pub const TEST_ADAPTER_TARGET: &str = "adapter_target";
 pub const TEST_ADAPTER_INPUT_DENOM: &str = "uusd";
 pub const TEST_ADAPTER_EXCHANGE_RATE: &str = "2.0";
 
-// ================ POOL & CODE IDS
+// ================ POOL
+pub const TEST_POOL: &str = "deposit_pool";
 pub const TEST_POOL_ID: u64 = 0;
 pub const TEST_POOL_NAME: &str = "deposit_pool";
-pub const TEST_TOKEN_CODE_ID: u64 = 1111;
+pub const TEST_POOL_CODE_ID: u64 = 1111;
+pub const TEST_POOL_REWARD_FEE: u128 = 50000u128 * 1000000;
+pub const TEST_POOL_REWARD_AMOUNT: u128 = 200000u128 * 1000000;
+
+// ================ FEE COLLECTOR
+pub const TEST_FEE_COLLECTOR: &str = "fee_collector";
 
 // ================ TOKENS
+pub const TEST_INPUT_DENOM: &str = "uusd";
+pub const TEST_TOKEN_CODE_ID: u64 = 1111;
 pub const TEST_TOKEN_YIELD: &str = "token_yield";
-pub const TEST_TOKEN_YIELD_SUPPLY: u128 = 10000000000u128;
+pub const TEST_TOKEN_YIELD_SUPPLY: u128 = 10000u128 * 1000000;
 pub const TEST_TOKEN_POOL: &str = "token_deposit_pool";
-pub const TEST_TOKEN_POOL_SUPPLY: u128 = 10000000000u128;
+pub const TEST_TOKEN_POOL_SUPPLY: u128 = 10000u128 * 1000000;

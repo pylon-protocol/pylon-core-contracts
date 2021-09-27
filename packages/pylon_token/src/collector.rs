@@ -1,14 +1,13 @@
+use cosmwasm_std::Decimal;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use cosmwasm_std::{Decimal, HumanAddr};
-
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InitMsg {
-    pub gov_contract: HumanAddr, // collected rewards receiver
-    pub terraswap_factory: HumanAddr,
-    pub pylon_token: HumanAddr,
-    pub distributor_contract: HumanAddr,
+    pub gov_contract: String, // collected rewards receiver
+    pub terraswap_factory: String,
+    pub pylon_token: String,
+    pub distributor_contract: String,
     pub reward_factor: Decimal,
 }
 
@@ -37,10 +36,10 @@ pub enum QueryMsg {
 // We define a custom struct for each query response
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ConfigResponse {
-    pub gov_contract: HumanAddr, // collected rewards receiver
-    pub terraswap_factory: HumanAddr,
-    pub pylon_token: HumanAddr,
-    pub distributor_contract: HumanAddr,
+    pub gov_contract: String, // collected rewards receiver
+    pub terraswap_factory: String,
+    pub pylon_token: String,
+    pub distributor_contract: String,
     pub reward_factor: Decimal,
 }
 

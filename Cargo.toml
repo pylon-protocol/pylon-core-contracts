@@ -4,7 +4,6 @@ members = [
     "contracts/core/factory",
     "contracts/core/pool",
     "contracts/core/pool-v2",
-    "contracts/core/token",
     "contracts/core/adapters/anchor",
     "contracts/gateway/factory",
     "contracts/gateway/pool",
@@ -22,4 +21,3 @@ members = [
 rpath = false
 lto = true
 overflow-checks = true
-

@@ -1,5 +1,4 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::HumanAddr;
 use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -10,8 +9,8 @@ pub struct InitMsg {
     pub period: u64,
     pub cliff: u64,
     pub reward_rate: Decimal256,
-    pub share_token: HumanAddr,
-    pub reward_token: HumanAddr,
+    pub share_token: String,
+    pub reward_token: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -27,7 +26,7 @@ pub enum DistributionMsg {
 #[serde(rename_all = "snake_case")]
 pub enum ConfigureMsg {
     Owner {
-        address: HumanAddr,
+        address: String,
     },
     Deposit {
         start: Option<u64>,
@@ -50,13 +49,13 @@ pub enum ConfigureMsg {
 pub enum HandleMsg {
     // core
     Receive(Cw20ReceiveMsg),
-    Update { target: Option<HumanAddr> },
+    Update { target: Option<String> },
     Withdraw { amount: Uint256 },
     Claim {},
     // internal
-    DepositInternal { sender: HumanAddr, amount: Uint256 },
-    WithdrawInternal { sender: HumanAddr, amount: Uint256 },
-    ClaimInternal { sender: HumanAddr },
+    DepositInternal { sender: String, amount: Uint256 },
+    WithdrawInternal { sender: String, amount: Uint256 },
+    ClaimInternal { sender: String },
     // owner
     Configure(ConfigureMsg),
 }
@@ -72,16 +71,16 @@ pub enum Cw20HookMsg {
 pub enum QueryMsg {
     Config {}, // state::Config
     Stakers {
-        start_after: Option<HumanAddr>,
+        start_after: Option<String>,
         limit: Option<u32>,
         timestamp: Option<u64>,
     },
     Reward {}, // state::Reward
     BalanceOf {
-        owner: HumanAddr,
+        owner: String,
     }, // -> Uint256
     ClaimableReward {
-        owner: HumanAddr,
+        owner: String,
         timestamp: Option<u64>,
     }, // -> Uint256
 }

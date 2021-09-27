@@ -1,99 +1,121 @@
+#[cfg(not(feature = "library"))]
+use cosmwasm_std::entry_point;
+
 use cosmwasm_std::{
-    to_binary, Api, Binary, CanonicalAddr, CosmosMsg, Env, Extern, HandleResponse, InitResponse,
-    MigrateResponse, MigrateResult, Querier, StdResult, Storage, WasmMsg,
+    to_binary, Addr, Binary, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Reply, Response, StdError,
+    StdResult, SubMsg, WasmMsg,
 };
 use cw20::MinterResponse;
-use pylon_core::pool_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
-use terraswap::hook::InitHook as Cw20InitHook;
-use terraswap::token::InitMsg as Cw20InitMsg;
+use protobuf::Message;
+use pylon_core::pool_msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use terraswap::token::InstantiateMsg as Cw20InstantiateMsg;
 
+use crate::error::ContractError;
 use crate::handler::core as CoreHandler;
 use crate::handler::query as QueryHandler;
+use crate::response::MsgInstantiateContractResponse;
 use crate::{config, querier};
 
-pub fn init<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
+#[allow(dead_code)]
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn instantiate(
+    deps: DepsMut,
     env: Env,
-    msg: InitMsg,
-) -> StdResult<InitResponse> {
-    let sender = env.message.sender;
-    let raw_sender = deps.api.canonical_address(&sender)?;
-
+    info: MessageInfo,
+    msg: InstantiateMsg,
+) -> Result<Response, ContractError> {
     let mut config = config::Config {
-        this: deps.api.canonical_address(&env.contract.address)?,
-        owner: raw_sender,
-        beneficiary: deps.api.canonical_address(&msg.beneficiary)?,
-        fee_collector: deps.api.canonical_address(&msg.fee_collector)?,
-        moneymarket: deps.api.canonical_address(&msg.moneymarket)?,
+        this: deps.api.addr_canonicalize(env.contract.address.as_str())?,
+        owner: deps.api.addr_canonicalize(info.sender.as_str())?,
+        beneficiary: deps.api.addr_canonicalize(&msg.beneficiary)?,
+        fee_collector: deps.api.addr_canonicalize(&msg.fee_collector)?,
+        moneymarket: deps.api.addr_canonicalize(&msg.moneymarket)?,
         stable_denom: String::default(),
-        atoken: CanonicalAddr::default(),
-        dp_token: CanonicalAddr::default(),
+        atoken: deps.api.addr_canonicalize("").unwrap(),
+        dp_token: deps.api.addr_canonicalize("").unwrap(),
     };
 
-    let market_config = querier::anchor::config(deps, &config.moneymarket)?;
+    let market_config = querier::anchor::config(deps.as_ref(), &config.moneymarket)?;
 
     config.stable_denom = market_config.stable_denom.clone();
-    config.atoken = deps.api.canonical_address(&market_config.aterra_contract)?;
+    config.atoken = deps
+        .api
+        .addr_canonicalize(market_config.aterra_contract.as_str())?;
 
-    config::store(&mut deps.storage, &config)?;
+    config::store(deps.storage, &config)?;
 
-    Ok(InitResponse {
-        messages: vec![CosmosMsg::Wasm(WasmMsg::Instantiate {
+    Ok(Response::new().add_submessage(SubMsg::reply_on_success(
+        CosmosMsg::Wasm(WasmMsg::Instantiate {
+            admin: None,
             code_id: msg.dp_code_id,
-            send: vec![],
-            label: None,
-            msg: to_binary(&Cw20InitMsg {
+            funds: vec![],
+            label: "".to_string(),
+            msg: to_binary(&Cw20InstantiateMsg {
                 name: format!("Deposit Token - {}", msg.pool_name),
                 symbol: "PylonDP".to_string(),
                 decimals: 6u8,
                 initial_balances: vec![],
                 mint: Some(MinterResponse {
-                    minter: env.contract.address.clone(),
+                    minter: env.contract.address.to_string(),
                     cap: None,
                 }),
-                init_hook: Some(Cw20InitHook {
-                    contract_addr: env.contract.address,
-                    msg: to_binary(&HandleMsg::RegisterDPToken {})?,
-                }),
             })?,
-        })],
-        log: vec![],
-    })
+        }),
+        1,
+    )))
 }
 
-pub fn handle<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
+#[allow(dead_code)]
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn execute(
+    deps: DepsMut,
     env: Env,
-    msg: HandleMsg,
-) -> StdResult<HandleResponse> {
+    info: MessageInfo,
+    msg: ExecuteMsg,
+) -> Result<Response, ContractError> {
     match msg {
-        HandleMsg::RegisterDPToken {} => CoreHandler::register_dp_token(deps, env),
-        HandleMsg::Receive(msg) => CoreHandler::receive(deps, env, msg),
-        HandleMsg::Deposit {} => CoreHandler::deposit(deps, env),
-        HandleMsg::Earn {} => CoreHandler::earn(deps, env),
-        HandleMsg::Configure {
+        ExecuteMsg::Receive(msg) => CoreHandler::receive(deps, env, info, msg),
+        ExecuteMsg::Deposit {} => CoreHandler::deposit(deps, env, info),
+        ExecuteMsg::Earn {} => CoreHandler::earn(deps, env, info),
+        ExecuteMsg::Configure {
             beneficiary,
             fee_collector,
-        } => CoreHandler::configure(deps, env, beneficiary, fee_collector),
+        } => CoreHandler::configure(deps, env, info, beneficiary, fee_collector),
     }
 }
 
-pub fn query<S: Storage, A: Api, Q: Querier>(
-    deps: &Extern<S, A, Q>,
-    msg: QueryMsg,
-) -> StdResult<Binary> {
+#[allow(dead_code)]
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn reply(deps: DepsMut, env: Env, msg: Reply) -> Result<Response, ContractError> {
+    match msg.id {
+        1 => {
+            // get new token's contract address
+            let res: MsgInstantiateContractResponse = Message::parse_from_bytes(
+                msg.result.unwrap().data.unwrap().as_slice(),
+            )
+            .map_err(|_| {
+                ContractError::Std(StdError::parse_err(
+                    "MsgInstantiateContractResponse",
+                    "failed to parse data",
+                ))
+            })?;
+            let token_addr = Addr::unchecked(res.get_contract_address());
+
+            CoreHandler::register_dp_token(deps, env, token_addr)
+        }
+        _ => Err(ContractError::InvalidReplyId { id: msg.id }),
+    }
+}
+
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::DepositAmountOf { owner } => QueryHandler::deposit_amount(deps, owner), // dp_token.balanceOf(msg.sender)
-        QueryMsg::TotalDepositAmount {} => QueryHandler::total_deposit_amount(deps), // dp_token.totalSupply()
-        QueryMsg::Config {} => QueryHandler::config(deps),                           // config
-        QueryMsg::ClaimableReward {} => QueryHandler::claimable_reward(deps), // config.strategy.reward()
+        QueryMsg::DepositAmountOf { owner } => QueryHandler::deposit_amount(deps, env, owner), // dp_token.balanceOf(msg.sender)
+        QueryMsg::TotalDepositAmount {} => QueryHandler::total_deposit_amount(deps, env), // dp_token.totalSupply()
+        QueryMsg::Config {} => QueryHandler::config(deps, env),                           // config
+        QueryMsg::ClaimableReward {} => QueryHandler::claimable_reward(deps, env), // config.strategy.reward()
     }
 }
 
-pub fn migrate<S: Storage, A: Api, Q: Querier>(
-    _deps: &mut Extern<S, A, Q>,
-    _env: Env,
-    _msg: MigrateMsg,
-) -> MigrateResult {
-    Ok(MigrateResponse::default())
+pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, ContractError> {
+    Ok(Response::default())
 }

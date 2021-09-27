@@ -1,14 +1,8 @@
 use crate::state::{read_config, store_config, Config};
 
-use cosmwasm_std::{
-    log, to_binary, Api, Binary, CosmosMsg, Env, Extern, HandleResponse, HandleResult, HumanAddr,
-    InitResponse, MigrateResponse, MigrateResult, Querier, StdError, StdResult, Storage, Uint128,
-    WasmMsg,
-};
-
-use pylon_token::community::{ConfigResponse, HandleMsg, InitMsg, MigrateMsg, QueryMsg};
-
+use cosmwasm_std::*;
 use cw20::Cw20HandleMsg;
+use pylon_token::community::{ConfigResponse, HandleMsg, InitMsg, MigrateMsg, QueryMsg};
 
 pub fn init<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,

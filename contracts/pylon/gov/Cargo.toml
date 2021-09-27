@@ -34,13 +34,13 @@ overflow-checks = true
 backtraces = ["cosmwasm-std/backtraces"]
 
 [dependencies]
-cw20 = "0.2"
-cosmwasm-std = { version = "0.10.1", features = ["iterator"] }
-cosmwasm-storage = { version = "0.10.1", features = ["iterator"] }
+cw20 = { version = "0.8.0" }
+cosmwasm-std = { version = "0.16.0", features = ["iterator"] }
+cosmwasm-storage = { version = "0.16.0", features = ["iterator"] }
 pylon-token = { version = "1.0.0", path = "../../../packages/pylon_token" }
-schemars = "0.7"
+schemars = "0.8.1"
 serde = { version = "1.0.103", default-features = false, features = ["derive"] }
 hex = "0.4"
 
 [dev-dependencies]
-cosmwasm-schema = "0.10.0"
+cosmwasm-schema = "0.16.0"

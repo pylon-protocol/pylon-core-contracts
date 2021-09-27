@@ -10,10 +10,10 @@ pub struct State {
     pub next_pool_id: u64,
 }
 
-pub fn store<S: Storage>(storage: &mut S, data: &State) -> StdResult<()> {
+pub fn store(storage: &mut dyn Storage, data: &State) -> StdResult<()> {
     Singleton::new(storage, STATE_KEY).save(data)
 }
 
-pub fn read<S: Storage>(storage: &S) -> StdResult<State> {
+pub fn read(storage: &dyn Storage) -> StdResult<State> {
     ReadonlySingleton::new(storage, STATE_KEY).load()
 }

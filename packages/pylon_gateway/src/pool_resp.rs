@@ -1,13 +1,12 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::HumanAddr;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ConfigResponse {
-    pub owner: HumanAddr,
-    pub share_token: HumanAddr,
-    pub reward_token: HumanAddr,
+    pub owner: String,
+    pub share_token: String,
+    pub reward_token: String,
     pub start_time: u64,
     pub cliff_time: u64,
     pub finish_time: u64,
@@ -18,7 +17,7 @@ pub struct ConfigResponse {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Staker {
-    pub address: HumanAddr,
+    pub address: String,
     pub staked: Uint256,
     pub reward: Uint256,
 }
