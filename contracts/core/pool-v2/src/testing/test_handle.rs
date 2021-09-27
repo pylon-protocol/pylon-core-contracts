@@ -5,7 +5,7 @@ use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use pylon_core::mock_adapter::{Cw20HookMsg as AdapterHookMsg, ExecuteMsg as AdapterExecuteMsg};
 use pylon_core::pool_v2_msg::{Cw20HookMsg, ExecuteMsg};
 use pylon_core::test_constant::*;
-use pylon_token::collector::HandleMsg as CollectorExecuteMsg;
+use pylon_token::collector::ExecuteMsg as CollectorExecuteMsg;
 use pylon_utils::mock_tax::MockTax;
 use pylon_utils::tax::deduct_tax;
 use std::ops::{Div, Mul};

@@ -3,7 +3,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct InitMsg {
+pub struct InstantiateMsg {
     pub gov_contract: String, // pylon gov contract
     pub pylon_token: String,  // pylon token address
     pub spend_limit: Uint128, // spend limit per each `spend` request
@@ -11,7 +11,7 @@ pub struct InitMsg {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum HandleMsg {
+pub enum ExecuteMsg {
     UpdateConfig { spend_limit: Option<Uint128> },
     Spend { recipient: String, amount: Uint128 },
 }

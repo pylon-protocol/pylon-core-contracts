@@ -10,15 +10,15 @@ static KEY_CONFIG: &[u8] = b"config";
 pub struct Config {
     pub gov_contract: CanonicalAddr,         // collected rewards receiver
     pub terraswap_factory: CanonicalAddr,    // terraswap factory contract
-    pub pylon_token: CanonicalAddr,          // pylon token address
+    pub pylon_token: CanonicalAddr,          // anchor token address
     pub distributor_contract: CanonicalAddr, // distributor contract to sent back rewards
     pub reward_factor: Decimal, // reward distribution rate to gov contract, left rewards sent back to distributor contract
 }
 
-pub fn store_config<S: Storage>(storage: &mut S, config: &Config) -> StdResult<()> {
+pub fn store_config(storage: &mut dyn Storage, config: &Config) -> StdResult<()> {
     singleton(storage, KEY_CONFIG).save(config)
 }
 
-pub fn read_config<S: Storage>(storage: &S) -> StdResult<Config> {
+pub fn read_config(storage: &dyn Storage) -> StdResult<Config> {
     singleton_read(storage, KEY_CONFIG).load()
 }

@@ -35,8 +35,8 @@ backtraces = ["cosmwasm-std/backtraces"]
 
 [dependencies]
 cw20 = { version = "0.8.0" }
-pylon-gateway = { version = "1.0.0", path = "../../../packages/pylon_gateway" }
-pylon-utils = { version = "1.0.0", path = "../../../packages/pylon_utils" }
+pylon-gateway = { version = "0.2.0", path = "../../../packages/pylon_gateway" }
+pylon-utils = { version = "0.2.0", path = "../../../packages/pylon_utils" }
 terraswap = "2.4.0"
 terra-cosmwasm = "2.2.0"
 thiserror = "1.0"

@@ -7,20 +7,22 @@ use std::fmt;
 use crate::common::OrderBy;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct InitMsg {
+pub struct InstantiateMsg {
     pub quorum: Decimal,
     pub threshold: Decimal,
     pub voting_period: u64,
     pub timelock_period: u64,
-    pub expiration_period: u64,
     pub proposal_deposit: Uint128,
     pub snapshot_period: u64,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum HandleMsg {
+pub enum ExecuteMsg {
     Receive(Cw20ReceiveMsg),
+    ExecutePollMsgs {
+        poll_id: u64,
+    },
     RegisterContracts {
         pylon_token: String,
     },
@@ -30,7 +32,6 @@ pub enum HandleMsg {
         threshold: Option<Decimal>,
         voting_period: Option<u64>,
         timelock_period: Option<u64>,
-        expiration_period: Option<u64>,
         proposal_deposit: Option<Uint128>,
         snapshot_period: Option<u64>,
     },
@@ -46,9 +47,6 @@ pub enum HandleMsg {
         poll_id: u64,
     },
     ExecutePoll {
-        poll_id: u64,
-    },
-    ExpirePoll {
         poll_id: u64,
     },
     SnapshotPoll {
@@ -67,17 +65,20 @@ pub enum Cw20HookMsg {
         title: String,
         description: String,
         link: Option<String>,
-        execute_msgs: Option<Vec<ExecuteMsg>>,
+        execute_msgs: Option<Vec<PollExecuteMsg>>,
     },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub struct ExecuteMsg {
+pub struct PollExecuteMsg {
     pub order: u64,
     pub contract: String,
     pub msg: Binary,
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct MigrateMsg {}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
@@ -117,7 +118,6 @@ pub struct ConfigResponse {
     pub threshold: Decimal,
     pub voting_period: u64,
     pub timelock_period: u64,
-    pub expiration_period: u64,
     pub proposal_deposit: Uint128,
     pub snapshot_period: u64,
 }
@@ -139,7 +139,7 @@ pub struct PollResponse {
     pub description: String,
     pub link: Option<String>,
     pub deposit_amount: Uint128,
-    pub execute_data: Option<Vec<ExecuteMsg>>,
+    pub execute_data: Option<Vec<PollExecuteMsg>>,
     pub yes_votes: Uint128, // balance
     pub no_votes: Uint128,  // balance
     pub staked_amount: Option<Uint128>,
@@ -193,7 +193,8 @@ pub enum PollStatus {
     Passed,
     Rejected,
     Executed,
-    Expired,
+    Expired, // Depricated
+    Failed,
 }
 
 impl fmt::Display for PollStatus {
@@ -218,7 +219,3 @@ impl fmt::Display for VoteOption {
         }
     }
 }
-
-/// We currently take no arguments for migrations
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct MigrateMsg {}

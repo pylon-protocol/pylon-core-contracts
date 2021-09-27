@@ -3,7 +3,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct InitMsg {
+pub struct InstantiateMsg {
     pub gov_contract: String, // collected rewards receiver
     pub terraswap_factory: String,
     pub pylon_token: String,
@@ -13,7 +13,7 @@ pub struct InitMsg {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum HandleMsg {
+pub enum ExecuteMsg {
     /// Update config interface
     /// to enable reward_factor update
     UpdateConfig { reward_factor: Option<Decimal> },
@@ -21,10 +21,6 @@ pub enum HandleMsg {
     /// Sweep all given denom balance to ANC token
     /// and execute Distribute message
     Sweep { denom: String },
-
-    /// Internal Message
-    /// Distribute all ANC token to gov_contract
-    Distribute {},
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

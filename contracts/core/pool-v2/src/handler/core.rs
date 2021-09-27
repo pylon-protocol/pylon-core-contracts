@@ -2,7 +2,7 @@ use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::*;
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use pylon_core::pool_v2_msg::Cw20HookMsg;
-use pylon_token::collector::HandleMsg as CollectorHandleMsg;
+use pylon_token::collector::ExecuteMsg as CollectorHandleMsg;
 use pylon_utils::tax::deduct_tax;
 use std::ops::Div;
 
