@@ -26,7 +26,7 @@ fn handle_configure_nothing() {
         fee_rate: None,
         fee_collector: None,
     });
-    let res = contract::handle(deps.as_mut(), env, info, msg).unwrap();
+    let res = contract::execute(deps.as_mut(), env, info, msg).unwrap();
     assert_eq!(0, res.messages.len(), "should be empty");
     assert_eq!(None, res.data, "should be None");
 
@@ -54,7 +54,7 @@ fn handle_configure_many_as_possible() {
         fee_rate: Option::from(new_config.fee_rate),
         fee_collector: Option::from(new_config.fee_collector.clone()),
     });
-    let res = contract::handle(deps.as_mut(), env, info, msg).unwrap();
+    let res = contract::execute(deps.as_mut(), env, info, msg).unwrap();
     assert_eq!(0, res.messages.len(), "should be empty");
     assert_eq!(None, res.data, "should be None");
 
@@ -74,7 +74,7 @@ fn handle_configure_with_non_owner() {
         fee_rate: None,
         fee_collector: None,
     });
-    let _res = contract::handle(deps.as_mut(), mock_env(), mock_info(TEST_USER, &[]), msg)
+    let _res = contract::execute(deps.as_mut(), mock_env(), mock_info(TEST_USER, &[]), msg)
         .expect_err("should fail if non-owner tries to configure");
 }
 
@@ -91,7 +91,7 @@ fn handle_create_pool_and_register() {
         beneficiary: TEST_BENEFICIARY.to_string(),
         yield_adapter: TEST_ADAPTER.to_string(),
     };
-    let res = contract::handle(deps.as_mut(), env, info, msg).unwrap();
+    let res = contract::execute(deps.as_mut(), env, info, msg).unwrap();
     assert_eq!(
         res.messages,
         vec![SubMsg::new(CosmosMsg::Wasm(WasmMsg::Instantiate {
@@ -128,7 +128,7 @@ fn handle_create_pool_and_register() {
     let msg = ExecuteMsg::RegisterPool {
         pool_id: prev_state.next_pool_id,
     };
-    let res = contract::handle(deps.as_mut(), mock_env(), mock_info(TEST_POOL, &[]), msg).unwrap();
+    let res = contract::execute(deps.as_mut(), mock_env(), mock_info(TEST_POOL, &[]), msg).unwrap();
     assert_eq!(0, res.messages.len(), "should be empty");
     assert_eq!(None, res.data, "should be None");
 
@@ -147,7 +147,7 @@ fn handle_create_pool_with_unregistered_adapter() {
         beneficiary: TEST_BENEFICIARY.to_string(),
         yield_adapter: "mock_adapter".to_string(),
     };
-    let _res = contract::handle(deps.as_mut(), env, info, msg)
+    let _res = contract::execute(deps.as_mut(), env, info, msg)
         .expect_err("should fail if given adapter address is not registered");
 }
 
@@ -157,7 +157,7 @@ fn handle_register_pool_which_is_not_ready() {
     let _ = utils::initialize(&mut deps);
 
     let msg = ExecuteMsg::RegisterPool { pool_id: 1234 };
-    let _res = contract::handle(deps.as_mut(), mock_env(), mock_info(TEST_POOL, &[]), msg)
+    let _res = contract::execute(deps.as_mut(), mock_env(), mock_info(TEST_POOL, &[]), msg)
         .expect_err("should fail if given pool id is not ready");
 }
 
@@ -171,17 +171,17 @@ fn handle_register_unregister_adapter() {
     let msg = ExecuteMsg::RegisterAdapter {
         address: new_adapter.clone(),
     };
-    let res = contract::handle(deps.as_mut(), env.clone(), info.clone(), msg).unwrap();
+    let res = contract::execute(deps.as_mut(), env.clone(), info.clone(), msg).unwrap();
     assert_eq!(0, res.messages.len(), "should be empty");
     assert_eq!(None, res.data, "should be None");
 
     let adapter = adapter::read(deps.as_ref().storage, new_adapter.clone()).unwrap();
-    assert_eq!(adapter.address, new_adapter.clone());
+    assert_eq!(adapter.address, new_adapter);
 
     let msg = ExecuteMsg::UnregisterAdapter {
         address: new_adapter.clone(),
     };
-    let res = contract::handle(deps.as_mut(), env, info, msg).unwrap();
+    let res = contract::execute(deps.as_mut(), env, info, msg).unwrap();
     assert_eq!(0, res.messages.len(), "should be empty");
     assert_eq!(None, res.data, "should be None");
 
@@ -198,7 +198,7 @@ fn handle_register_adapter_with_non_owner() {
     let msg = ExecuteMsg::RegisterAdapter {
         address: "mock_adapter".to_string(),
     };
-    let _res = contract::handle(deps.as_mut(), env, user, msg)
+    let _res = contract::execute(deps.as_mut(), env, user, msg)
         .expect_err("should fail if non-owner tries to register");
 }
 
@@ -211,6 +211,6 @@ fn handle_unregister_adapter_with_non_owner() {
     let msg = ExecuteMsg::UnregisterAdapter {
         address: TEST_ADAPTER.to_string(),
     };
-    let _res = contract::handle(deps.as_mut(), mock_env(), user, msg)
+    let _res = contract::execute(deps.as_mut(), mock_env(), user, msg)
         .expect_err("should fail if non-owner tries to unregister");
 }

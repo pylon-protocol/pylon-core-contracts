@@ -17,7 +17,7 @@ fn proper_initialization() {
     let msg = utils::init_msg();
     let env = mock_env();
     let info = mock_info(TEST_FACTORY, &[]);
-    let res = contract::init(deps.as_mut(), env.clone(), info.clone(), msg).unwrap();
+    let res = contract::instantiate(deps.as_mut(), env.clone(), info, msg).unwrap();
     assert_eq!(
         res.messages,
         vec![

@@ -35,7 +35,7 @@ fn handle_deposit() {
     let user = mock_info(TEST_USER, &[coin.clone()]);
 
     let msg = ExecuteMsg::Deposit {};
-    let res = contract::handle(deps.as_mut(), mock_env(), user.clone(), msg).unwrap();
+    let res = contract::execute(deps.as_mut(), mock_env(), user.clone(), msg).unwrap();
     assert_eq!(res.data, None, "should be none");
     assert_eq!(
         res.messages,
@@ -95,7 +95,7 @@ fn handle_redeem() {
         amount,
         msg: to_binary(&Cw20HookMsg::Redeem {}).unwrap(),
     });
-    let res = contract::handle(deps.as_mut(), mock_env(), user, msg).unwrap();
+    let res = contract::execute(deps.as_mut(), mock_env(), user, msg).unwrap();
     assert_eq!(res.data, None, "should be none");
     assert_eq!(
         res.messages,
@@ -159,7 +159,7 @@ fn handle_earn() {
     let beneficiary = mock_info(TEST_BENEFICIARY, &[]);
 
     let msg = ExecuteMsg::Earn {};
-    let res = contract::handle(deps.as_mut(), mock_env(), beneficiary, msg).unwrap();
+    let res = contract::execute(deps.as_mut(), mock_env(), beneficiary, msg).unwrap();
     let reward = deduct_tax(
         deps.as_ref(),
         Coin {

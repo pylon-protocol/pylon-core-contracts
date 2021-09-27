@@ -1,4 +1,5 @@
 // =============== ACCOUNTS
+pub const TEST_CONTRACT: &str = "cosmos2contract";
 pub const TEST_CREATOR: &str = "creator";
 pub const TEST_USER: &str = "user";
 pub const TEST_BENEFICIARY: &str = "beneficiary";

@@ -1,5 +1,4 @@
 use cosmwasm_bignumber::Uint256;
-use cosmwasm_std::testing::MOCK_CONTRACT_ADDR;
 use cosmwasm_std::{to_binary, ContractResult, QuerierResult, SystemError, SystemResult};
 use std::collections::HashMap;
 
@@ -21,7 +20,7 @@ impl Default for MockPool {
                 pool_v2_resp::ConfigResponse {
                     id: 0,
                     name: TEST_POOL.to_string(),
-                    factory: MOCK_CONTRACT_ADDR.to_string(),
+                    factory: TEST_CONTRACT.to_string(),
                     beneficiary: TEST_BENEFICIARY.to_string(),
                     yield_adapter: TEST_ADAPTER.to_string(),
                     input_denom: TEST_INPUT_DENOM.to_string(),

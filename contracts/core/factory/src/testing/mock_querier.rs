@@ -16,7 +16,7 @@ pub fn mock_dependencies(
         storage: MockStorage::default(),
         api,
         querier: CustomMockQuerier::new(
-            MockQuerier::new(&[(&MOCK_CONTRACT_ADDR, contract_balance)]),
+            MockQuerier::new(&[(MOCK_CONTRACT_ADDR, contract_balance)]),
             api,
         ),
     }
@@ -109,6 +109,7 @@ impl CustomMockQuerier {
         self.pool = pool;
     }
 
+    #[allow(dead_code)]
     pub fn with_token(&mut self, token: MockToken) {
         self.token = token;
     }

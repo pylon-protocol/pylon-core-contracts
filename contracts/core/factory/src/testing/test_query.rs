@@ -4,13 +4,11 @@ use cosmwasm_std::{from_binary, Uint128};
 use pylon_core::factory_msg::{ExecuteMsg, QueryMsg};
 use pylon_core::factory_resp;
 use pylon_core::test_constant::*;
-use pylon_utils::mock_token::MockToken;
 
 use crate::contract;
 use crate::state::pool;
 use crate::testing::mock_querier::mock_dependencies;
 use crate::testing::utils;
-use std::collections::HashMap;
 
 #[test]
 fn query_config() {
@@ -109,7 +107,7 @@ fn query_adapter_info() {
     let mock_adapters: Vec<String> = (0..9).map(|x| format!("{}_{}", TEST_ADAPTER, x)).collect();
     for address in mock_adapters {
         let msg = ExecuteMsg::RegisterAdapter { address };
-        let _ = contract::handle(deps.as_mut(), env.clone(), info.clone(), msg).unwrap();
+        let _ = contract::execute(deps.as_mut(), env.clone(), info.clone(), msg).unwrap();
     }
 
     let res_generator = |x| factory_resp::AdapterInfoResponse {
@@ -146,7 +144,7 @@ fn query_adapter_info() {
     );
 
     let msg = QueryMsg::AdapterInfos {
-        start_after: Option::from(format!("{}_5", TEST_ADAPTER).to_string()),
+        start_after: Option::from(format!("{}_5", TEST_ADAPTER)),
         limit: Option::from(5),
     };
     let bin_res = contract::query(deps.as_ref(), mock_env(), msg).unwrap();

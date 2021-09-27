@@ -22,13 +22,13 @@ pub fn initialize(
     let env = mock_env();
     let info = mock_info(TEST_CREATOR, &[]);
     let msg = init_msg();
-    let _res = contract::init(deps.as_mut(), env.clone(), info.clone(), msg)
+    let _res = contract::instantiate(deps.as_mut(), env.clone(), info.clone(), msg)
         .expect("testing: contract initialized");
 
     let msg = ExecuteMsg::RegisterAdapter {
         address: TEST_ADAPTER.to_string(),
     };
-    let _res = contract::handle(deps.as_mut(), env.clone(), info.clone(), msg)
+    let _res = contract::execute(deps.as_mut(), env.clone(), info.clone(), msg)
         .expect("testing: adapter registered");
 
     (env, info)

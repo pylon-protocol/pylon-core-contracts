@@ -22,7 +22,7 @@ pub fn initialize(deps: &mut OwnedDeps<MockStorage, MockApi, CustomMockQuerier>)
     let env = mock_env();
     let info = mock_info(TEST_FACTORY, &[]);
     let msg = init_msg();
-    let _res = contract::init(deps.as_mut(), env.clone(), info.clone(), msg)
+    let _res = contract::instantiate(deps.as_mut(), env.clone(), info, msg)
         .expect("testing: contract initialized");
 
     let mut token_inst_res = MsgInstantiateContractResponse::new();
