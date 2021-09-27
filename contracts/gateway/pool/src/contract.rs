@@ -4,7 +4,7 @@ use cosmwasm_std::{
     Storage,
 };
 use pylon_gateway::pool_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
-use std::ops::{Add, Mul};
+use std::ops::Add;
 
 use crate::handler::configure as Config;
 use crate::handler::core as Core;
@@ -52,7 +52,6 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
                     inverse: false,
                 },
                 reward_rate: msg.reward_rate,
-                total_reward_amount: Uint256::from(msg.period).mul(msg.reward_rate),
             },
         },
     )?;

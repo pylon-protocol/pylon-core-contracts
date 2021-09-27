@@ -1,5 +1,5 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::HumanAddr;
+use cosmwasm_std::{HumanAddr, Uint128};
 use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -12,15 +12,6 @@ pub struct InitMsg {
     pub reward_rate: Decimal256,
     pub share_token: HumanAddr,
     pub reward_token: HumanAddr,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-#[serde(rename_all = "snake_case")]
-pub enum DistributionMsg {
-    SubReward { amount: Uint256 },
-    AddReward { amount: Uint256 },
-    ShortenPeriod { time: u64 },
-    LengthenPeriod { time: u64 },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -42,7 +33,12 @@ pub enum ConfigureMsg {
         start: Option<u64>,
         finish: Option<u64>,
     },
-    Distribution(DistributionMsg),
+    SubReward {
+        amount: Uint256,
+    },
+    AddReward {
+        amount: Uint256,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -86,10 +82,16 @@ pub enum QueryMsg {
     }, // -> Uint256
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct Transfer {
+    pub to: HumanAddr,
+    pub amount: Uint128,
+}
+
 /// We currently take no arguments for migrations
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum MigrateMsg {
-    V1 {},
-    V1Temp {},
+    Legacy { transfer: Option<Transfer> },
+    Common {},
 }
