@@ -1,112 +1,103 @@
 use cosmwasm_bignumber::Uint256;
-use cosmwasm_std::{
-    from_binary, to_binary, Api, CosmosMsg, Env, Extern, HandleResponse, HumanAddr, Querier,
-    StdError, StdResult, Storage, WasmMsg,
-};
+use cosmwasm_std::*;
 use cw20::Cw20ReceiveMsg;
-use pylon_gateway::pool_msg::{Cw20HookMsg, HandleMsg};
+use pylon_gateway::pool_msg::{Cw20HookMsg, ExecuteMsg};
 
+use crate::error::ContractError;
 use crate::state::config;
 
-pub fn receive<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
+pub fn receive(
+    deps: DepsMut,
     env: Env,
+    info: MessageInfo,
     cw20_msg: Cw20ReceiveMsg,
-) -> StdResult<HandleResponse> {
-    let sender = env.message.sender.clone();
-
-    if let Some(msg) = cw20_msg.msg {
-        match from_binary(&msg)? {
-            Cw20HookMsg::Deposit {} => {
-                let config = config::read(&deps.storage)?;
-                if sender.ne(&config.share_token) {
-                    return Err(StdError::unauthorized());
-                }
-
-                deposit(deps, env, cw20_msg.sender, Uint256::from(cw20_msg.amount))
+) -> Result<Response, ContractError> {
+    match from_binary(&cw20_msg.msg) {
+        Ok(Cw20HookMsg::Deposit {}) => {
+            let config = config::read(deps.storage)?;
+            if config.share_token.ne(&HumanAddr::from(info.sender.clone())) {
+                return Err(ContractError::Unauthorized {
+                    action: "deposit".to_string(),
+                    expected: config.share_token.to_string(),
+                    actual: info.sender.to_string(),
+                });
             }
+
+            deposit(
+                deps,
+                env,
+                info,
+                cw20_msg.sender,
+                Uint256::from(cw20_msg.amount),
+            )
         }
-    } else {
-        Err(StdError::generic_err("Gateway/Pool: unsupported message"))
+        _ => Err(ContractError::UnsupportedReceiveMsg {
+            typ: stringify!(cw20_msg).to_string(),
+        }),
     }
 }
 
-pub fn deposit<S: Storage, A: Api, Q: Querier>(
-    _: &Extern<S, A, Q>,
+pub fn deposit(
+    _deps: DepsMut,
     env: Env,
-    sender: HumanAddr,
+    _info: MessageInfo,
+    sender: String,
     amount: Uint256,
-) -> StdResult<HandleResponse> {
-    Ok(HandleResponse {
-        messages: vec![
-            CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: env.contract.address.clone(),
-                msg: to_binary(&HandleMsg::Update {
-                    target: Option::Some(sender.clone()),
-                })?,
-                send: vec![],
-            }),
-            CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: env.contract.address,
-                msg: to_binary(&HandleMsg::DepositInternal { sender, amount })?,
-                send: vec![],
-            }),
-        ],
-        log: vec![],
-        data: None,
-    })
+) -> Result<Response, ContractError> {
+    Ok(Response::new()
+        .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: env.contract.address.to_string(),
+            msg: to_binary(&ExecuteMsg::Update {
+                target: Option::Some(sender.clone()),
+            })?,
+            funds: vec![],
+        }))
+        .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: env.contract.address.to_string(),
+            msg: to_binary(&ExecuteMsg::DepositInternal { sender, amount })?,
+            funds: vec![],
+        })))
 }
 
-pub fn withdraw<S: Storage, A: Api, Q: Querier>(
-    _: &Extern<S, A, Q>,
+pub fn withdraw(
+    _deps: DepsMut,
     env: Env,
+    info: MessageInfo,
     amount: Uint256,
-) -> StdResult<HandleResponse> {
-    Ok(HandleResponse {
-        messages: vec![
-            CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: env.contract.address.clone(),
-                msg: to_binary(&HandleMsg::Update {
-                    target: Option::Some(env.message.sender.clone()),
-                })?,
-                send: vec![],
-            }),
-            CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: env.contract.address,
-                msg: to_binary(&HandleMsg::WithdrawInternal {
-                    sender: env.message.sender,
-                    amount,
-                })?,
-                send: vec![],
-            }),
-        ],
-        log: vec![],
-        data: None,
-    })
+) -> Result<Response, ContractError> {
+    Ok(Response::new()
+        .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: env.contract.address.to_string(),
+            msg: to_binary(&ExecuteMsg::Update {
+                target: Option::Some(info.sender.to_string()),
+            })?,
+            funds: vec![],
+        }))
+        .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: env.contract.address.to_string(),
+            msg: to_binary(&ExecuteMsg::WithdrawInternal {
+                sender: info.sender.to_string(),
+                amount,
+            })?,
+            funds: vec![],
+        })))
 }
 
-pub fn claim<S: Storage, A: Api, Q: Querier>(
-    _: &Extern<S, A, Q>,
-    env: Env,
-) -> StdResult<HandleResponse> {
-    Ok(HandleResponse {
-        messages: vec![
-            CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: env.contract.address.clone(),
-                msg: to_binary(&HandleMsg::Update {
-                    target: Option::Some(env.message.sender.clone()),
-                })?,
-                send: vec![],
-            }),
-            CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: env.contract.address,
-                msg: to_binary(&HandleMsg::ClaimInternal {
-                    sender: env.message.sender,
-                })?,
-                send: vec![],
-            }),
-        ],
-        log: vec![],
-        data: None,
-    })
+pub fn claim(_deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+    Ok(Response::new()
+        .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: env.contract.address.to_string(),
+            msg: to_binary(&ExecuteMsg::Update {
+                target: Option::Some(info.sender.to_string()),
+            })?,
+            funds: vec![],
+        }))
+        .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: env.contract.address.to_string(),
+            msg: to_binary(&ExecuteMsg::ClaimInternal {
+                sender: info.sender.to_string(),
+            })?,
+
+            funds: vec![],
+        })))
 }

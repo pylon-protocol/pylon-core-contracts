@@ -1,8 +1,6 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::{
-    Api, CanonicalAddr, Extern, HumanAddr, Order, Querier, ReadonlyStorage, StdResult, Storage,
-};
-use cosmwasm_storage::{Bucket, ReadonlyBucket};
+use cosmwasm_std::*;
+use cosmwasm_storage::{bucket, bucket_read, Bucket, ReadonlyBucket};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -15,16 +13,22 @@ pub struct User {
     pub reward_per_token_paid: Decimal256,
 }
 
-pub fn store<S: Storage>(storage: &mut S, owner: &CanonicalAddr, user: &User) -> StdResult<()> {
-    Bucket::new(PREFIX_USER, storage).save(owner.as_slice(), user)
+pub fn store(storage: &mut dyn Storage, owner: &CanonicalAddr, user: &User) -> StdResult<()> {
+    let mut user_bucket: Bucket<User> = bucket(storage, PREFIX_USER);
+
+    user_bucket.save(owner.as_slice(), user)
 }
 
-pub fn remove<S: Storage>(storage: &mut S, owner: &CanonicalAddr) {
-    Bucket::<S, User>::new(PREFIX_USER, storage).remove(owner.as_slice())
+pub fn remove(storage: &mut dyn Storage, owner: &CanonicalAddr) {
+    let mut user_bucket: Bucket<User> = bucket(storage, PREFIX_USER);
+
+    user_bucket.remove(owner.as_slice())
 }
 
-pub fn read<S: ReadonlyStorage>(storage: &S, owner: &CanonicalAddr) -> StdResult<User> {
-    match ReadonlyBucket::new(PREFIX_USER, storage).may_load(owner.as_slice())? {
+pub fn read(storage: &dyn Storage, owner: &CanonicalAddr) -> StdResult<User> {
+    let user_bucket: ReadonlyBucket<User> = bucket_read(storage, PREFIX_USER);
+
+    match user_bucket.may_load(owner.as_slice())? {
         Some(user) => Ok(user),
         None => Ok(User {
             amount: Uint256::zero(),
@@ -37,20 +41,21 @@ pub fn read<S: ReadonlyStorage>(storage: &S, owner: &CanonicalAddr) -> StdResult
 // settings for pagination
 const MAX_LIMIT: u32 = 30;
 const DEFAULT_LIMIT: u32 = 10;
-pub fn batch_read<S: Storage, A: Api, Q: Querier>(
-    deps: &Extern<S, A, Q>,
+pub fn batch_read(
+    deps: Deps,
     start_after: Option<CanonicalAddr>,
     limit: Option<u32>,
-) -> StdResult<Vec<(HumanAddr, User)>> {
+) -> StdResult<Vec<(Addr, User)>> {
     let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
     let start = calc_range_start(start_after);
+    let user_bucket: ReadonlyBucket<User> = bucket_read(deps.storage, PREFIX_USER);
 
-    ReadonlyBucket::new(PREFIX_USER, &deps.storage)
+    user_bucket
         .range(start.as_deref(), None, Order::Ascending)
         .take(limit)
         .map(|elem: StdResult<(Vec<u8>, User)>| {
             let (k, v) = elem.unwrap();
-            let user = deps.api.human_address(&CanonicalAddr::from(k))?;
+            let user = deps.api.addr_humanize(&CanonicalAddr::from(k))?;
             Ok((user, v))
         })
         .collect()

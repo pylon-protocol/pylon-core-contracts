@@ -1,4 +1,4 @@
-use cosmwasm_std::{log, Env, LogAttribute, StdError, StdResult};
+use cosmwasm_std::*;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::ops::Sub;
@@ -69,33 +69,33 @@ impl TimeRange {
     pub fn is_in_range(&self, env: &Env) -> bool {
         if self.inverse {
             if self.start == 0 {
-                return self.finish < env.block.time;
+                return self.finish < env.block.time.seconds();
             }
             if self.finish == 0 {
-                return env.block.time < self.start;
+                return env.block.time.seconds() < self.start;
             }
-            env.block.time < self.start || self.finish < env.block.time
+            env.block.time.seconds() < self.start || self.finish < env.block.time.seconds()
         } else {
             if self.start == 0 {
-                return env.block.time < self.finish;
+                return env.block.time.seconds() < self.finish;
             }
             if self.finish == 0 {
-                return self.start < env.block.time;
+                return self.start < env.block.time.seconds();
             }
-            self.start < env.block.time && env.block.time < self.finish
+            self.start < env.block.time.seconds() && env.block.time.seconds() < self.finish
         }
     }
 
-    pub fn configure(&mut self, start: Option<u64>, finish: Option<u64>) -> Vec<LogAttribute> {
-        let mut logs = vec![];
+    pub fn configure(&mut self, start: Option<u64>, finish: Option<u64>) -> Vec<Attribute> {
+        let mut attrs = vec![];
         if let Some(start) = start {
             self.start = start;
-            logs.push(log("new_start_time", start));
+            attrs.push(Attribute::new("new_start_time", start.to_string()));
         }
         if let Some(finish) = finish {
             self.finish = finish;
-            logs.push(log("new_finish_time", finish));
+            attrs.push(Attribute::new("new_finish_time", finish.to_string()));
         }
-        logs
+        attrs
     }
 }
