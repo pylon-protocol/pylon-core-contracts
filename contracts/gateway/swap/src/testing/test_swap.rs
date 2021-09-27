@@ -1,7 +1,7 @@
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::testing::mock_env;
 use cosmwasm_std::{from_binary, Coin, HumanAddr, Uint128};
-use pylon_gateway::swap_msg::{HandleMsg, QueryMsg};
+use pylon_gateway::swap_msg::{ExecuteMsg, QueryMsg};
 use pylon_gateway::swap_resp::AvailableCapOfResponse;
 use pylon_token::gov::StakerResponse;
 
@@ -34,14 +34,14 @@ fn sale() {
         },
     )]));
 
-    let msg = HandleMsg::Deposit {};
+    let msg = ExecuteMsg::Deposit {};
     let res = contract::handle(&mut deps, user, msg).unwrap();
     println!("{:?}", res);
 
     let mut owner = mock_env(TEST_OWNER, &[]);
     owner.block.time = 1;
 
-    let msg = HandleMsg::Earn {};
+    let msg = ExecuteMsg::Earn {};
     let res = contract::handle(&mut deps, owner, msg).unwrap();
     println!("{:?}", res);
 }

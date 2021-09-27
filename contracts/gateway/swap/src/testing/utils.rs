@@ -1,7 +1,7 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::testing::{mock_env, MockApi, MockStorage};
 use cosmwasm_std::{Env, Extern, HumanAddr};
-use pylon_gateway::swap_msg::InitMsg;
+use pylon_gateway::swap_msg::InstantiateMsg;
 use std::str::FromStr;
 
 use crate::contract;
@@ -12,8 +12,8 @@ use crate::testing::constants::{
 };
 use crate::testing::mock_querier::CustomMockQuerier;
 
-pub fn init_msg() -> InitMsg {
-    InitMsg {
+pub fn init_msg() -> InstantiateMsg {
+    InstantiateMsg {
         beneficiary: HumanAddr::from(TEST_BENEFICIARY),
         pool_x_denom: TEST_POOL_X_DENOM.to_string(),
         pool_y_addr: HumanAddr::from(TEST_POOL_Y_ADDR),

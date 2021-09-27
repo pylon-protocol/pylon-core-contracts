@@ -3,7 +3,7 @@ use cosmwasm_std::{
     Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResponse, MigrateResult,
     Querier, StdResult, Storage,
 };
-use pylon_gateway::swap_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
+use pylon_gateway::swap_msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use std::ops::Add;
 
 use crate::handler::execute as ExecHandler;
@@ -14,7 +14,7 @@ use crate::state::{config, state, vpool};
 pub fn init<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
-    msg: InitMsg,
+    msg: InstantiateMsg,
 ) -> StdResult<InitResponse> {
     config::store(
         &mut deps.storage,
@@ -58,17 +58,17 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
 pub fn handle<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
-    msg: HandleMsg,
+    msg: ExecuteMsg,
 ) -> StdResult<HandleResponse> {
     match msg {
-        HandleMsg::Configure {
+        ExecuteMsg::Configure {
             total_sale_amount,
             min_user_cap,
             max_user_cap,
         } => ExecHandler::configure(deps, env, total_sale_amount, min_user_cap, max_user_cap),
-        HandleMsg::Deposit {} => ExecHandler::deposit(deps, env),
-        HandleMsg::Withdraw { amount } => ExecHandler::withdraw(deps, env, amount),
-        HandleMsg::Earn {} => ExecHandler::earn(deps, env),
+        ExecuteMsg::Deposit {} => ExecHandler::deposit(deps, env),
+        ExecuteMsg::Withdraw { amount } => ExecHandler::withdraw(deps, env, amount),
+        ExecuteMsg::Earn {} => ExecHandler::earn(deps, env),
     }
 }
 
