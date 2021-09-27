@@ -1,6 +1,6 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-use cosmwasm_std::{HumanAddr, Timestamp};
+use cosmwasm_std::testing::{mock_dependencies, mock_info};
+use cosmwasm_std::Timestamp;
 use pylon_gateway::pool_msg::{ConfigureMsg, ExecuteMsg};
 use std::ops::Mul;
 use std::str::FromStr;
@@ -29,7 +29,7 @@ fn handle_configure_owner() {
     assert_eq!(res.messages, vec![]);
 
     let config = config::read(&deps.storage).unwrap();
-    assert_eq!(config.owner, HumanAddr::from(TEST_USER));
+    assert_eq!(config.owner, TEST_USER.to_string());
 }
 
 #[test]
@@ -140,7 +140,7 @@ fn handle_configure_claim() {
 #[test]
 fn handle_configure_distribution_add_reward() {
     let mut deps = mock_dependencies(&[]);
-    let (mut env, mut owner) = utils::initialize(&mut deps);
+    let (mut env, owner) = utils::initialize(&mut deps);
     env.block.time = Timestamp::from_seconds(TEST_POOL_START);
     let user = mock_info(TEST_USER, &[]);
 
@@ -172,7 +172,7 @@ fn handle_configure_distribution_add_reward() {
 #[test]
 fn handle_configure_distribution_add_reward_middle_of_period() {
     let mut deps = mock_dependencies(&[]);
-    let (mut env, mut owner) = utils::initialize(&mut deps);
+    let (mut env, owner) = utils::initialize(&mut deps);
     env.block.time = Timestamp::from_seconds(TEST_POOL_START + TEST_POOL_PERIOD / 2);
     let user = mock_info(TEST_USER, &[]);
 
@@ -204,7 +204,7 @@ fn handle_configure_distribution_add_reward_middle_of_period() {
 #[test]
 fn handle_configure_distribution_sub_reward() {
     let mut deps = mock_dependencies(&[]);
-    let (mut env, mut owner) = utils::initialize(&mut deps);
+    let (mut env, owner) = utils::initialize(&mut deps);
     env.block.time = Timestamp::from_seconds(TEST_POOL_START);
     let user = mock_info(TEST_USER, &[]);
 
@@ -236,9 +236,9 @@ fn handle_configure_distribution_sub_reward() {
 #[test]
 fn handle_configure_distribution_sub_reward_middle_of_period() {
     let mut deps = mock_dependencies(&[]);
-    let (mut env, mut owner) = utils::initialize(&mut deps);
+    let (mut env, owner) = utils::initialize(&mut deps);
     env.block.time = Timestamp::from_seconds(TEST_POOL_START + TEST_POOL_PERIOD / 2);
-    let mut user = mock_info(TEST_USER, &[]);
+    let user = mock_info(TEST_USER, &[]);
 
     let amount = Uint256::from(250u64);
     let prev_config = config::read(&deps.storage).unwrap();

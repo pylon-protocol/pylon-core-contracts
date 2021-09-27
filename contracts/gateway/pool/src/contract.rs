@@ -2,7 +2,7 @@
 use cosmwasm_std::entry_point;
 
 use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, HumanAddr, MessageInfo, Response, StdResult};
+use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use pylon_gateway::pool_msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use std::ops::Add;
 
@@ -24,9 +24,9 @@ pub fn instantiate(
     config::store(
         deps.storage,
         &config::Config {
-            owner: HumanAddr::from(info.sender),
+            owner: info.sender.to_string(),
             // share
-            share_token: HumanAddr::from(msg.share_token),
+            share_token: msg.share_token,
             deposit_config: config::DepositConfig {
                 time: time_range::TimeRange {
                     start: msg.start,
@@ -42,7 +42,7 @@ pub fn instantiate(
                 inverse: true,
             }],
             // reward
-            reward_token: HumanAddr::from(msg.reward_token),
+            reward_token: msg.reward_token,
             claim_time: time_range::TimeRange {
                 start: msg.cliff,
                 finish: 0,

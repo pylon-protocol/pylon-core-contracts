@@ -1,5 +1,5 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::{Attribute, DepsMut, Env, HumanAddr, MessageInfo, Response};
+use cosmwasm_std::{Attribute, DepsMut, Env, MessageInfo, Response};
 use pylon_gateway::pool_msg::ConfigureMsg;
 use std::ops::{Add, Div, Sub};
 
@@ -16,10 +16,10 @@ pub fn configure(
     msg: ConfigureMsg,
 ) -> Result<Response, ContractError> {
     let config = config::read(deps.storage).unwrap();
-    if config.owner.to_string().ne(&info.sender.to_string()) {
+    if config.owner.ne(&info.sender.to_string()) {
         return Err(ContractError::Unauthorized {
             action: "configure".to_string(),
-            expected: config.owner.to_string(),
+            expected: config.owner,
             actual: info.sender.to_string(),
         });
     }
@@ -29,14 +29,14 @@ pub fn configure(
             let mut config = config::read(deps.storage).unwrap();
 
             let prev_owner = config.owner;
-            config.owner = HumanAddr::from(owner);
+            config.owner = owner;
 
             config::store(deps.storage, &config).unwrap();
 
             Ok(Response::new()
                 .add_attribute("action", "configure_owner")
-                .add_attribute("prev_owner", prev_owner.to_string())
-                .add_attribute("next_owner", config.owner.to_string()))
+                .add_attribute("prev_owner", prev_owner)
+                .add_attribute("next_owner", config.owner))
         }
         ConfigureMsg::Deposit {
             start,

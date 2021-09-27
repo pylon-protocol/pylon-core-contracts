@@ -1,5 +1,5 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::{Env, HumanAddr, StdError, StdResult, Storage};
+use cosmwasm_std::{Env, StdError, StdResult, Storage};
 use cosmwasm_storage::{singleton, singleton_read};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -65,13 +65,13 @@ impl DistributionConfig {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Config {
-    pub owner: HumanAddr,
+    pub owner: String,
     // share
-    pub share_token: HumanAddr,
+    pub share_token: String,
     pub deposit_config: DepositConfig,
     pub withdraw_time: Vec<TimeRange>,
     // reward
-    pub reward_token: HumanAddr,
+    pub reward_token: String,
     pub claim_time: TimeRange,
     pub distribution_config: DistributionConfig,
 }

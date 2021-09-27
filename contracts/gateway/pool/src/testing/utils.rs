@@ -1,5 +1,5 @@
 use cosmwasm_std::testing::{mock_env, mock_info, MockApi, MockQuerier, MockStorage};
-use cosmwasm_std::{Env, HumanAddr, MessageInfo, OwnedDeps, StdError};
+use cosmwasm_std::{Env, MessageInfo, OwnedDeps};
 use pylon_gateway::pool_msg::InstantiateMsg;
 
 use crate::contract;

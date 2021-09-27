@@ -1,6 +1,6 @@
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MOCK_CONTRACT_ADDR};
-use cosmwasm_std::{to_binary, Api, CosmosMsg, HumanAddr, SubMsg, Timestamp, WasmMsg};
+use cosmwasm_std::{to_binary, Api, CosmosMsg, SubMsg, Timestamp, WasmMsg};
 use cw20::Cw20ExecuteMsg;
 use pylon_gateway::pool_msg::ExecuteMsg;
 
@@ -45,7 +45,7 @@ fn handle_claim() {
 fn handle_claim_internal() {
     let mut deps = mock_dependencies(&[]);
     let (mut env, _) = utils::initialize(&mut deps);
-    let mut contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
+    let contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
     env.block.time = Timestamp::from_seconds(TEST_POOL_CLIFF + 1);
 
     let reward_amount = Uint256::from(1000000u64);
@@ -99,7 +99,7 @@ fn handle_claim_internal_check_sender() {
 fn handle_claim_internal_check_claim_time() {
     let mut deps = mock_dependencies(&[]);
     let (mut env, _) = utils::initialize(&mut deps);
-    let mut contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
+    let contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
     env.block.time = Timestamp::from_seconds(TEST_POOL_CLIFF - 1);
 
     let msg = ExecuteMsg::ClaimInternal {

@@ -1,6 +1,6 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
-use cosmwasm_std::{HumanAddr, Response};
+use cosmwasm_std::Response;
 use std::ops::Add;
 
 use crate::contract;
@@ -22,9 +22,9 @@ fn proper_initialization() {
     assert_eq!(
         config,
         config::Config {
-            owner: HumanAddr::from(info.sender),
+            owner: info.sender.to_string(),
             // share
-            share_token: HumanAddr::from(msg.share_token),
+            share_token: msg.share_token,
             deposit_config: config::DepositConfig {
                 time: time_range::TimeRange {
                     start: msg.start,
@@ -40,7 +40,7 @@ fn proper_initialization() {
                 inverse: true,
             }],
             // reward
-            reward_token: HumanAddr::from(msg.reward_token),
+            reward_token: msg.reward_token,
             claim_time: time_range::TimeRange {
                 start: msg.cliff,
                 finish: 0,

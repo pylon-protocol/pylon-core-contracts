@@ -1,6 +1,6 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::testing::mock_dependencies;
-use cosmwasm_std::{Api, HumanAddr, Timestamp};
+use cosmwasm_std::{Api, Timestamp};
 use pylon_gateway::pool_msg::ExecuteMsg;
 use std::ops::{Add, Div, Mul};
 
@@ -14,7 +14,7 @@ const DEPOSIT_AMOUNT: u64 = 1000000u64;
 #[test]
 fn handle_update_without_target() {
     let mut deps = mock_dependencies(&[]);
-    let (mut env, mut owner) = utils::initialize(&mut deps);
+    let (mut env, owner) = utils::initialize(&mut deps);
 
     let deposit_amount = Uint256::from(DEPOSIT_AMOUNT);
     let user_address = deps.api.addr_canonicalize(TEST_USER).unwrap();
@@ -76,7 +76,7 @@ fn handle_update_without_target() {
 #[test]
 fn handle_update_with_target() {
     let mut deps = mock_dependencies(&[]);
-    let (mut env, mut owner) = utils::initialize(&mut deps);
+    let (mut env, owner) = utils::initialize(&mut deps);
 
     let deposit_amount = Uint256::from(DEPOSIT_AMOUNT);
     let user_address = deps.api.addr_canonicalize(TEST_USER).unwrap();

@@ -1,6 +1,6 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MOCK_CONTRACT_ADDR};
-use cosmwasm_std::{to_binary, Api, CosmosMsg, HumanAddr, SubMsg, Timestamp, Uint128, WasmMsg};
+use cosmwasm_std::{to_binary, Api, CosmosMsg, SubMsg, Timestamp, Uint128, WasmMsg};
 use cw20::Cw20ReceiveMsg;
 use pylon_gateway::pool_msg::{Cw20HookMsg, ExecuteMsg};
 use std::ops::Div;
@@ -59,7 +59,7 @@ fn handle_deposit() {
 fn handle_deposit_internal() {
     let mut deps = mock_dependencies(&[]);
     let (mut env, _) = utils::initialize(&mut deps);
-    let mut contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
+    let contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
     env.block.time = Timestamp::from_seconds(TEST_POOL_START + 1);
 
     let deposit_amount = Uint256::from(DEPOSIT_AMOUNT);
@@ -101,7 +101,7 @@ fn handle_deposit_internal_check_sender() {
 fn handle_deposit_internal_check_deposit_time() {
     let mut deps = mock_dependencies(&[]);
     let (mut env, _) = utils::initialize(&mut deps);
-    let mut contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
+    let contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
     env.block.time = Timestamp::from_seconds(TEST_POOL_START - 1); // should fail
 
     let deposit_amount = Uint256::from(DEPOSIT_AMOUNT);
@@ -118,7 +118,7 @@ fn handle_deposit_internal_check_deposit_time() {
 fn handle_deposit_internal_check_total_cap() {
     let mut deps = mock_dependencies(&[]);
     let (mut env, _) = utils::initialize(&mut deps);
-    let mut contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
+    let contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
     env.block.time = Timestamp::from_seconds(TEST_POOL_START + 1); // should fail
 
     let deposit_amount = Uint256::from(DEPOSIT_AMOUNT);
@@ -140,7 +140,7 @@ fn handle_deposit_internal_check_total_cap() {
 fn handle_deposit_internal_check_user_cap() {
     let mut deps = mock_dependencies(&[]);
     let (mut env, _) = utils::initialize(&mut deps);
-    let mut contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
+    let contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
     env.block.time = Timestamp::from_seconds(TEST_POOL_START + 1); // should fail
 
     let deposit_amount = Uint256::from(DEPOSIT_AMOUNT);

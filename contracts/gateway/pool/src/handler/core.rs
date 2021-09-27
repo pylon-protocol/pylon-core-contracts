@@ -147,9 +147,9 @@ pub fn withdraw_internal(
 
     Ok(Response::new()
         .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: config.share_token.to_string(),
+            contract_addr: config.share_token,
             msg: to_binary(&Cw20ExecuteMsg::Transfer {
-                recipient: sender.clone(),
+                recipient: sender,
                 amount: amount.into(),
             })
             .unwrap(),
@@ -189,9 +189,9 @@ pub fn claim_internal(
 
     Ok(Response::new()
         .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-            contract_addr: config.reward_token.to_string(),
+            contract_addr: config.reward_token,
             msg: to_binary(&Cw20ExecuteMsg::Transfer {
-                recipient: sender.clone(),
+                recipient: sender,
                 amount: claim_amount.into(),
             })
             .unwrap(),

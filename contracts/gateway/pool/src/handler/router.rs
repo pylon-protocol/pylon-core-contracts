@@ -15,10 +15,10 @@ pub fn receive(
     match from_binary(&cw20_msg.msg) {
         Ok(Cw20HookMsg::Deposit {}) => {
             let config = config::read(deps.storage)?;
-            if config.share_token.ne(&HumanAddr::from(info.sender.clone())) {
+            if config.share_token.ne(&info.sender.to_string()) {
                 return Err(ContractError::Unauthorized {
                     action: "deposit".to_string(),
-                    expected: config.share_token.to_string(),
+                    expected: config.share_token,
                     actual: info.sender.to_string(),
                 });
             }

@@ -1,6 +1,6 @@
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info, MOCK_CONTRACT_ADDR};
-use cosmwasm_std::{to_binary, Api, CosmosMsg, HumanAddr, SubMsg, Timestamp, WasmMsg};
+use cosmwasm_std::{to_binary, Api, CosmosMsg, SubMsg, Timestamp, WasmMsg};
 use cw20::Cw20ExecuteMsg;
 use pylon_gateway::pool_msg::ExecuteMsg;
 
@@ -52,7 +52,7 @@ fn handle_withdraw() {
 fn handle_withdraw_internal() {
     let mut deps = mock_dependencies(&[]);
     let (mut env, _) = utils::initialize(&mut deps);
-    let mut contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
+    let contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
     env.block.time = Timestamp::from_seconds(0);
 
     let withdraw_amount = Uint256::from(WITHDRAW_AMOUNT);
@@ -126,7 +126,7 @@ fn handle_withdraw_internal_check_sender() {
 fn handle_deposit_internal_check_withdraw_time() {
     let mut deps = mock_dependencies(&[]);
     let (mut env, _) = utils::initialize(&mut deps);
-    let mut contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
+    let contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
     env.block.time = Timestamp::from_seconds(TEST_POOL_START + 1);
 
     let withdraw_amount = Uint256::from(WITHDRAW_AMOUNT);
@@ -143,7 +143,7 @@ fn handle_deposit_internal_check_withdraw_time() {
 fn handle_withdraw_internal_check_user_amount() {
     let mut deps = mock_dependencies(&[]);
     let (mut env, _) = utils::initialize(&mut deps);
-    let mut contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
+    let contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
     env.block.time = Timestamp::from_seconds(0);
 
     let withdraw_amount = Uint256::from(WITHDRAW_AMOUNT);
