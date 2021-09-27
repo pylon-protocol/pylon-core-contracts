@@ -4,7 +4,6 @@ use cosmwasm_storage::{ReadonlySingleton, Singleton};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min};
-use std::ops::Mul;
 
 use crate::state::time_range::TimeRange;
 use crate::state::Validator;
@@ -40,20 +39,11 @@ impl Validator for DepositConfig {
 pub struct DistributionConfig {
     pub time: TimeRange,
     pub reward_rate: Decimal256,
-    pub total_reward_amount: Uint256,
 }
 
 impl Validator for DistributionConfig {
     fn validate(&self) -> StdResult<()> {
         self.time.validate()?;
-
-        let calculated_total_rewards = Uint256::from(self.time.period()).mul(self.reward_rate);
-        if calculated_total_rewards.ne(&self.total_reward_amount) {
-            return Err(StdError::generic_err(format!(
-                "Gateway/Pool: distribution config validation failed. reason: total reward mismatch, expected: {}, actual: {}",
-                self.total_reward_amount, calculated_total_rewards
-            )));
-        }
 
         Ok(())
     }

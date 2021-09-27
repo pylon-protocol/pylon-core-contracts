@@ -1,8 +1,8 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::testing::{mock_dependencies, mock_env};
 use cosmwasm_std::HumanAddr;
-use pylon_gateway::pool_msg::{ConfigureMsg, DistributionMsg, HandleMsg};
-use std::ops::{Add, Mul, Sub};
+use pylon_gateway::pool_msg::{ConfigureMsg, HandleMsg};
+use std::ops::Mul;
 use std::str::FromStr;
 
 use crate::contract;
@@ -144,9 +144,7 @@ fn handle_configure_distribution_add_reward() {
     let amount = Uint256::from(500u64);
     let prev_config = config::read(&deps.storage).unwrap();
 
-    let msg = HandleMsg::Configure(ConfigureMsg::Distribution(DistributionMsg::AddReward {
-        amount,
-    }));
+    let msg = HandleMsg::Configure(ConfigureMsg::AddReward { amount });
     let err = contract::handle(&mut deps, user, msg.clone())
         .expect_err("testing: should fail if non-owner executes this msg");
     utils::assert_generic_err("cfg_distribution_ar: check_owner", err);
@@ -164,10 +162,39 @@ fn handle_configure_distribution_add_reward() {
                 .distribution_config
                 .reward_rate
                 .mul(Decimal256::from_str("1.5").unwrap()),
-            total_reward_amount: prev_config
+        }
+    );
+}
+
+#[test]
+fn handle_configure_distribution_add_reward_middle_of_period() {
+    let mut deps = mock_dependencies(20, &[]);
+    let mut owner = utils::initialize(&mut deps);
+    owner.block.time = TEST_POOL_START + TEST_POOL_PERIOD / 2;
+    let mut user = mock_env(TEST_USER, &[]);
+    user.block.time = TEST_POOL_START + TEST_POOL_PERIOD / 2;
+
+    let amount = Uint256::from(500u64);
+    let prev_config = config::read(&deps.storage).unwrap();
+
+    let msg = HandleMsg::Configure(ConfigureMsg::AddReward { amount });
+    let err = contract::handle(&mut deps, user, msg.clone())
+        .expect_err("testing: should fail if non-owner executes this msg");
+    utils::assert_generic_err("cfg_distribution_ar: check_owner", err);
+    let res =
+        contract::handle(&mut deps, owner, msg).expect("testing: handle configure::distribution");
+    assert_eq!(res.data, None);
+    assert_eq!(res.messages, vec![]);
+
+    let config = config::read(&deps.storage).unwrap();
+    assert_eq!(
+        config.distribution_config,
+        config::DistributionConfig {
+            time: prev_config.distribution_config.time,
+            reward_rate: prev_config
                 .distribution_config
-                .total_reward_amount
-                .add(amount)
+                .reward_rate
+                .mul(Decimal256::from_str("2.0").unwrap()),
         }
     );
 }
@@ -183,9 +210,7 @@ fn handle_configure_distribution_sub_reward() {
     let amount = Uint256::from(500u64);
     let prev_config = config::read(&deps.storage).unwrap();
 
-    let msg = HandleMsg::Configure(ConfigureMsg::Distribution(DistributionMsg::SubReward {
-        amount,
-    }));
+    let msg = HandleMsg::Configure(ConfigureMsg::SubReward { amount });
     let err = contract::handle(&mut deps, user, msg.clone())
         .expect_err("testing: should fail if non-owner executes this msg");
     utils::assert_generic_err("cfg_distribution_sr: check_owner", err);
@@ -203,31 +228,25 @@ fn handle_configure_distribution_sub_reward() {
                 .distribution_config
                 .reward_rate
                 .mul(Decimal256::from_str("0.5").unwrap()),
-            total_reward_amount: prev_config
-                .distribution_config
-                .total_reward_amount
-                .sub(amount)
         }
     );
 }
 
 #[test]
-fn handle_configure_distribution_lengthen_period() {
+fn handle_configure_distribution_sub_reward_middle_of_period() {
     let mut deps = mock_dependencies(20, &[]);
     let mut owner = utils::initialize(&mut deps);
-    owner.block.time = TEST_POOL_START;
+    owner.block.time = TEST_POOL_START + TEST_POOL_PERIOD / 2;
     let mut user = mock_env(TEST_USER, &[]);
-    user.block.time = TEST_POOL_START;
+    user.block.time = TEST_POOL_START + TEST_POOL_PERIOD / 2;
 
-    let period = 1000;
+    let amount = Uint256::from(250u64);
     let prev_config = config::read(&deps.storage).unwrap();
 
-    let msg = HandleMsg::Configure(ConfigureMsg::Distribution(
-        DistributionMsg::LengthenPeriod { time: period },
-    ));
+    let msg = HandleMsg::Configure(ConfigureMsg::SubReward { amount });
     let err = contract::handle(&mut deps, user, msg.clone())
         .expect_err("testing: should fail if non-owner executes this msg");
-    utils::assert_generic_err("cfg_distribution_lp: check_owner", err);
+    utils::assert_generic_err("cfg_distribution_sr: check_owner", err);
     let res =
         contract::handle(&mut deps, owner, msg).expect("testing: handle configure::distribution");
     assert_eq!(res.data, None);
@@ -237,56 +256,11 @@ fn handle_configure_distribution_lengthen_period() {
     assert_eq!(
         config.distribution_config,
         config::DistributionConfig {
-            time: TimeRange {
-                start: prev_config.distribution_config.time.start,
-                finish: prev_config.distribution_config.time.finish + period,
-                inverse: false
-            },
+            time: prev_config.distribution_config.time,
             reward_rate: prev_config
                 .distribution_config
                 .reward_rate
                 .mul(Decimal256::from_str("0.5").unwrap()),
-            total_reward_amount: prev_config.distribution_config.total_reward_amount,
         }
-    )
-}
-
-#[test]
-fn handle_configure_distribution_shorten_period() {
-    let mut deps = mock_dependencies(20, &[]);
-    let mut owner = utils::initialize(&mut deps);
-    owner.block.time = TEST_POOL_START;
-    let mut user = mock_env(TEST_USER, &[]);
-    user.block.time = TEST_POOL_START;
-
-    let period = 500;
-    let prev_config = config::read(&deps.storage).unwrap();
-
-    let msg = HandleMsg::Configure(ConfigureMsg::Distribution(DistributionMsg::ShortenPeriod {
-        time: period,
-    }));
-    let err = contract::handle(&mut deps, user, msg.clone())
-        .expect_err("testing: should fail if non-owner executes this msg");
-    utils::assert_generic_err("cfg_distribution_sp: check_owner", err);
-    let res =
-        contract::handle(&mut deps, owner, msg).expect("testing: handle configure::distribution");
-    assert_eq!(res.data, None);
-    assert_eq!(res.messages, vec![]);
-
-    let config = config::read(&deps.storage).unwrap();
-    assert_eq!(
-        config.distribution_config,
-        config::DistributionConfig {
-            time: TimeRange {
-                start: prev_config.distribution_config.time.start,
-                finish: prev_config.distribution_config.time.finish - period,
-                inverse: false
-            },
-            reward_rate: prev_config
-                .distribution_config
-                .reward_rate
-                .mul(Decimal256::from_str("2.0").unwrap()),
-            total_reward_amount: prev_config.distribution_config.total_reward_amount,
-        }
-    )
+    );
 }

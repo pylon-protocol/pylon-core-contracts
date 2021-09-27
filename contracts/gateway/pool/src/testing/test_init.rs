@@ -1,7 +1,7 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::testing::{mock_dependencies, mock_env};
 use cosmwasm_std::InitResponse;
-use std::ops::{Add, Mul};
+use std::ops::Add;
 
 use crate::contract;
 use crate::state::{config, reward, time_range};
@@ -52,7 +52,6 @@ fn proper_initialization() {
                     inverse: false,
                 },
                 reward_rate: msg.reward_rate,
-                total_reward_amount: Uint256::from(msg.period).mul(msg.reward_rate),
             },
         }
     );
