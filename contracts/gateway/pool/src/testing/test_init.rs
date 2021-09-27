@@ -15,7 +15,7 @@ fn proper_initialization() {
     let msg = utils::init_msg();
     let env = mock_env();
     let info = mock_info(TEST_OWNER, &[]);
-    let res = contract::instantiate(deps.as_mut(), env.clone(), info.clone(), msg.clone()).unwrap();
+    let res = contract::instantiate(deps.as_mut(), env, info.clone(), msg.clone()).unwrap();
     assert_eq!(res, Response::default());
 
     let config = config::read(deps.as_ref().storage).unwrap();
