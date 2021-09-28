@@ -17,9 +17,9 @@ use terraswap::querier::query_token_balance;
 
 use pylon_token::common::OrderBy;
 use pylon_token::gov::{
-    ConfigResponse, Cw20HookMsg, ExecuteMsg, InstantiateMsg, PollExecuteMsg, PollResponse,
-    PollStatus, PollsResponse, QueryMsg, StateResponse, VoteOption, VoterInfo, VotersResponse,
-    VotersResponseItem,
+    ConfigResponse, Cw20HookMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, PollExecuteMsg,
+    PollResponse, PollStatus, PollsResponse, QueryMsg, StateResponse, VoteOption, VoterInfo,
+    VotersResponse, VotersResponseItem,
 };
 
 const MIN_TITLE_LENGTH: usize = 4;
@@ -30,6 +30,11 @@ const MIN_LINK_LENGTH: usize = 12;
 const MAX_LINK_LENGTH: usize = 128;
 
 const POLL_EXECUTE_REPLY_ID: u64 = 1;
+
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> Result<Response, ContractError> {
+    Ok(Response::default())
+}
 
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
