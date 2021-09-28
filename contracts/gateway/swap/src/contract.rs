@@ -1,23 +1,27 @@
+#[cfg(not(feature = "library"))]
+use cosmwasm_std::entry_point;
+
 use cosmwasm_bignumber::Uint256;
-use cosmwasm_std::{
-    Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResponse, MigrateResult,
-    Querier, StdResult, Storage,
-};
+use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use pylon_gateway::swap_msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use std::ops::Add;
 
+use crate::error::ContractError;
 use crate::handler::execute as ExecHandler;
 use crate::handler::migrate as MigrateHandler;
 use crate::handler::query as QueryHandler;
 use crate::state::{config, state, vpool};
 
-pub fn init<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
-    env: Env,
-    msg: InstantiateMsg,
-) -> StdResult<InitResponse> {
+#[allow(dead_code)]
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn instantiate(
+    _deps: DepsMut,
+    _env: Env,
+    _info: MessageInfo,
+    _msg: InstantiateMsg,
+) -> Result<Response, ContractError> {
     config::store(
-        &mut deps.storage,
+        deps.storage,
         &config::Config {
             this: env.contract.address.clone(),
             owner: env.message.sender,
@@ -36,14 +40,14 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     )?;
 
     state::store(
-        &mut deps.storage,
+        deps.storage,
         &state::State {
             total_supply: Uint256::zero(),
         },
     )?;
 
     vpool::store(
-        &mut deps.storage,
+        deps.storage,
         &vpool::VirtualPool {
             x_denom: msg.pool_x_denom,
             y_addr: deps.api.canonical_address(&msg.pool_y_addr)?,
@@ -55,11 +59,14 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     Ok(InitResponse::default())
 }
 
-pub fn handle<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
+#[allow(dead_code)]
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn execute(
+    deps: DepsMut,
     env: Env,
+    info: MessageInfo,
     msg: ExecuteMsg,
-) -> StdResult<HandleResponse> {
+) -> Result<Response, ContractError> {
     match msg {
         ExecuteMsg::Configure {
             total_sale_amount,
@@ -72,10 +79,9 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     }
 }
 
-pub fn query<S: Storage, A: Api, Q: Querier>(
-    deps: &Extern<S, A, Q>,
-    msg: QueryMsg,
-) -> StdResult<Binary> {
+#[allow(dead_code)]
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => QueryHandler::config(deps),
         QueryMsg::BalanceOf { owner } => QueryHandler::balance_of(deps, owner),
@@ -86,13 +92,11 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
     }
 }
 
-pub fn migrate<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
-    env: Env,
-    msg: MigrateMsg,
-) -> MigrateResult {
+#[allow(dead_code)]
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> Result<Response, ContractError> {
     match msg {
         MigrateMsg::Refund {} => MigrateHandler::refund(deps, env),
-        MigrateMsg::General {} => Ok(MigrateResponse::default()),
+        MigrateMsg::General {} => Ok(Response::default()),
     }
 }

@@ -13,14 +13,14 @@ use crate::testing::utils;
 
 #[test]
 pub fn migrate() {
-    let mut deps = mock_dependencies(20, &[]);
-    let env = utils::initialize(&mut deps);
+    let mut deps = mock_dependencies(&[]);
+    let (env, _) = utils::initialize(&mut deps);
 
     let msg = MigrateMsg::Refund {};
-    let res = contract::migrate(&mut deps, env, msg).unwrap();
+    let res = contract::migrate(deps.as_mut(), env, msg).unwrap();
     assert_eq!(res, MigrateResponse::default());
 
-    let config: NewRefundConfig = ReadonlySingleton::new(&deps.storage, KEY_CONFIG)
+    let config: NewRefundConfig = ReadonlySingleton::new(deps.as_ref().storage, KEY_CONFIG)
         .load()
         .unwrap();
     assert_eq!(

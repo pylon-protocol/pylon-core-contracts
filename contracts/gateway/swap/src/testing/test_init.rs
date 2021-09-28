@@ -1,5 +1,5 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::testing::{mock_env, MOCK_CONTRACT_ADDR};
+use cosmwasm_std::testing::{mock_env, mock_info, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{Api, HumanAddr, InitResponse};
 use std::str::FromStr;
 
@@ -15,14 +15,15 @@ use crate::testing::utils;
 
 #[test]
 fn proper_initialization() {
-    let mut deps = mock_dependencies(20, &[]);
+    let mut deps = mock_dependencies(&[]);
 
     let msg = utils::init_msg();
-    let env = mock_env(TEST_OWNER, &[]);
-    let res = contract::init(&mut deps, env, msg).unwrap();
+    let env = mock_env();
+    let info = mock_info(TEST_OWNER, &[]);
+    let res = contract::instantiate(deps.as_mut(), env, info, msg).unwrap();
     assert_eq!(res, InitResponse::default());
 
-    let config = config::read(&deps.storage).unwrap();
+    let config = config::read(deps.as_ref().storage).unwrap();
     assert_eq!(
         config,
         config::Config {
@@ -42,7 +43,7 @@ fn proper_initialization() {
         }
     );
 
-    let state = state::read(&deps.storage).unwrap();
+    let state = state::read(deps.as_ref().storage).unwrap();
     assert_eq!(
         state,
         state::State {
@@ -50,15 +51,12 @@ fn proper_initialization() {
         }
     );
 
-    let vpool = vpool::read(&deps.storage).unwrap();
+    let vpool = vpool::read(deps.as_ref().storage).unwrap();
     assert_eq!(
         vpool,
         vpool::VirtualPool {
             x_denom: TEST_POOL_X_DENOM.to_string(),
-            y_addr: deps
-                .api
-                .canonical_address(&HumanAddr::from(TEST_POOL_Y_ADDR))
-                .unwrap(),
+            y_addr: deps.api.addr_canonicalize(TEST_POOL_Y_ADDR).unwrap(),
             liq_x: Uint256::from(TEST_POOL_LIQ_X),
             liq_y: Uint256::from(TEST_POOL_LIQ_Y)
         }
