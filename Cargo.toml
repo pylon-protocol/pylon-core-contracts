@@ -15,6 +15,8 @@ members = [
     "contracts/pylon/gov",
     "contracts/pylon/staking",
     "contracts/pylon/vesting",
+    "contracts/mocks/market",
+    "contracts/mocks/adapter"
 ]
 
 [profile.release]
