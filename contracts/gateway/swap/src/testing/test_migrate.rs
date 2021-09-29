@@ -1,5 +1,5 @@
 use cosmwasm_bignumber::Decimal256;
-use cosmwasm_std::{HumanAddr, MigrateResponse};
+use cosmwasm_std::{HumanAddr, Response};
 use cosmwasm_storage::ReadonlySingleton;
 use pylon_gateway::swap_msg::MigrateMsg;
 use std::str::FromStr;
@@ -18,7 +18,7 @@ pub fn migrate() {
 
     let msg = MigrateMsg::Refund {};
     let res = contract::migrate(deps.as_mut(), env, msg).unwrap();
-    assert_eq!(res, MigrateResponse::default());
+    assert_eq!(res, Response::default());
 
     let config: NewRefundConfig = ReadonlySingleton::new(deps.as_ref().storage, KEY_CONFIG)
         .load()
@@ -26,7 +26,7 @@ pub fn migrate() {
     assert_eq!(
         config,
         NewRefundConfig {
-            manager: HumanAddr::from(TEST_OWNER),
+            manager: TEST_OWNER.to_string(),
             refund_denom: TEST_POOL_X_DENOM.to_string(),
             base_price: Decimal256::from_str(TEST_BASE_PRICE).unwrap(),
         }

@@ -1,6 +1,6 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::testing::{mock_env, mock_info, MOCK_CONTRACT_ADDR};
-use cosmwasm_std::{Api, HumanAddr, InitResponse};
+use cosmwasm_std::{Api, HumanAddr, Response};
 use std::str::FromStr;
 
 use crate::contract;
@@ -21,7 +21,7 @@ fn proper_initialization() {
     let env = mock_env();
     let info = mock_info(TEST_OWNER, &[]);
     let res = contract::instantiate(deps.as_mut(), env, info, msg).unwrap();
-    assert_eq!(res, InitResponse::default());
+    assert_eq!(res, Response::default());
 
     let config = config::read(deps.as_ref().storage).unwrap();
     assert_eq!(

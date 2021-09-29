@@ -1,6 +1,6 @@
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::*;
-use cw20::Cw20HandleMsg;
+use cw20::Cw20ExecuteMsg;
 use pylon_utils::tax::deduct_tax;
 use std::ops::{Add, Div, Mul, Sub};
 use terraswap::querier::query_balance;
@@ -13,15 +13,15 @@ use crate::state::{config, state, user, vpool};
 
 pub fn configure(
     deps: DepsMut,
-    _: Env,
-    info: MessageInfo,
+    _env: Env,
+    _info: MessageInfo,
     total_sale_amount: Uint256,
     min_user_cap: Uint256,
     max_user_cap: Uint256,
 ) -> Result<Response, ContractError> {
     config::store(deps.storage).update(|mut config| {
         config.total_sale_amount = total_sale_amount;
-        config.min_user_capr = min_user_cap;
+        config.min_user_cap = min_user_cap;
         config.max_user_cap = max_user_cap;
         Ok(config)
     })?;
@@ -43,9 +43,8 @@ pub fn deposit(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, C
     }
 
     // 1:1
-    let received: Uint256 = env
-        .message
-        .sent_funds
+    let received: Uint256 = info
+        .funds
         .iter()
         .find(|c| c.denom == vpool.x_denom)
         .map(|c| Uint256::from(c.amount))
@@ -56,14 +55,14 @@ pub fn deposit(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, C
             vpool.x_denom,
         ))));
     }
-    if env.message.sent_funds.len() > 1 {
+    if info.funds.len() > 1 {
         return Err(ContractError::Std(StdError::generic_err(format!(
             "Swap: this contract only accepts {}",
             vpool.x_denom,
         ))));
     }
 
-    let sender = &deps.api.canonical_address(&env.message.sender)?;
+    let sender = &deps.api.addr_canonicalize(info.sender.as_str())?;
     let mut user = user::read(deps.storage, sender)?;
     let mut state = state::read(deps.storage).load()?;
 
@@ -107,14 +106,14 @@ pub fn deposit(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, C
 
     Ok(Response::new()
         .add_attribute("action", "deposit")
-        .add_attribute("sedner", info.sender.to_string())
+        .add_attribute("sender", info.sender.to_string())
         .add_attribute("amount", received.to_string())
         .add_attribute("allocated", deposit_amount.to_string()))
 }
 
 fn withdraw_with_penalty(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
     amount: Uint256,
 ) -> Result<Response, ContractError> {
@@ -158,33 +157,35 @@ fn withdraw_with_penalty(
 fn withdraw_without_penalty(
     deps: DepsMut,
     env: Env,
+    info: MessageInfo,
     amount: Uint256,
 ) -> Result<Response, ContractError> {
     let vpool = vpool::read(deps.storage)?;
 
-    Ok(HandleResponse {
-        messages: vec![CosmosMsg::Wasm(WasmMsg::Execute {
+    Ok(Response::new()
+        .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: deps.api.human_address(&vpool.y_addr)?,
-            msg: to_binary(&Cw20HandleMsg::Transfer {
+            msg: to_binary(&Cw20ExecuteMsg::Transfer {
                 recipient: env.message.sender.clone(),
                 amount: amount.into(),
             })?,
             funds: vec![],
-        })],
-        log: vec![
-            log("action", "withdraw"),
-            log("sender", env.message.sender),
-            log("amount", amount),
-        ],
-        data: None,
-    })
+        }))
+        .add_attribute("action", "withdraw")
+        .add_attribute("sender", info.sender.to_string())
+        .add_attribute("amount", amount.to_string()))
 }
 
-pub fn withdraw(deps: DepsMut, env: Env, amount: Uint256) -> Result<Response, ContractError> {
+pub fn withdraw(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    amount: Uint256,
+) -> Result<Response, ContractError> {
     // xyk
-    let sender = &deps.api.canonical_address(&env.message.sender)?;
+    let sender = &deps.api.addr_canonicalize(info.sender.as_str())?;
     let mut user = user::read(deps.storage, sender)?;
-    let mut state = state::read(deps.storage)?;
+    let mut state = state::read(deps.storage).load()?;
 
     if user.amount.lt(&amount) {
         return Err(ContractError::Std(StdError::generic_err(format!(
@@ -197,26 +198,21 @@ pub fn withdraw(deps: DepsMut, env: Env, amount: Uint256) -> Result<Response, Co
     state.total_supply = state.total_supply.sub(amount);
 
     user::store(deps.storage, sender, &user)?;
-    state::store(deps.storage, &state)?;
+    state::store(deps.storage).save(&state)?;
 
     let config = config::read(deps.storage)?;
     if config.finish.gt(env.block.time.seconds()) {
-        Ok(withdraw_with_penalty(deps, env, amount)?)
+        Ok(withdraw_with_penalty(deps, env, info, amount)?)
     } else {
-        Ok(withdraw_without_penalty(deps, env, amount)?)
+        Ok(withdraw_without_penalty(deps, env, info, amount)?)
     }
 }
 
-fn check_owner(deps: Deps, env: &Env) -> Result<(), ContractError> {
-    let config = config::read(deps.storage)?;
-    if config.owner.ne(&env.message.sender) {
+pub fn earn(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+    let config = config::read(deps.storage).load()?;
+    if config.owner.to_string() != info.sender.to_string() {
         return Err(ContractError::Std(StdError::unauthorized()));
     }
-    Ok(())
-}
-
-pub fn earn(deps: DepsMut, env: Env) -> Result<Response, ContractError> {
-    check_owner(deps, &env)?;
 
     let config = config::read(deps.storage)?;
     if config.finish.gt(env.block.time.seconds()) {
@@ -226,25 +222,20 @@ pub fn earn(deps: DepsMut, env: Env) -> Result<Response, ContractError> {
     }
 
     let vpool = vpool::read(deps.storage)?;
-    let earn_amount = query_balance(deps, &env.contract.address, vpool.x_denom.clone())?;
+    let earn_amount = query_balance(&deps.querier, env.contract.address, vpool.x_denom.clone())?;
 
-    Ok(HandleResponse {
-        messages: vec![CosmosMsg::Bank(BankMsg::Send {
-            from_address: env.contract.address,
+    Ok(Response::new()
+        .add_message(CosmosMsg::Bank(BankMsg::Send {
             to_address: config.beneficiary,
             amount: vec![deduct_tax(
-                deps,
+                deps.as_ref(),
                 Coin {
                     denom: vpool.x_denom,
                     amount: earn_amount,
                 },
             )?],
-        })],
-        log: vec![
-            log("action", "earn"),
-            log("sender", env.message.sender),
-            log("amount", earn_amount),
-        ],
-        data: None,
-    })
+        }))
+        .add_attribute("action", "earn")
+        .add_attribute("sender", info.sender.to_string())
+        .add_attribute("amount", earn_amount.to_string()))
 }

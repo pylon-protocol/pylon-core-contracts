@@ -2,7 +2,7 @@
 use cosmwasm_std::entry_point;
 
 use cosmwasm_bignumber::Uint256;
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use cosmwasm_std::{Binary, Deps, DepsMut, Env, HumanAddr, MessageInfo, Response, StdResult};
 use pylon_gateway::swap_msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use std::ops::Add;
 
@@ -15,48 +15,39 @@ use crate::state::{config, state, vpool};
 #[allow(dead_code)]
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
-    _deps: DepsMut,
-    _env: Env,
-    _info: MessageInfo,
-    _msg: InstantiateMsg,
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
-    config::store(
-        deps.storage,
-        &config::Config {
-            this: env.contract.address.clone(),
-            owner: env.message.sender,
-            beneficiary: msg.beneficiary,
-            base_price: msg.base_price,
-            min_user_cap: msg.min_user_cap,
-            max_user_cap: msg.max_user_cap,
-            staking_contract: msg.staking_contract,
-            min_stake_amount: msg.min_stake_amount,
-            max_stake_amount: msg.max_stake_amount,
-            additional_cap_per_token: msg.additional_cap_per_token,
-            total_sale_amount: msg.total_sale_amount,
-            start: msg.start,
-            finish: msg.start.add(msg.period),
-        },
-    )?;
+    config::store(deps.storage).save(&config::Config {
+        this: HumanAddr::from(env.contract.address.to_string()),
+        owner: HumanAddr::from(info.sender.to_string()),
+        beneficiary: HumanAddr::from(msg.beneficiary),
+        base_price: msg.base_price,
+        min_user_cap: msg.min_user_cap,
+        max_user_cap: msg.max_user_cap,
+        staking_contract: HumanAddr::from(msg.staking_contract),
+        min_stake_amount: msg.min_stake_amount,
+        max_stake_amount: msg.max_stake_amount,
+        additional_cap_per_token: msg.additional_cap_per_token,
+        total_sale_amount: msg.total_sale_amount,
+        start: msg.start,
+        finish: msg.start.add(msg.period),
+    })?;
 
-    state::store(
-        deps.storage,
-        &state::State {
-            total_supply: Uint256::zero(),
-        },
-    )?;
+    state::store(deps.storage).save(&state::State {
+        total_supply: Uint256::zero(),
+    })?;
 
-    vpool::store(
-        deps.storage,
-        &vpool::VirtualPool {
-            x_denom: msg.pool_x_denom,
-            y_addr: deps.api.canonical_address(&msg.pool_y_addr)?,
-            liq_x: msg.pool_liq_x,
-            liq_y: msg.pool_liq_y,
-        },
-    )?;
+    vpool::store(deps.storage).save(&vpool::VirtualPool {
+        x_denom: msg.pool_x_denom,
+        y_addr: deps.api.addr_canonicalize(msg.pool_y_addr.as_str())?,
+        liq_x: msg.pool_liq_x,
+        liq_y: msg.pool_liq_y,
+    })?;
 
-    Ok(InitResponse::default())
+    Ok(Response::default())
 }
 
 #[allow(dead_code)]
@@ -72,10 +63,17 @@ pub fn execute(
             total_sale_amount,
             min_user_cap,
             max_user_cap,
-        } => ExecHandler::configure(deps, env, total_sale_amount, min_user_cap, max_user_cap),
-        ExecuteMsg::Deposit {} => ExecHandler::deposit(deps, env),
-        ExecuteMsg::Withdraw { amount } => ExecHandler::withdraw(deps, env, amount),
-        ExecuteMsg::Earn {} => ExecHandler::earn(deps, env),
+        } => ExecHandler::configure(
+            deps,
+            env,
+            info,
+            total_sale_amount,
+            min_user_cap,
+            max_user_cap,
+        ),
+        ExecuteMsg::Deposit {} => ExecHandler::deposit(deps, env, info),
+        ExecuteMsg::Withdraw { amount } => ExecHandler::withdraw(deps, env, info, amount),
+        ExecuteMsg::Earn {} => ExecHandler::earn(deps, env, info),
     }
 }
 

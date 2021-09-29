@@ -1,6 +1,4 @@
-use cosmwasm_std::{
-    to_binary, Api, Deps, Extern, HumanAddr, Querier, QueryRequest, StdResult, Storage, WasmQuery,
-};
+use cosmwasm_std::{to_binary, Api, Deps, Querier, QueryRequest, StdResult, Storage, WasmQuery};
 use pylon_token::gov::{QueryMsg as GovQueryMsg, StakerResponse};
 
 pub fn staker<S: Storage, A: Api, Q: Querier>(
