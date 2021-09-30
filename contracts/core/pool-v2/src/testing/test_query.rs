@@ -1,50 +1,46 @@
 use cosmwasm_bignumber::Uint256;
-use cosmwasm_std::testing::MOCK_CONTRACT_ADDR;
-use cosmwasm_std::{from_binary, Coin, Decimal, HumanAddr, Uint128};
+use cosmwasm_std::testing::{mock_env, MOCK_CONTRACT_ADDR};
+use cosmwasm_std::{from_binary, Coin, Decimal, Uint128};
 use pylon_core::pool_v2_msg::QueryMsg;
 use pylon_core::pool_v2_resp::{
     ClaimableRewardResponse, ConfigResponse, DepositAmountResponse, TotalDepositAmountResponse,
 };
+use pylon_core::test_constant::*;
+use pylon_utils::mock_token::MockToken;
 use pylon_utils::tax::deduct_tax;
 use std::ops::Mul;
 
 use crate::contract;
-use crate::testing::constants::{
-    TEST_ADAPTER, TEST_ADAPTER_INPUT_DENOM, TEST_BENEFICIARY, TEST_FACTORY, TEST_FACTORY_FEE_RATE,
-    TEST_POOL_ID, TEST_POOL_NAME, TEST_TOKEN_POOL, TEST_TOKEN_POOL_SUPPLY, TEST_TOKEN_YIELD,
-    TEST_TOKEN_YIELD_SUPPLY, TEST_USER,
-};
 use crate::testing::mock_querier::mock_dependencies;
-use crate::testing::mock_tax::MockTax;
-use crate::testing::mock_token::MockToken;
 use crate::testing::utils;
+use pylon_utils::mock_tax::MockTax;
 
 #[test]
 fn query_config() {
-    let mut deps = mock_dependencies(20, &[]);
+    let mut deps = mock_dependencies(&[]);
     let _ = utils::initialize(&mut deps);
 
     let msg = QueryMsg::Config {};
-    let bin_res = contract::query(&deps, msg).unwrap();
+    let bin_res = contract::query(deps.as_ref(), mock_env(), msg).unwrap();
     let res: ConfigResponse = from_binary(&bin_res).unwrap();
     assert_eq!(
         res,
         ConfigResponse {
             id: TEST_POOL_ID,
             name: TEST_POOL_NAME.to_string(),
-            factory: HumanAddr::from(TEST_FACTORY),
-            beneficiary: HumanAddr::from(TEST_BENEFICIARY),
-            yield_adapter: HumanAddr::from(TEST_ADAPTER),
+            factory: TEST_FACTORY.to_string(),
+            beneficiary: TEST_BENEFICIARY.to_string(),
+            yield_adapter: TEST_ADAPTER.to_string(),
             input_denom: TEST_ADAPTER_INPUT_DENOM.to_string(),
-            yield_token: HumanAddr::from(TEST_TOKEN_YIELD),
-            dp_token: HumanAddr::from(TEST_TOKEN_POOL)
+            yield_token: TEST_TOKEN_YIELD.to_string(),
+            dp_token: TEST_TOKEN_POOL.to_string()
         }
     )
 }
 
 #[test]
 fn query_deposit_amount() {
-    let mut deps = mock_dependencies(20, &[]);
+    let mut deps = mock_dependencies(&[]);
     let _ = utils::initialize(&mut deps);
 
     deps.querier.with_token(MockToken::new(
@@ -59,10 +55,10 @@ fn query_deposit_amount() {
     ));
 
     let msg = QueryMsg::DepositAmountOf {
-        owner: HumanAddr::from(TEST_USER),
+        owner: TEST_USER.to_string(),
     };
-    let bin_res = contract::query(&deps, msg).unwrap();
-    let res: DepositAmountResponse = from_binary(&bin_res).unwrap();
+    let res: DepositAmountResponse =
+        from_binary(&contract::query(deps.as_ref(), mock_env(), msg).unwrap()).unwrap();
     assert_eq!(
         res,
         DepositAmountResponse {
@@ -73,11 +69,11 @@ fn query_deposit_amount() {
 
 #[test]
 fn query_total_deposit_amount() {
-    let mut deps = mock_dependencies(20, &[]);
+    let mut deps = mock_dependencies(&[]);
     let _ = utils::initialize(&mut deps);
 
     let msg = QueryMsg::TotalDepositAmount {};
-    let bin_res = contract::query(&deps, msg).unwrap();
+    let bin_res = contract::query(deps.as_ref(), mock_env(), msg).unwrap();
     let res: TotalDepositAmountResponse = from_binary(&bin_res).unwrap();
     assert_eq!(
         res,
@@ -89,7 +85,7 @@ fn query_total_deposit_amount() {
 
 #[test]
 fn query_claimable_reward() {
-    let mut deps = mock_dependencies(20, &[]);
+    let mut deps = mock_dependencies(&[]);
     deps.querier.with_tax(MockTax::new(
         Decimal::percent(1),
         &[(
@@ -97,9 +93,7 @@ fn query_claimable_reward() {
             &Uint128::from(1000000u128),
         )],
     ));
-
-    let mut mock_token = MockToken::default();
-    mock_token.with_balances(&[
+    deps.querier.token.with_balances(&[
         (
             &TEST_TOKEN_YIELD.to_string(),
             &[(
@@ -115,15 +109,14 @@ fn query_claimable_reward() {
             )],
         ),
     ]);
-    deps.querier.with_token(mock_token);
 
     let _ = utils::initialize(&mut deps);
 
     let msg = QueryMsg::ClaimableReward {};
-    let bin_res = contract::query(&deps, msg).unwrap();
+    let bin_res = contract::query(deps.as_ref(), mock_env(), msg).unwrap();
     let res: ClaimableRewardResponse = from_binary(&bin_res).unwrap();
     let reward = deduct_tax(
-        &deps,
+        deps.as_ref(),
         Coin {
             denom: TEST_ADAPTER_INPUT_DENOM.to_string(),
             amount: Uint128::from(TEST_TOKEN_POOL_SUPPLY),

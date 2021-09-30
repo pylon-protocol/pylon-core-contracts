@@ -1,74 +1,66 @@
-use cosmwasm_std::{
-    Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResponse, MigrateResult,
-    Querier, StdResult, Storage,
-};
-use pylon_core::factory_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
+#[cfg(not(feature = "library"))]
+use cosmwasm_std::entry_point;
 
+use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError};
+use pylon_core::factory_msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+
+use crate::error::ContractError;
 use crate::handler::{core as CoreHandler, query as QueryHandler};
 use crate::state::{config, state};
 
 #[allow(dead_code)]
-pub fn init<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
-    env: Env,
-    msg: InitMsg,
-) -> StdResult<InitResponse> {
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn instantiate(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    msg: InstantiateMsg,
+) -> Result<Response, ContractError> {
     let config = config::Config {
-        owner: deps.api.canonical_address(&env.message.sender)?,
+        owner: info.sender.to_string(),
         pool_code_id: msg.pool_code_id,
         token_code_id: msg.token_code_id,
         fee_rate: msg.fee_rate,
-        fee_collector: deps.api.canonical_address(&msg.fee_collector)?,
+        fee_collector: msg.fee_collector,
     };
-
     let state = state::State { next_pool_id: 0 };
 
-    config::store(&mut deps.storage, &config)?;
-    state::store(&mut deps.storage, &state)?;
+    config::store(deps.storage, &config)?;
+    state::store(deps.storage, &state)?;
 
-    Ok(InitResponse::default())
+    Ok(Response::default())
 }
 
 #[allow(dead_code)]
-pub fn handle<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn execute(
+    deps: DepsMut,
     env: Env,
-    msg: HandleMsg,
-) -> StdResult<HandleResponse> {
+    info: MessageInfo,
+    msg: ExecuteMsg,
+) -> Result<Response, ContractError> {
     match msg {
-        HandleMsg::Configure {
-            owner,
-            pool_code_id,
-            token_code_id,
-            fee_rate,
-            fee_collector,
-        } => CoreHandler::configure(
-            deps,
-            env,
-            owner,
-            pool_code_id,
-            token_code_id,
-            fee_rate,
-            fee_collector,
-        ),
-        HandleMsg::CreatePool {
+        ExecuteMsg::Configure(msg) => CoreHandler::configure(deps, env, info, msg),
+        ExecuteMsg::CreatePool {
             pool_name,
             beneficiary,
             yield_adapter,
-        } => CoreHandler::create_pool(deps, env, pool_name, beneficiary, yield_adapter),
-        HandleMsg::RegisterPool { pool_id } => CoreHandler::register_pool(deps, env, pool_id),
-        HandleMsg::RegisterAdapter { address } => CoreHandler::register_adapter(deps, env, address),
-        HandleMsg::UnregisterAdapter { address } => {
-            CoreHandler::unregister_adapter(deps, env, address)
+        } => CoreHandler::create_pool(deps, env, info, pool_name, beneficiary, yield_adapter),
+        ExecuteMsg::RegisterPool { pool_id } => {
+            CoreHandler::register_pool(deps, env, info, pool_id)
+        }
+        ExecuteMsg::RegisterAdapter { address } => {
+            CoreHandler::register_adapter(deps, env, info, address)
+        }
+        ExecuteMsg::UnregisterAdapter { address } => {
+            CoreHandler::unregister_adapter(deps, env, info, address)
         }
     }
 }
 
 #[allow(dead_code)]
-pub fn query<S: Storage, A: Api, Q: Querier>(
-    deps: &Extern<S, A, Q>,
-    msg: QueryMsg,
-) -> StdResult<Binary> {
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> Result<Binary, StdError> {
     match msg {
         QueryMsg::Config {} => QueryHandler::config(deps),
         QueryMsg::PoolInfo { pool_id } => QueryHandler::pool_info(deps, pool_id),
@@ -76,24 +68,14 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
             QueryHandler::pool_infos(deps, start_after, limit)
         }
         QueryMsg::AdapterInfo { address } => QueryHandler::adapter_info(deps, address),
-        QueryMsg::AdapterInfos { start_after, limit } => QueryHandler::adapter_infos(
-            deps,
-            match start_after {
-                Some(start_after) => {
-                    Option::from(deps.api.canonical_address(&start_after).unwrap())
-                }
-                None => Option::None,
-            },
-            limit,
-        ),
+        QueryMsg::AdapterInfos { start_after, limit } => {
+            QueryHandler::adapter_infos(deps, start_after, limit)
+        }
     }
 }
 
 #[allow(dead_code)]
-pub fn migrate<S: Storage, A: Api, Q: Querier>(
-    _deps: &mut Extern<S, A, Q>,
-    _env: Env,
-    _msg: MigrateMsg,
-) -> MigrateResult {
-    Ok(MigrateResponse::default())
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, ContractError> {
+    Ok(Response::default())
 }

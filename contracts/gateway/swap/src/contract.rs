@@ -1,81 +1,85 @@
+#[cfg(not(feature = "library"))]
+use cosmwasm_std::entry_point;
+
 use cosmwasm_bignumber::Uint256;
-use cosmwasm_std::{
-    Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResponse, MigrateResult,
-    Querier, StdResult, Storage,
-};
-use pylon_gateway::swap_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
+use cosmwasm_std::{Binary, Deps, DepsMut, Env, HumanAddr, MessageInfo, Response, StdResult};
+use pylon_gateway::swap_msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use std::ops::Add;
 
+use crate::error::ContractError;
 use crate::handler::execute as ExecHandler;
 use crate::handler::migrate as MigrateHandler;
 use crate::handler::query as QueryHandler;
 use crate::state::{config, state, vpool};
 
-pub fn init<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
+#[allow(dead_code)]
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn instantiate(
+    deps: DepsMut,
     env: Env,
-    msg: InitMsg,
-) -> StdResult<InitResponse> {
-    config::store(
-        &mut deps.storage,
-        &config::Config {
-            this: env.contract.address.clone(),
-            owner: env.message.sender,
-            beneficiary: msg.beneficiary,
-            base_price: msg.base_price,
-            min_user_cap: msg.min_user_cap,
-            max_user_cap: msg.max_user_cap,
-            staking_contract: msg.staking_contract,
-            min_stake_amount: msg.min_stake_amount,
-            max_stake_amount: msg.max_stake_amount,
-            additional_cap_per_token: msg.additional_cap_per_token,
-            total_sale_amount: msg.total_sale_amount,
-            start: msg.start,
-            finish: msg.start.add(msg.period),
-        },
-    )?;
+    info: MessageInfo,
+    msg: InstantiateMsg,
+) -> Result<Response, ContractError> {
+    config::store(deps.storage).save(&config::Config {
+        this: HumanAddr::from(env.contract.address.to_string()),
+        owner: HumanAddr::from(info.sender.to_string()),
+        beneficiary: HumanAddr::from(msg.beneficiary),
+        base_price: msg.base_price,
+        min_user_cap: msg.min_user_cap,
+        max_user_cap: msg.max_user_cap,
+        staking_contract: HumanAddr::from(msg.staking_contract),
+        min_stake_amount: msg.min_stake_amount,
+        max_stake_amount: msg.max_stake_amount,
+        additional_cap_per_token: msg.additional_cap_per_token,
+        total_sale_amount: msg.total_sale_amount,
+        start: msg.start,
+        finish: msg.start.add(msg.period),
+    })?;
 
-    state::store(
-        &mut deps.storage,
-        &state::State {
-            total_supply: Uint256::zero(),
-        },
-    )?;
+    state::store(deps.storage).save(&state::State {
+        total_supply: Uint256::zero(),
+    })?;
 
-    vpool::store(
-        &mut deps.storage,
-        &vpool::VirtualPool {
-            x_denom: msg.pool_x_denom,
-            y_addr: deps.api.canonical_address(&msg.pool_y_addr)?,
-            liq_x: msg.pool_liq_x,
-            liq_y: msg.pool_liq_y,
-        },
-    )?;
+    vpool::store(deps.storage).save(&vpool::VirtualPool {
+        x_denom: msg.pool_x_denom,
+        y_addr: deps.api.addr_canonicalize(msg.pool_y_addr.as_str())?,
+        liq_x: msg.pool_liq_x,
+        liq_y: msg.pool_liq_y,
+    })?;
 
-    Ok(InitResponse::default())
+    Ok(Response::default())
 }
 
-pub fn handle<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
+#[allow(dead_code)]
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn execute(
+    deps: DepsMut,
     env: Env,
-    msg: HandleMsg,
-) -> StdResult<HandleResponse> {
+    info: MessageInfo,
+    msg: ExecuteMsg,
+) -> Result<Response, ContractError> {
     match msg {
-        HandleMsg::Configure {
+        ExecuteMsg::Configure {
             total_sale_amount,
             min_user_cap,
             max_user_cap,
-        } => ExecHandler::configure(deps, env, total_sale_amount, min_user_cap, max_user_cap),
-        HandleMsg::Deposit {} => ExecHandler::deposit(deps, env),
-        HandleMsg::Withdraw { amount } => ExecHandler::withdraw(deps, env, amount),
-        HandleMsg::Earn {} => ExecHandler::earn(deps, env),
+        } => ExecHandler::configure(
+            deps,
+            env,
+            info,
+            total_sale_amount,
+            min_user_cap,
+            max_user_cap,
+        ),
+        ExecuteMsg::Deposit {} => ExecHandler::deposit(deps, env, info),
+        ExecuteMsg::Withdraw { amount } => ExecHandler::withdraw(deps, env, info, amount),
+        ExecuteMsg::Earn {} => ExecHandler::earn(deps, env, info),
     }
 }
 
-pub fn query<S: Storage, A: Api, Q: Querier>(
-    deps: &Extern<S, A, Q>,
-    msg: QueryMsg,
-) -> StdResult<Binary> {
+#[allow(dead_code)]
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => QueryHandler::config(deps),
         QueryMsg::BalanceOf { owner } => QueryHandler::balance_of(deps, owner),
@@ -86,13 +90,11 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
     }
 }
 
-pub fn migrate<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
-    env: Env,
-    msg: MigrateMsg,
-) -> MigrateResult {
+#[allow(dead_code)]
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn migrate(deps: DepsMut, env: Env, msg: MigrateMsg) -> Result<Response, ContractError> {
     match msg {
         MigrateMsg::Refund {} => MigrateHandler::refund(deps, env),
-        MigrateMsg::General {} => Ok(MigrateResponse::default()),
+        MigrateMsg::General {} => Ok(Response::default()),
     }
 }

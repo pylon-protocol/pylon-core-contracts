@@ -1,29 +1,29 @@
-use cosmwasm_std::{HumanAddr, Uint128};
+use cosmwasm_bignumber::Uint256;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct DepositAmountResponse {
-    pub amount: Uint128,
+    pub amount: Uint256,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct TotalDepositAmountResponse {
-    pub amount: Uint128,
+    pub amount: Uint256,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ConfigResponse {
-    pub beneficiary: HumanAddr,
-    pub fee_collector: HumanAddr,
-    pub moneymarket: HumanAddr,
+    pub beneficiary: String,
+    pub fee_collector: String,
+    pub moneymarket: String,
     pub stable_denom: String,
-    pub anchor_token: HumanAddr,
-    pub dp_token: HumanAddr,
+    pub anchor_token: String,
+    pub dp_token: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ClaimableRewardResponse {
-    pub amount: Uint128,
-    pub fee: Uint128,
+    pub amount: Uint256,
+    pub fee: Uint256,
 }

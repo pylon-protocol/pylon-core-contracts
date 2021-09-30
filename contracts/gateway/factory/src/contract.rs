@@ -1,40 +1,41 @@
-use cosmwasm_std::{
-    Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResponse, MigrateResult,
-    Querier, StdResult, Storage,
-};
-use pylon_gateway::factory_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
+#[cfg(not(feature = "library"))]
+use cosmwasm_std::entry_point;
+
+use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use pylon_gateway::factory_msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+
+use crate::error::ContractError;
 
 #[allow(dead_code)]
-pub fn init<S: Storage, A: Api, Q: Querier>(
-    _deps: &mut Extern<S, A, Q>,
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn instantiate(
+    _deps: DepsMut,
     _env: Env,
-    _msg: InitMsg,
-) -> StdResult<InitResponse> {
-    Ok(InitResponse::default())
+    _info: MessageInfo,
+    _msg: InstantiateMsg,
+) -> Result<Response, ContractError> {
+    Ok(Response::default())
 }
 
 #[allow(dead_code)]
-pub fn handle<S: Storage, A: Api, Q: Querier>(
-    _deps: &mut Extern<S, A, Q>,
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn execute(
+    _deps: DepsMut,
     _env: Env,
-    _msg: HandleMsg,
-) -> StdResult<HandleResponse> {
-    Ok(HandleResponse::default())
+    _info: MessageInfo,
+    _msg: ExecuteMsg,
+) -> Result<Response, ContractError> {
+    Ok(Response::default())
 }
 
 #[allow(dead_code)]
-pub fn query<S: Storage, A: Api, Q: Querier>(
-    _deps: &Extern<S, A, Q>,
-    _msg: QueryMsg,
-) -> StdResult<Binary> {
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn query(_deps: Deps, _env: Env, _msg: QueryMsg) -> StdResult<Binary> {
     Ok(Binary::default())
 }
 
 #[allow(dead_code)]
-pub fn migrate<S: Storage, A: Api, Q: Querier>(
-    _deps: &mut Extern<S, A, Q>,
-    _env: Env,
-    _msg: MigrateMsg,
-) -> MigrateResult {
-    Ok(MigrateResponse::default())
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, ContractError> {
+    Ok(Response::default())
 }

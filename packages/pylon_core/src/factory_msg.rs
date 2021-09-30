@@ -1,39 +1,41 @@
 use cosmwasm_bignumber::Decimal256;
-use cosmwasm_std::HumanAddr;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct InitMsg {
+pub struct InstantiateMsg {
     pub pool_code_id: u64,
     pub token_code_id: u64,
     pub fee_rate: Decimal256,
-    pub fee_collector: HumanAddr,
+    pub fee_collector: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct ConfigureMsg {
+    pub owner: Option<String>,
+    pub pool_code_id: Option<u64>,
+    pub token_code_id: Option<u64>,
+    pub fee_rate: Option<Decimal256>,
+    pub fee_collector: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum HandleMsg {
-    Configure {
-        owner: Option<HumanAddr>,
-        pool_code_id: Option<u64>,
-        token_code_id: Option<u64>,
-        fee_rate: Option<Decimal256>,
-        fee_collector: Option<HumanAddr>,
-    },
+pub enum ExecuteMsg {
+    Configure(ConfigureMsg),
     CreatePool {
         pool_name: String,
-        beneficiary: HumanAddr,
-        yield_adapter: HumanAddr,
+        beneficiary: String,
+        yield_adapter: String,
     },
     RegisterPool {
         pool_id: u64,
     },
     RegisterAdapter {
-        address: HumanAddr,
+        address: String,
     },
     UnregisterAdapter {
-        address: HumanAddr,
+        address: String,
     },
 }
 
@@ -49,10 +51,10 @@ pub enum QueryMsg {
         limit: Option<u32>,
     },
     AdapterInfo {
-        address: HumanAddr,
+        address: String,
     },
     AdapterInfos {
-        start_after: Option<HumanAddr>,
+        start_after: Option<String>,
         limit: Option<u32>,
     },
 }

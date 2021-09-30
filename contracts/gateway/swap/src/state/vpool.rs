@@ -1,6 +1,6 @@
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{CanonicalAddr, StdResult, Storage};
-use cosmwasm_storage::{ReadonlySingleton, Singleton};
+use cosmwasm_storage::{singleton, singleton_read, ReadonlySingleton, Singleton};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -14,10 +14,10 @@ pub struct VirtualPool {
     pub liq_y: Uint256,
 }
 
-pub fn store<S: Storage>(storage: &mut S, data: &VirtualPool) -> StdResult<()> {
-    Singleton::new(storage, KEY_VPOOL).save(data)
+pub fn store(storage: &mut dyn Storage) -> Singleton<VirtualPool> {
+    singleton(storage, KEY_VPOOL)
 }
 
-pub fn read<S: Storage>(storage: &S) -> StdResult<VirtualPool> {
-    ReadonlySingleton::new(storage, KEY_VPOOL).load()
+pub fn read(storage: &dyn Storage) -> ReadonlySingleton<VirtualPool> {
+    singleton_read(storage, KEY_VPOOL)
 }

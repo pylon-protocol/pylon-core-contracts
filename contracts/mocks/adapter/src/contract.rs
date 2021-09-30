@@ -1,7 +1,9 @@
+#[cfg(not(feature = "library"))]
+use cosmwasm_std::entry_point;
+
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{
-    to_binary, Api, Binary, Env, Extern, HandleResponse, HumanAddr, InitResponse, MigrateResponse,
-    Querier, StdError, StdResult, Storage,
+    to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Response, StdError, StdResult,
 };
 use pylon_core::adapter_msg::{HandleMsg, QueryMsg};
 use pylon_core::adapter_resp;
@@ -11,50 +13,52 @@ use crate::market;
 use crate::msg::{InstantiateMsg, MigrateMsg};
 
 #[allow(dead_code)]
-pub fn init<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
-    env: Env,
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn instantiate(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
     msg: InstantiateMsg,
-) -> Result<InitResponse, StdError> {
-    let market_config = market::config(deps, msg.moneymarket.clone())?;
+) -> Result<Response, StdError> {
+    let market_config = market::config(deps.as_ref(), msg.moneymarket.clone())?;
 
     let config = config::Config {
-        owner: env.message.sender.to_string(),
+        owner: info.sender.to_string(),
         moneymarket: msg.moneymarket,
         input_denom: market_config.stable_denom,
-        yield_token: market_config.aterra_contract.to_string(),
+        yield_token: market_config.aterra_contract,
     };
 
-    config::store(&mut deps.storage, &config)?;
+    config::store(deps.storage, &config)?;
 
-    Ok(InitResponse::default())
+    Ok(Response::default())
 }
 
 #[allow(dead_code)]
-pub fn handle<S: Storage, A: Api, Q: Querier>(
-    _deps: &mut Extern<S, A, Q>,
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn execute(
+    _deps: DepsMut,
     _env: Env,
+    _info: MessageInfo,
     _msg: HandleMsg,
-) -> Result<HandleResponse, StdError> {
-    Ok(HandleResponse::default())
+) -> Result<Response, StdError> {
+    Ok(Response::default())
 }
 
 #[allow(dead_code)]
-pub fn query<S: Storage, A: Api, Q: Querier>(
-    deps: &Extern<S, A, Q>,
-    msg: QueryMsg,
-) -> StdResult<Binary> {
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => {
-            let config = config::read(&deps.storage)?;
+            let config = config::read(deps.storage)?;
 
             to_binary(&adapter_resp::ConfigResponse {
                 input_denom: config.input_denom.clone(),
-                yield_token: HumanAddr::from(config.yield_token),
+                yield_token: config.yield_token,
             })
         }
         QueryMsg::ExchangeRate { input_denom: _ } => {
-            let config = config::read(&deps.storage)?;
+            let config = config::read(deps.storage)?;
             let epoch_state = market::epoch_state(deps, config.moneymarket)?;
 
             to_binary(&adapter_resp::ExchangeRateResponse {
@@ -63,7 +67,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
             })
         }
         QueryMsg::Deposit { amount } => {
-            let config = config::read(&deps.storage)?;
+            let config = config::read(deps.storage)?;
 
             to_binary(&market::deposit_stable_msg(
                 deps,
@@ -73,7 +77,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
             )?)
         }
         QueryMsg::Redeem { amount } => {
-            let config = config::read(&deps.storage)?;
+            let config = config::read(deps.storage)?;
 
             to_binary(&market::redeem_stable_msg(
                 deps,
@@ -86,10 +90,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
 }
 
 #[allow(dead_code)]
-pub fn migrate<S: Storage, A: Api, Q: Querier>(
-    _deps: &mut Extern<S, A, Q>,
-    _env: Env,
-    _msg: MigrateMsg,
-) -> Result<MigrateResponse, StdError> {
-    Ok(MigrateResponse::default())
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, StdError> {
+    Ok(Response::default())
 }

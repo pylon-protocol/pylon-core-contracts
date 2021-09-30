@@ -13,10 +13,10 @@ pub struct Reward {
     pub reward_per_token_stored: Decimal256,
 }
 
-pub fn store<S: Storage>(storage: &mut S, data: &Reward) -> StdResult<()> {
+pub fn store(storage: &mut dyn Storage, data: &Reward) -> StdResult<()> {
     Singleton::new(storage, KEY_REWARD).save(data)
 }
 
-pub fn read<S: Storage>(storage: &S) -> StdResult<Reward> {
+pub fn read(storage: &dyn Storage) -> StdResult<Reward> {
     ReadonlySingleton::new(storage, KEY_REWARD).load()
 }

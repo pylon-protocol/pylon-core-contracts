@@ -18,7 +18,6 @@ pub enum ExecuteMsg {
     DepositStable {},
 
     // managers
-    RegisterOutputToken {},
     Configure { exchange_rate: Decimal256 },
 }
 
