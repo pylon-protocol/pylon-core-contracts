@@ -1,24 +1,23 @@
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{
     coin, from_binary, to_binary, Api, BankMsg, Binary, CosmosMsg, Env, Extern, HandleResponse,
-    HumanAddr, InitResponse, MigrateResponse, Querier, StdResult, Storage, WasmMsg,
+    HumanAddr, InitResponse, MigrateResponse, Querier, StdError, StdResult, Storage, WasmMsg,
 };
 use cw20::{Cw20HandleMsg, MinterResponse};
 use pylon_testing::market_msg::{Cw20HookMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
-use pylon_testing::market_resp::ConfigResponse;
+use pylon_testing::market_resp::{ConfigResponse, EpochStateResponse};
 use std::ops::{Div, Mul};
 use terraswap::hook::InitHook as Cw20InitHook;
 use terraswap::token::InitMsg as Cw20InitMsg;
 
 use crate::config;
-use crate::error::ContractError;
 
 #[allow(dead_code)]
 pub fn init<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
     msg: InstantiateMsg,
-) -> Result<InitResponse, ContractError> {
+) -> Result<InitResponse, StdError> {
     config::store(
         &mut deps.storage,
         &config::Config {
@@ -58,16 +57,12 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
     deps: &mut Extern<S, A, Q>,
     env: Env,
     msg: ExecuteMsg,
-) -> Result<HandleResponse, ContractError> {
+) -> Result<HandleResponse, StdError> {
     match msg {
         ExecuteMsg::Receive(cw20_msg) => {
             let config = config::read(&deps.storage).unwrap();
             if config.output_token != env.message.sender.to_string() {
-                return Err(ContractError::Unauthorized {
-                    action: "cw20_receive".to_string(),
-                    expected: config.output_token,
-                    actual: env.message.sender.to_string(),
-                });
+                return Err(StdError::unauthorized());
             }
             if let Some(bin_msg) = cw20_msg.msg {
                 match from_binary(&bin_msg) {
@@ -97,14 +92,10 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
                             data: None,
                         })
                     }
-                    _ => Err(ContractError::UnsupportedReceiveMsg {
-                        typ: stringify!(unmarshalled).to_string(),
-                    }),
+                    _ => Err(StdError::unauthorized()),
                 }
             } else {
-                Err(ContractError::UnsupportedReceiveMsg {
-                    typ: stringify!(cw20_msg).to_string(),
-                })
+                Err(StdError::unauthorized())
             }
         }
         ExecuteMsg::DepositStable {} => {
@@ -117,7 +108,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
                 .map(|c| Uint256::from(c.amount))
                 .unwrap_or_else(Uint256::zero);
             if received.is_zero() {
-                return Err(ContractError::NotAllowZeroAmount {});
+                return Err(StdError::unauthorized());
             }
             let return_amount = received.div(config.exchange_rate);
 
@@ -139,11 +130,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
             let mut config = config::read(&deps.storage).unwrap();
 
             if !config.output_token.is_empty() {
-                return Err(ContractError::Unauthorized {
-                    action: "reply_init_output_token".to_string(),
-                    expected: "<empty>".to_string(),
-                    actual: config.output_token,
-                });
+                return Err(StdError::unauthorized());
             }
             config.output_token = env.message.sender.to_string();
 
@@ -154,11 +141,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
             let mut config = config::read(&deps.storage).unwrap();
 
             if config.owner != env.message.sender.to_string() {
-                return Err(ContractError::Unauthorized {
-                    action: "configure".to_string(),
-                    expected: config.owner,
-                    actual: env.message.sender.to_string(),
-                });
+                return Err(StdError::unauthorized());
             }
             config.exchange_rate = exchange_rate;
 
@@ -177,10 +160,22 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
         QueryMsg::Config {} => {
             let config = config::read(&deps.storage).unwrap();
             to_binary(&ConfigResponse {
-                owner: config.owner,
-                input_denom: config.input_denom,
-                output_token: config.output_token,
+                owner_addr: HumanAddr::from(config.owner),
+                aterra_contract: HumanAddr::from(config.output_token),
+                interest_model: Default::default(),
+                distribution_model: Default::default(),
+                overseer_contract: Default::default(),
+                collector_contract: Default::default(),
+                distributor_contract: Default::default(),
+                stable_denom: config.input_denom,
+                max_borrow_factor: Default::default(),
+            })
+        }
+        QueryMsg::EpochState { .. } => {
+            let config = config::read(&deps.storage).unwrap();
+            to_binary(&EpochStateResponse {
                 exchange_rate: config.exchange_rate,
+                aterra_supply: Default::default(),
             })
         }
     }
@@ -191,6 +186,6 @@ pub fn migrate<S: Storage, A: Api, Q: Querier>(
     _deps: &mut Extern<S, A, Q>,
     _env: Env,
     _msg: MigrateMsg,
-) -> Result<MigrateResponse, ContractError> {
+) -> Result<MigrateResponse, StdError> {
     Ok(MigrateResponse::default())
 }

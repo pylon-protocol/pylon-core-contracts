@@ -21,8 +21,8 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     let config = config::Config {
         owner: env.message.sender.to_string(),
         moneymarket: msg.moneymarket,
-        input_denom: market_config.input_denom,
-        yield_token: market_config.output_token,
+        input_denom: market_config.stable_denom,
+        yield_token: market_config.aterra_contract.to_string(),
     };
 
     config::store(&mut deps.storage, &config)?;
@@ -55,10 +55,10 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
         }
         QueryMsg::ExchangeRate { input_denom: _ } => {
             let config = config::read(&deps.storage)?;
-            let market_config = market::config(deps, config.moneymarket)?;
+            let epoch_state = market::epoch_state(deps, config.moneymarket)?;
 
             to_binary(&adapter_resp::ExchangeRateResponse {
-                exchange_rate: market_config.exchange_rate,
+                exchange_rate: epoch_state.exchange_rate,
                 yield_token_supply: Uint256::zero(),
             })
         }

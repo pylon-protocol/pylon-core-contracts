@@ -1,4 +1,4 @@
-use cosmwasm_bignumber::Decimal256;
+use cosmwasm_bignumber::{Decimal256, Uint256};
 use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -32,6 +32,10 @@ pub enum Cw20HookMsg {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Config {},
+    EpochState {
+        block_height: Option<u64>,
+        distributed_interest: Option<Uint256>,
+    },
 }
 
 /// We currently take no arguments for migrations
