@@ -8,15 +8,15 @@ static KEY_CONFIG: &[u8] = b"config";
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Config {
-    pub gov_contract: CanonicalAddr, // pylon gov address
-    pub pylon_token: CanonicalAddr,  // pylon token address
+    pub gov_contract: CanonicalAddr, // anchor gov address
+    pub pylon_token: CanonicalAddr,  // anchor token address
     pub spend_limit: Uint128,        // spend limit per each `spend` request
 }
 
-pub fn store_config<S: Storage>(storage: &mut S, config: &Config) -> StdResult<()> {
+pub fn store_config(storage: &mut dyn Storage, config: &Config) -> StdResult<()> {
     singleton(storage, KEY_CONFIG).save(config)
 }
 
-pub fn read_config<S: Storage>(storage: &S) -> StdResult<Config> {
+pub fn read_config(storage: &dyn Storage) -> StdResult<Config> {
     singleton_read(storage, KEY_CONFIG).load()
 }

@@ -1,5 +1,5 @@
 use cosmwasm_bignumber::Uint256;
-use cosmwasm_std::{Api, Coin, Extern, Querier, StdResult, Storage};
+use cosmwasm_std::{Coin, Deps, Env, StdResult};
 use pylon_utils::tax::deduct_tax;
 use pylon_utils::token;
 use std::ops::{Add, Mul, Sub};
@@ -19,31 +19,27 @@ impl Reward {
     }
 }
 
-pub fn claimable_rewards<S: Storage, A: Api, Q: Querier>(
-    deps: &Extern<S, A, Q>,
-) -> StdResult<Reward> {
-    let config = config::read(&deps.storage)?;
+pub fn claimable_rewards(deps: Deps, env: Env) -> StdResult<Reward> {
+    let config = config::read(deps.storage)?;
 
-    let exchange_rate = adapter::exchange_rate(deps, &config.yield_adapter, &config.input_denom)?;
-    let yield_token_balance = token::balance_of(
-        deps,
-        &config.yield_token,
-        deps.api.human_address(&config.this)?,
-    )?;
-    let dp_total_supply = token::total_supply(deps, &config.dp_token)?;
+    let exchange_rate =
+        adapter::exchange_rate(deps, config.yield_adapter, config.input_denom.clone())?;
+    let yield_token_balance =
+        token::balance_of(deps, config.yield_token, env.contract.address.to_string())?;
+    let dp_total_supply = token::total_supply(deps, config.dp_token)?;
 
     let pvl = Uint256::from(
         deduct_tax(
             deps,
             Coin {
-                denom: config.input_denom.clone(),
+                denom: config.input_denom,
                 amount: (yield_token_balance.mul(exchange_rate)).into(),
             },
         )?
         .amount,
     );
     let amount = pvl.sub(dp_total_supply);
-    let factory_config = factory::config(deps, &config.factory)?;
+    let factory_config = factory::config(deps, config.factory)?;
     let fee = amount.mul(factory_config.fee_rate);
 
     Ok(Reward {

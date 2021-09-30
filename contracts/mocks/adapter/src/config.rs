@@ -14,10 +14,10 @@ pub struct Config {
     pub yield_token: String,
 }
 
-pub fn store<S: Storage>(storage: &mut S, data: &Config) -> StdResult<()> {
+pub fn store(storage: &mut dyn Storage, data: &Config) -> StdResult<()> {
     singleton(storage, CONFIG_KEY).save(data)
 }
 
-pub fn read<S: Storage>(storage: &S) -> StdResult<Config> {
+pub fn read(storage: &dyn Storage) -> StdResult<Config> {
     singleton_read(storage, CONFIG_KEY).load()
 }

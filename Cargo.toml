@@ -7,20 +7,19 @@ members = [
     "contracts/core/adapters/anchor",
     "contracts/gateway/factory",
     "contracts/gateway/pool",
-    "contracts/gateway/swap",
-    "contracts/gateway/swap-refund",
-    "contracts/mocks/adapter",
-    "contracts/mocks/market",
+#    "contracts/gateway/swap",
+#    "contracts/gateway/swap-refund",
     "contracts/pylon/airdrop",
     "contracts/pylon/collector",
     "contracts/pylon/community",
     "contracts/pylon/gov",
     "contracts/pylon/staking",
     "contracts/pylon/vesting",
+    "contracts/mocks/market",
+    "contracts/mocks/adapter"
 ]
 
 [profile.release]
 rpath = false
 lto = true
 overflow-checks = true
-

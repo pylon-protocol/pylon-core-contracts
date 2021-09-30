@@ -1,27 +1,30 @@
+#[cfg(not(feature = "library"))]
+use cosmwasm_std::entry_point;
+
 use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::{
-    Api, Binary, Env, Extern, HandleResponse, InitResponse, MigrateResult, Querier, StdResult,
-    Storage,
-};
-use pylon_gateway::pool_msg::{HandleMsg, InitMsg, MigrateMsg, QueryMsg};
+use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use pylon_gateway::pool_msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 use std::ops::Add;
 
+use crate::error::ContractError;
 use crate::handler::configure as Config;
 use crate::handler::core as Core;
-use crate::handler::migrate as Migrate;
 use crate::handler::query as Query;
 use crate::handler::router as Router;
 use crate::state::{config, reward, time_range};
 
-pub fn init<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
-    env: Env,
-    msg: InitMsg,
-) -> StdResult<InitResponse> {
+#[allow(dead_code)]
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn instantiate(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    msg: InstantiateMsg,
+) -> Result<Response, ContractError> {
     config::store(
-        &mut deps.storage,
+        deps.storage,
         &config::Config {
-            owner: env.message.sender,
+            owner: info.sender.to_string(),
             // share
             share_token: msg.share_token,
             deposit_config: config::DepositConfig {
@@ -57,7 +60,7 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
     )?;
 
     reward::store(
-        &mut deps.storage,
+        deps.storage,
         &reward::Reward {
             total_deposit: Uint256::zero(),
             last_update_time: msg.start,
@@ -65,67 +68,51 @@ pub fn init<S: Storage, A: Api, Q: Querier>(
         },
     )?;
 
-    Ok(InitResponse::default())
+    Ok(Response::default())
 }
 
-pub fn handle<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
+#[allow(dead_code)]
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn execute(
+    deps: DepsMut,
     env: Env,
-    msg: HandleMsg,
-) -> StdResult<HandleResponse> {
+    info: MessageInfo,
+    msg: ExecuteMsg,
+) -> Result<Response, ContractError> {
     match msg {
         // common
-        HandleMsg::Update { target } => Core::update(deps, env, target),
+        ExecuteMsg::Update { target } => Core::update(deps, env, info, target),
         // router
-        HandleMsg::Receive(msg) => Router::receive(deps, env, msg),
-        HandleMsg::Withdraw { amount } => Router::withdraw(deps, env, amount),
-        HandleMsg::Claim {} => Router::claim(deps, env),
+        ExecuteMsg::Receive(msg) => Router::receive(deps, env, info, msg),
+        ExecuteMsg::Withdraw { amount } => Router::withdraw(deps, env, info, amount),
+        ExecuteMsg::Claim {} => Router::claim(deps, env, info),
         // internal
-        HandleMsg::DepositInternal { sender, amount } => {
-            Core::deposit_internal(deps, env, sender, amount)
+        ExecuteMsg::DepositInternal { sender, amount } => {
+            Core::deposit_internal(deps, env, info, sender, amount)
         }
-        HandleMsg::WithdrawInternal { sender, amount } => {
-            Core::withdraw_internal(deps, env, sender, amount)
+        ExecuteMsg::WithdrawInternal { sender, amount } => {
+            Core::withdraw_internal(deps, env, info, sender, amount)
         }
-        HandleMsg::ClaimInternal { sender } => Core::claim_internal(deps, env, sender),
+        ExecuteMsg::ClaimInternal { sender } => Core::claim_internal(deps, env, info, sender),
         // owner
-        HandleMsg::Configure(msg) => Config::configure(deps, env, msg),
+        ExecuteMsg::Configure(msg) => Config::configure(deps, env, info, msg),
     }
 }
 
-pub fn query<S: Storage, A: Api, Q: Querier>(
-    deps: &Extern<S, A, Q>,
-    msg: QueryMsg,
-) -> StdResult<Binary> {
+#[allow(dead_code)]
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::Config {} => Query::config(deps),
-        QueryMsg::Stakers {
-            start_after,
-            limit,
-            timestamp,
-        } => Query::stakers(
-            deps,
-            match start_after {
-                Some(start_after) => {
-                    Option::from(deps.api.canonical_address(&start_after).unwrap())
-                }
-                None => Option::None,
-            },
-            limit,
-            timestamp,
-        ),
-        QueryMsg::Reward {} => Query::reward(deps),
-        QueryMsg::BalanceOf { owner } => Query::balance_of(deps, owner),
-        QueryMsg::ClaimableReward { owner, timestamp } => {
-            Query::claimable_reward(deps, owner, timestamp)
-        }
+        QueryMsg::Config {} => Query::config(deps, env),
+        QueryMsg::Stakers { start_after, limit } => Query::stakers(deps, env, start_after, limit),
+        QueryMsg::Reward {} => Query::reward(deps, env),
+        QueryMsg::BalanceOf { owner } => Query::balance_of(deps, env, owner),
+        QueryMsg::ClaimableReward { owner } => Query::claimable_reward(deps, env, owner),
     }
 }
 
-pub fn migrate<S: Storage, A: Api, Q: Querier>(
-    deps: &mut Extern<S, A, Q>,
-    env: Env,
-    msg: MigrateMsg,
-) -> MigrateResult {
-    Migrate::handle(deps, env, msg)
+#[allow(dead_code)]
+#[cfg_attr(not(feature = "library"), entry_point)]
+pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, ContractError> {
+    Ok(Response::default())
 }

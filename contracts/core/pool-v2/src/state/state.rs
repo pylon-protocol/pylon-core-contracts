@@ -1,9 +1,8 @@
-use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
-
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{StdResult, Storage};
-use cosmwasm_storage::{ReadonlySingleton, Singleton};
+use cosmwasm_storage::{singleton, singleton_read};
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 pub static STATE_KEY: &[u8] = b"state";
 
@@ -13,10 +12,10 @@ pub struct State {
     pub accumulated_fee: Uint256,
 }
 
-pub fn store<S: Storage>(storage: &mut S, data: &State) -> StdResult<()> {
-    Singleton::new(storage, STATE_KEY).save(data)
+pub fn store(storage: &mut dyn Storage, data: &State) -> StdResult<()> {
+    singleton(storage, STATE_KEY).save(data)
 }
 
-pub fn read<S: Storage>(storage: &S) -> StdResult<State> {
-    ReadonlySingleton::new(storage, STATE_KEY).load()
+pub fn read(storage: &dyn Storage) -> StdResult<State> {
+    singleton_read(storage, STATE_KEY).load()
 }

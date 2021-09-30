@@ -1,6 +1,6 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::{HumanAddr, StdResult, Storage};
-use cosmwasm_storage::{ReadonlySingleton, Singleton};
+use cosmwasm_storage::{singleton, singleton_read, ReadonlySingleton, Singleton};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -23,10 +23,10 @@ pub struct Config {
     pub finish: u64,
 }
 
-pub fn store<S: Storage>(storage: &mut S, data: &Config) -> StdResult<()> {
-    Singleton::new(storage, KEY_CONFIG).save(data)
+pub fn store(storage: &mut dyn Storage) -> Singleton<Config> {
+    singleton(storage, KEY_CONFIG)
 }
 
-pub fn read<S: Storage>(storage: &S) -> StdResult<Config> {
-    ReadonlySingleton::new(storage, KEY_CONFIG).load()
+pub fn read(storage: &dyn Storage) -> ReadonlySingleton<Config> {
+    singleton_read(storage, KEY_CONFIG)
 }
