@@ -1,3 +1,3 @@
+mod config;
 mod contract;
 mod error;
-mod config;
