@@ -1,7 +1,7 @@
 use cosmwasm_std::*;
 use cw20::Cw20ExecuteMsg;
 use pylon_testing::market_msg::{Cw20HookMsg, ExecuteMsg, QueryMsg};
-use pylon_testing::market_resp::ConfigResponse;
+use pylon_testing::market_resp::{ConfigResponse, EpochStateResponse};
 use pylon_utils::tax::deduct_tax;
 
 pub fn config(deps: Deps, market: String) -> StdResult<ConfigResponse> {
@@ -9,6 +9,17 @@ pub fn config(deps: Deps, market: String) -> StdResult<ConfigResponse> {
         .query::<ConfigResponse>(&QueryRequest::Wasm(WasmQuery::Smart {
             contract_addr: market,
             msg: to_binary(&QueryMsg::Config {})?,
+        }))
+}
+
+pub fn epoch_state(deps: Deps, market: String) -> StdResult<EpochStateResponse> {
+    deps.querier
+        .query::<EpochStateResponse>(&QueryRequest::Wasm(WasmQuery::Smart {
+            contract_addr: market,
+            msg: to_binary(&QueryMsg::EpochState {
+                block_height: None,
+                distributed_interest: None,
+            })?,
         }))
 }
 

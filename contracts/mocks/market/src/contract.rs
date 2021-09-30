@@ -8,7 +8,7 @@ use cosmwasm_std::{
 use cw20::{Cw20ExecuteMsg, MinterResponse};
 use protobuf::Message;
 use pylon_testing::market_msg::{Cw20HookMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
-use pylon_testing::market_resp::ConfigResponse;
+use pylon_testing::market_resp::{ConfigResponse, EpochStateResponse};
 use std::ops::{Div, Mul};
 use terraswap::token::InstantiateMsg as Cw20InstantiateMsg;
 
@@ -180,10 +180,22 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Config {} => {
             let config = state::config_r(deps.storage).load().unwrap();
             to_binary(&ConfigResponse {
-                owner: config.owner,
-                input_denom: config.input_denom,
-                output_token: config.output_token,
+                owner_addr: config.owner,
+                aterra_contract: config.output_token,
+                interest_model: "".to_string(),
+                distribution_model: "".to_string(),
+                overseer_contract: "".to_string(),
+                collector_contract: "".to_string(),
+                distributor_contract: "".to_string(),
+                stable_denom: config.input_denom,
+                max_borrow_factor: Default::default(),
+            })
+        }
+        QueryMsg::EpochState { .. } => {
+            let config = state::config_r(deps.storage).load().unwrap();
+            to_binary(&EpochStateResponse {
                 exchange_rate: config.exchange_rate,
+                aterra_supply: Default::default(),
             })
         }
     }
