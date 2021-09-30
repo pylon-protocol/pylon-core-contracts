@@ -41,7 +41,7 @@ pub fn handle<S: Storage, A: Api, Q: Querier>(
 
 #[allow(dead_code)]
 pub fn query<S: Storage, A: Api, Q: Querier>(
-    deps: Extern<S, A, Q>,
+    deps: &Extern<S, A, Q>,
     msg: QueryMsg,
 ) -> StdResult<Binary> {
     match msg {
