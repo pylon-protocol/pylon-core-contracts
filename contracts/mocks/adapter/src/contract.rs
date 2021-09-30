@@ -55,7 +55,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
         }
         QueryMsg::ExchangeRate { input_denom: _ } => {
             let config = config::read(&deps.storage)?;
-            let market_config = market::config(&deps, config.moneymarket)?;
+            let market_config = market::config(deps, config.moneymarket)?;
 
             to_binary(&adapter_resp::ExchangeRateResponse {
                 exchange_rate: market_config.exchange_rate,
@@ -66,7 +66,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
             let config = config::read(&deps.storage)?;
 
             to_binary(&market::deposit_stable_msg(
-                &deps,
+                deps,
                 config.moneymarket,
                 &config.input_denom,
                 amount.into(),
@@ -76,7 +76,7 @@ pub fn query<S: Storage, A: Api, Q: Querier>(
             let config = config::read(&deps.storage)?;
 
             to_binary(&market::redeem_stable_msg(
-                &deps,
+                deps,
                 config.moneymarket,
                 config.yield_token,
                 amount.into(),
