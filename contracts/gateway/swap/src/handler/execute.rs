@@ -164,7 +164,7 @@ pub fn claim(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, Con
             })?,
             funds: vec![],
         }))
-        .add_attribute("action", "withdraw")
+        .add_attribute("action", "claim")
         .add_attribute("sender", info.sender.to_string())
         .add_attribute("amount", claimable_token.to_string()))
 }
