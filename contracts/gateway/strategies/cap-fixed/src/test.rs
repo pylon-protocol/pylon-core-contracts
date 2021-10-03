@@ -10,6 +10,7 @@ use pylon_gateway::cap_strategy_msg::QueryMsg;
 use pylon_gateway::cap_strategy_resp::AvailableCapOfResponse;
 
 const OWNER: &str = "owner";
+const NEW_OWNER: &str = "new_owner";
 
 fn init_contract(
     deps: &mut OwnedDeps<MockStorage, MockApi, MockQuerier>,
@@ -65,6 +66,7 @@ fn execute_configure() {
     max_user_cap = max_user_cap - Uint256::from(100u64);
 
     let msg = ExecuteMsg::Configure {
+        owner: Option::from(NEW_OWNER.to_string()),
         min_user_cap: Option::from(min_user_cap),
         max_user_cap: Option::from(max_user_cap),
     };
@@ -76,7 +78,7 @@ fn execute_configure() {
     assert_eq!(
         config,
         state::Config {
-            owner: OWNER.to_string(),
+            owner: NEW_OWNER.to_string(),
             min_user_cap,
             max_user_cap
         }

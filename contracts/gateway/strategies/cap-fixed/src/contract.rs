@@ -40,6 +40,7 @@ pub fn instantiate(
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub enum ExecuteMsg {
     Configure {
+        owner: Option<String>,
         min_user_cap: Option<Uint256>,
         max_user_cap: Option<Uint256>,
     },
@@ -55,6 +56,7 @@ pub fn execute(
 ) -> StdResult<Response> {
     match msg {
         ExecuteMsg::Configure {
+            owner,
             min_user_cap,
             max_user_cap,
         } => {
@@ -66,6 +68,9 @@ pub fn execute(
                 )));
             }
 
+            if let Some(v) = owner {
+                config.owner = v;
+            }
             if let Some(v) = min_user_cap {
                 config.min_user_cap = v;
             }
