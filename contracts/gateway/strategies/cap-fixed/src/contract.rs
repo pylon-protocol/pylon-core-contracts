@@ -26,11 +26,13 @@ pub fn instantiate(
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> StdResult<Response> {
-    let mut config = state::config_r(deps.storage).load().unwrap();
-    config.owner = info.sender.to_string();
-    config.min_user_cap = msg.min_user_cap;
-    config.max_user_cap = msg.max_user_cap;
-    state::config_w(deps.storage).save(&config).unwrap();
+    state::config_w(deps.storage)
+        .save(&state::Config {
+            owner: info.sender.to_string(),
+            min_user_cap: msg.min_user_cap,
+            max_user_cap: msg.max_user_cap,
+        })
+        .unwrap();
 
     Ok(Response::default())
 }
