@@ -12,13 +12,15 @@ pub fn deposit(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, C
     let config = config::read(deps.storage).load()?;
     let state = state::read(deps.storage).load()?;
 
-    if config.start.gt(&env.block.time.seconds()) {
-        return Err(ContractError::Std(StdError::generic_err(
-            "Swap: not started",
-        )));
+    if env.block.time.seconds() < config.start {
+        return Err(ContractError::SwapNotStarted {
+            start: config.start,
+        });
     }
-    if config.finish.lt(&env.block.time.seconds()) {
-        return Err(ContractError::Std(StdError::generic_err("Swap: finished")));
+    if config.finish < env.block.time.seconds() {
+        return Err(ContractError::SwapFinished {
+            finish: config.finish,
+        });
     }
 
     // 1:1

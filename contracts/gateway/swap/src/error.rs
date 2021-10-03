@@ -19,15 +19,19 @@ pub enum ContractError {
         actual: String,
     },
 
-    #[error(
-        "Gateway/Swap: withdraw amount exceeds user swapped_in amount (Available: {available:?})"
-    )]
+    #[error("Gateway/Swap: not started. (time: {start:?})")]
+    SwapNotStarted { start: u64 },
+
+    #[error("Gateway/Swap: finished. (time: {finish:?})")]
+    SwapFinished { finish: u64 },
+
+    #[error("Gateway/Swap: withdraw amount exceeds deposit amount (Available: {available:?})")]
     WithdrawAmountExceeded { available: Uint256 },
 
-    #[error("Gateway/Swap: swapped_in amount exceeds available cap (Available: {available:?})")]
+    #[error("Gateway/Swap: deposit amount exceeds available cap (Available: {available:?})")]
     AvailableCapExceeded { available: Uint256 },
 
-    #[error("Gateway/Swap: swapped_out amount exceeds pool size (Available: {available:?})")]
+    #[error("Gateway/Swap: deposit amount exceeds pool size (Available: {available:?})")]
     PoolSizeExceeded { available: Uint256 },
 
     #[error("Gateway/Swap: Invalid reply ID (ID: {id:?}")]

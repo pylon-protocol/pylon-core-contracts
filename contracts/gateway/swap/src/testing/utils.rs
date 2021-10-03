@@ -1,13 +1,14 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::testing::{mock_env, mock_info, MockApi, MockStorage};
 use cosmwasm_std::{Env, MessageInfo, OwnedDeps};
-use pylon_gateway::swap_msg::InstantiateMsg;
+use pylon_gateway::swap_msg::{ConfigureMsg, ExecuteMsg, InstantiateMsg, Strategy};
 use std::str::FromStr;
 
 use crate::contract;
 use crate::testing::constants::{
-    TEST_BASE_PRICE, TEST_BENEFICIARY, TEST_OWNER, TEST_POOL_LIQ_X, TEST_POOL_LIQ_Y,
-    TEST_POOL_X_DENOM, TEST_POOL_Y_ADDR, TEST_TOTAL_SALE_AMOUNT,
+    TEST_BENEFICIARY, TEST_OWNER, TEST_POOL_LIQ_X, TEST_POOL_LIQ_Y, TEST_POOL_X_DENOM,
+    TEST_POOL_Y_ADDR, TEST_PRICE, TEST_STRATEGY_LOCKUP_PERCENT, TEST_STRATEGY_VESTING_PERCENT,
+    TEST_SWAP_POOL_SIZE, TEST_USER_1, TEST_USER_2,
 };
 use crate::testing::mock_querier::CustomMockQuerier;
 
@@ -18,13 +19,23 @@ pub fn init_msg() -> InstantiateMsg {
         pool_y_addr: TEST_POOL_Y_ADDR.to_string(),
         pool_liq_x: Uint256::from(TEST_POOL_LIQ_X),
         pool_liq_y: Uint256::from(TEST_POOL_LIQ_Y),
-        price: Decimal256::from_str(TEST_BASE_PRICE).unwrap(),
+        price: Decimal256::from_str(TEST_PRICE).unwrap(),
         cap_strategy: None,
-        distribution_strategy: vec![],
-        whitelist_enabled: false,
-        start: 0,
-        period: 1,
-        swap_pool_size: Uint256::from(TEST_TOTAL_SALE_AMOUNT),
+        distribution_strategy: vec![
+            Strategy::Lockup {
+                release_time: 5,
+                release_amount: Decimal256::percent(TEST_STRATEGY_LOCKUP_PERCENT),
+            },
+            Strategy::Vesting {
+                release_start_time: 5,
+                release_finish_time: 11,
+                release_amount: Decimal256::percent(TEST_STRATEGY_VESTING_PERCENT),
+            },
+        ],
+        whitelist_enabled: true,
+        start: 1,
+        period: 10,
+        swap_pool_size: Uint256::from(TEST_SWAP_POOL_SIZE),
     }
 }
 
@@ -36,6 +47,13 @@ pub fn initialize(
     let msg = init_msg();
     let _res = contract::instantiate(deps.as_mut(), env.clone(), info.clone(), msg)
         .expect("testing: contract initialized");
+
+    let msg = ExecuteMsg::Configure(ConfigureMsg::Whitelist {
+        whitelist: true,
+        candidates: vec![TEST_OWNER.to_string(), TEST_USER_1.to_string()],
+    });
+    let _res = contract::execute(deps.as_mut(), env.clone(), info.clone(), msg)
+        .expect("testing: setup whitelist");
 
     (env, info)
 }

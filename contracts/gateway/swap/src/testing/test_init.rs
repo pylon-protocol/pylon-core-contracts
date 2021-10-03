@@ -1,14 +1,12 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::testing::{mock_env, mock_info};
 use cosmwasm_std::Response;
+use pylon_gateway::swap_msg::Strategy;
 use std::str::FromStr;
 
 use crate::contract;
 use crate::state::{config, state};
-use crate::testing::constants::{
-    TEST_BASE_PRICE, TEST_BENEFICIARY, TEST_OWNER, TEST_POOL_LIQ_X, TEST_POOL_LIQ_Y,
-    TEST_POOL_X_DENOM, TEST_POOL_Y_ADDR, TEST_TOTAL_SALE_AMOUNT,
-};
+use crate::testing::constants::*;
 use crate::testing::mock_querier::mock_dependencies;
 use crate::testing::utils;
 
@@ -28,13 +26,23 @@ fn proper_initialization() {
         config::Config {
             owner: TEST_OWNER.to_string(),
             beneficiary: TEST_BENEFICIARY.to_string(),
-            start: 0,
-            finish: 1,
+            start: 1,
+            finish: 11,
             cap_strategy: None,
-            distribution_strategy: vec![],
-            whitelist_enabled: false,
-            price: Decimal256::from_str(TEST_BASE_PRICE).unwrap(),
-            swap_pool_size: Uint256::from(TEST_TOTAL_SALE_AMOUNT)
+            distribution_strategy: vec![
+                Strategy::Lockup {
+                    release_time: 5,
+                    release_amount: Decimal256::percent(TEST_STRATEGY_LOCKUP_PERCENT),
+                },
+                Strategy::Vesting {
+                    release_start_time: 5,
+                    release_finish_time: 11,
+                    release_amount: Decimal256::percent(TEST_STRATEGY_VESTING_PERCENT),
+                }
+            ],
+            whitelist_enabled: true,
+            price: Decimal256::from_str(TEST_PRICE).unwrap(),
+            swap_pool_size: Uint256::from(TEST_SWAP_POOL_SIZE)
         }
     );
 
