@@ -1,5 +1,5 @@
 use cosmwasm_bignumber::Decimal256;
-use cosmwasm_std::{HumanAddr, Response};
+use cosmwasm_std::Response;
 use cosmwasm_storage::ReadonlySingleton;
 use pylon_gateway::swap_msg::MigrateMsg;
 use std::str::FromStr;
@@ -27,8 +27,8 @@ pub fn migrate() {
         config,
         NewRefundConfig {
             manager: TEST_OWNER.to_string(),
+            swap_price: Decimal256::from_str(TEST_BASE_PRICE).unwrap(),
             refund_denom: TEST_POOL_X_DENOM.to_string(),
-            base_price: Decimal256::from_str(TEST_BASE_PRICE).unwrap(),
         }
     )
 }

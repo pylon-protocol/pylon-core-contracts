@@ -1,3 +1,2 @@
-pub mod staking;
-pub mod swap;
+pub mod strategy;
 pub mod vpool;

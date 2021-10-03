@@ -2,47 +2,41 @@
 use cosmwasm_std::entry_point;
 
 use cosmwasm_bignumber::Uint256;
-use cosmwasm_std::{Binary, Deps, DepsMut, Env, HumanAddr, MessageInfo, Response, StdResult};
-use pylon_gateway::swap_msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
-use std::ops::Add;
+use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
+use pylon_gateway::swap_msg::{ConfigureMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 use crate::error::ContractError;
+use crate::handler::configure as ConfigHandler;
 use crate::handler::execute as ExecHandler;
 use crate::handler::migrate as MigrateHandler;
 use crate::handler::query as QueryHandler;
-use crate::state::{config, state, vpool};
+use crate::state::{config, state};
 
 #[allow(dead_code)]
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn instantiate(
     deps: DepsMut,
-    env: Env,
+    _env: Env,
     info: MessageInfo,
     msg: InstantiateMsg,
 ) -> Result<Response, ContractError> {
     config::store(deps.storage).save(&config::Config {
-        this: HumanAddr::from(env.contract.address.to_string()),
-        owner: HumanAddr::from(info.sender.to_string()),
-        beneficiary: HumanAddr::from(msg.beneficiary),
-        base_price: msg.base_price,
-        min_user_cap: msg.min_user_cap,
-        max_user_cap: msg.max_user_cap,
-        staking_contract: HumanAddr::from(msg.staking_contract),
-        min_stake_amount: msg.min_stake_amount,
-        max_stake_amount: msg.max_stake_amount,
-        additional_cap_per_token: msg.additional_cap_per_token,
-        total_sale_amount: msg.total_sale_amount,
+        owner: info.sender.to_string(),
+        beneficiary: msg.beneficiary,
+        price: msg.price,
         start: msg.start,
-        finish: msg.start.add(msg.period),
+        finish: msg.start + msg.period,
+        cap_strategy: msg.cap_strategy,
+        distribution_strategy: msg.distribution_strategy,
+        whitelist_enabled: msg.whitelist_enabled,
+        swap_pool_size: msg.swap_pool_size,
     })?;
 
     state::store(deps.storage).save(&state::State {
-        total_supply: Uint256::zero(),
-    })?;
-
-    vpool::store(deps.storage).save(&vpool::VirtualPool {
+        total_swapped: Uint256::zero(),
+        total_claimed: Uint256::zero(),
         x_denom: msg.pool_x_denom,
-        y_addr: deps.api.addr_canonicalize(msg.pool_y_addr.as_str())?,
+        y_addr: msg.pool_y_addr,
         liq_x: msg.pool_liq_x,
         liq_y: msg.pool_liq_y,
     })?;
@@ -59,34 +53,35 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Configure {
-            total_sale_amount,
-            min_user_cap,
-            max_user_cap,
-        } => ExecHandler::configure(
-            deps,
-            env,
-            info,
-            total_sale_amount,
-            min_user_cap,
-            max_user_cap,
-        ),
+        ExecuteMsg::Configure(cfg_msg) => match cfg_msg {
+            ConfigureMsg::Whitelist {
+                whitelist,
+                candidates,
+            } => ConfigHandler::whitelist(deps, env, info, whitelist, candidates),
+        },
         ExecuteMsg::Deposit {} => ExecHandler::deposit(deps, env, info),
         ExecuteMsg::Withdraw { amount } => ExecHandler::withdraw(deps, env, info, amount),
+        ExecuteMsg::Claim {} => ExecHandler::claim(deps, env, info),
         ExecuteMsg::Earn {} => ExecHandler::earn(deps, env, info),
     }
 }
 
 #[allow(dead_code)]
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
+pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::Config {} => QueryHandler::config(deps),
         QueryMsg::BalanceOf { owner } => QueryHandler::balance_of(deps, owner),
+        QueryMsg::IsWhitelisted { address } => QueryHandler::is_whitelisted(deps, address),
         QueryMsg::AvailableCapOf { address } => QueryHandler::available_cap_of(deps, address),
+        QueryMsg::ClaimableTokenOf { address } => {
+            QueryHandler::claimable_token_of(deps, env, address)
+        }
         QueryMsg::TotalSupply {} => QueryHandler::total_supply(deps),
         QueryMsg::CurrentPrice {} => QueryHandler::current_price(deps),
-        QueryMsg::SimulateWithdraw { amount } => QueryHandler::simulate_withdraw(deps, amount),
+        QueryMsg::SimulateWithdraw { amount, address } => {
+            QueryHandler::simulate_withdraw(deps, address, amount)
+        }
     }
 }
 
