@@ -34,6 +34,16 @@ pub struct InstantiateMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ConfigureMsg {
+    Swap {
+        owner: Option<String>,
+        beneficiary: Option<String>,
+    },
+    Pool {
+        x_denom: Option<String>,
+        y_addr: Option<String>,
+        liq_x: Option<Uint256>,
+        liq_y: Option<Uint256>,
+    },
     Whitelist {
         whitelist: bool,
         candidates: Vec<String>,

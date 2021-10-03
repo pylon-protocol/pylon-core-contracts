@@ -53,12 +53,32 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        ExecuteMsg::Configure(cfg_msg) => match cfg_msg {
-            ConfigureMsg::Whitelist {
-                whitelist,
-                candidates,
-            } => ConfigHandler::whitelist(deps, env, info, whitelist, candidates),
-        },
+        ExecuteMsg::Configure(cfg_msg) => {
+            let config = config::read(deps.storage).load().unwrap();
+            if config.owner != info.sender {
+                return Err(ContractError::Unauthorized {
+                    action: stringify!(cfg_msg).to_string(),
+                    expected: config.owner,
+                    actual: info.sender.to_string(),
+                });
+            }
+
+            match cfg_msg {
+                ConfigureMsg::Swap { owner, beneficiary } => {
+                    ConfigHandler::swap(deps, env, info, owner, beneficiary)
+                }
+                ConfigureMsg::Pool {
+                    x_denom,
+                    y_addr,
+                    liq_x,
+                    liq_y,
+                } => ConfigHandler::pool(deps, env, info, x_denom, y_addr, liq_x, liq_y),
+                ConfigureMsg::Whitelist {
+                    whitelist,
+                    candidates,
+                } => ConfigHandler::whitelist(deps, env, info, whitelist, candidates),
+            }
+        }
         ExecuteMsg::Deposit {} => ExecHandler::deposit(deps, env, info),
         ExecuteMsg::Withdraw { amount } => ExecHandler::withdraw(deps, env, info, amount),
         ExecuteMsg::Claim {} => ExecHandler::claim(deps, env, info),

@@ -14,7 +14,6 @@ use crate::state;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
-    pub owner: String,
     pub min_user_cap: Uint256,
     pub max_user_cap: Uint256,
 }
@@ -24,11 +23,11 @@ pub struct InstantiateMsg {
 pub fn instantiate(
     deps: DepsMut,
     _env: Env,
-    _info: MessageInfo,
+    info: MessageInfo,
     msg: InstantiateMsg,
 ) -> StdResult<Response> {
     let mut config = state::config_r(deps.storage).load().unwrap();
-    config.owner = msg.owner;
+    config.owner = info.sender.to_string();
     config.min_user_cap = msg.min_user_cap;
     config.max_user_cap = msg.max_user_cap;
     state::config_w(deps.storage).save(&config).unwrap();
