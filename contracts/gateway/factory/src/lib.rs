@@ -1,4 +1,4 @@
-mod contract;
+pub mod contract;
 #[warn(clippy::module_inception)]
 pub mod state;
 

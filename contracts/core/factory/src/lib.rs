@@ -1,6 +1,6 @@
+pub mod contract;
 pub mod state;
 
-mod contract;
 mod error;
 mod handler;
 mod querier;

@@ -1,2 +1,2 @@
-mod contract;
-mod state;
+pub mod contract;
+pub mod state;
