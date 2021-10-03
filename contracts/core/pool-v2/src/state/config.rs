@@ -1,5 +1,5 @@
-use cosmwasm_std::{CanonicalAddr, StdResult, Storage};
-use cosmwasm_storage::{ReadonlySingleton, Singleton};
+use cosmwasm_std::{StdResult, Storage};
+use cosmwasm_storage::{singleton, singleton_read};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -9,19 +9,18 @@ pub static CONFIG_KEY: &[u8] = b"config";
 pub struct Config {
     pub id: u64,
     pub name: String,
-    pub this: CanonicalAddr,
-    pub factory: CanonicalAddr,
-    pub beneficiary: CanonicalAddr,
-    pub yield_adapter: CanonicalAddr,
+    pub factory: String,
+    pub beneficiary: String,
+    pub yield_adapter: String,
     pub input_denom: String,
-    pub yield_token: CanonicalAddr,
-    pub dp_token: CanonicalAddr,
+    pub yield_token: String,
+    pub dp_token: String,
 }
 
-pub fn store<S: Storage>(storage: &mut S, data: &Config) -> StdResult<()> {
-    Singleton::new(storage, CONFIG_KEY).save(data)
+pub fn store(storage: &mut dyn Storage, data: &Config) -> StdResult<()> {
+    singleton(storage, CONFIG_KEY).save(data)
 }
 
-pub fn read<S: Storage>(storage: &S) -> StdResult<Config> {
-    ReadonlySingleton::new(storage, CONFIG_KEY).load()
+pub fn read(storage: &dyn Storage) -> StdResult<Config> {
+    singleton_read(storage, CONFIG_KEY).load()
 }

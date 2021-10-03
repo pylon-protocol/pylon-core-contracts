@@ -1,6 +1,6 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::testing::{mock_dependencies, mock_env};
-use cosmwasm_std::InitResponse;
+use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
+use cosmwasm_std::Response;
 use std::ops::Add;
 
 use crate::contract;
@@ -10,20 +10,21 @@ use crate::testing::utils;
 
 #[test]
 fn proper_initialization() {
-    let mut deps = mock_dependencies(20, &[]);
+    let mut deps = mock_dependencies(&[]);
 
     let msg = utils::init_msg();
-    let env = mock_env(TEST_OWNER, &[]);
-    let res = contract::init(&mut deps, env.clone(), msg.clone()).unwrap();
-    assert_eq!(res, InitResponse::default());
+    let env = mock_env();
+    let info = mock_info(TEST_OWNER, &[]);
+    let res = contract::instantiate(deps.as_mut(), env, info.clone(), msg.clone()).unwrap();
+    assert_eq!(res, Response::default());
 
-    let config = config::read(&deps.storage).unwrap();
+    let config = config::read(deps.as_ref().storage).unwrap();
     assert_eq!(
         config,
         config::Config {
-            owner: env.message.sender,
+            owner: info.sender.to_string(),
             // share
-            share_token: msg.share_token.clone(),
+            share_token: msg.share_token,
             deposit_config: config::DepositConfig {
                 time: time_range::TimeRange {
                     start: msg.start,

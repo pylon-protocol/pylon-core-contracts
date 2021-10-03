@@ -1,27 +1,22 @@
 use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
-use cosmwasm_std::{
-    from_binary, from_slice, Api, Coin, Extern, HumanAddr, Querier, QuerierResult, QueryRequest,
-    SystemError, WasmQuery,
-};
+use cosmwasm_std::*;
+use cw20::TokenInfoResponse;
+use pylon_core::mock_adapter::MockAdapter;
+use pylon_core::mock_pool::MockPool;
+use pylon_core::test_constant::*;
+use pylon_utils::mock_token::MockToken;
 use terra_cosmwasm::TerraQueryWrapper;
 
-use crate::testing::constants::TEST_POOL;
-use crate::testing::mock_adapter::MockAdapter;
-use crate::testing::mock_pool::MockPool;
-use crate::testing::mock_token::MockToken;
-
 pub fn mock_dependencies(
-    canonical_length: usize,
     contract_balance: &[Coin],
-) -> Extern<MockStorage, MockApi, CustomMockQuerier> {
-    let contract_addr = HumanAddr::from(MOCK_CONTRACT_ADDR);
-    let api = MockApi::new(canonical_length);
+) -> OwnedDeps<MockStorage, MockApi, CustomMockQuerier> {
+    let api = MockApi::default();
 
-    Extern {
+    OwnedDeps {
         storage: MockStorage::default(),
         api,
         querier: CustomMockQuerier::new(
-            MockQuerier::new(&[(&contract_addr, contract_balance)]),
+            MockQuerier::new(&[(MOCK_CONTRACT_ADDR, contract_balance)]),
             api,
         ),
     }
@@ -29,9 +24,9 @@ pub fn mock_dependencies(
 
 pub struct CustomMockQuerier {
     base: MockQuerier<TerraQueryWrapper>,
-    pool: MockPool,
-    token: MockToken,
-    adapter: MockAdapter,
+    pub pool: MockPool,
+    pub token: MockToken,
+    pub adapter: MockAdapter,
 }
 
 impl Querier for CustomMockQuerier {
@@ -39,7 +34,7 @@ impl Querier for CustomMockQuerier {
         let request: QueryRequest<TerraQueryWrapper> = match from_slice(bin_request) {
             Ok(v) => v,
             Err(e) => {
-                return Err(SystemError::InvalidRequest {
+                return SystemResult::Err(SystemError::InvalidRequest {
                     error: format!("Parsing query request: {:?}", e),
                     request: bin_request.into(),
                 })
@@ -56,18 +51,17 @@ impl CustomMockQuerier {
                 contract_addr,
                 msg: bin_msg,
             }) => {
-                if contract_addr.to_string().starts_with("token_") {
+                if contract_addr.starts_with("token_") {
                     self.token
                         .handle_query(contract_addr, from_binary(bin_msg).unwrap())
-                } else if contract_addr.to_string().starts_with("yield_adapter") {
+                } else if contract_addr.starts_with("adapter") {
                     self.adapter.handle_query(from_binary(bin_msg).unwrap())
                 } else {
-                    match contract_addr.to_string().as_str() {
-                        TEST_POOL => self.pool.handle_query(
-                            &HumanAddr::from(TEST_POOL.to_string()),
-                            from_binary(bin_msg).unwrap(),
-                        ),
-                        _ => Err(SystemError::UnsupportedRequest {
+                    match contract_addr.as_str() {
+                        TEST_POOL => self
+                            .pool
+                            .handle_query(&TEST_POOL.to_string(), from_binary(bin_msg).unwrap()),
+                        _ => SystemResult::Err(SystemError::UnsupportedRequest {
                             kind: contract_addr.to_string(),
                         }),
                     }
@@ -83,7 +77,29 @@ impl CustomMockQuerier {
         CustomMockQuerier {
             base,
             pool: MockPool::default(),
-            token: MockToken::default(),
+            token: MockToken::new(
+                &[
+                    (
+                        &TEST_TOKEN_YIELD.to_string(),
+                        TokenInfoResponse {
+                            name: TEST_TOKEN_YIELD.to_string(),
+                            symbol: "TNT".to_string(),
+                            decimals: 6u8,
+                            total_supply: Uint128::from(TEST_TOKEN_YIELD_SUPPLY),
+                        },
+                    ),
+                    (
+                        &TEST_TOKEN_POOL.to_string(),
+                        TokenInfoResponse {
+                            name: TEST_TOKEN_POOL.to_string(),
+                            symbol: "TNT".to_string(),
+                            decimals: 6u8,
+                            total_supply: Uint128::from(TEST_TOKEN_POOL_SUPPLY),
+                        },
+                    ),
+                ],
+                &[],
+            ),
             adapter: MockAdapter::default(),
         }
     }
@@ -93,6 +109,7 @@ impl CustomMockQuerier {
         self.pool = pool;
     }
 
+    #[allow(dead_code)]
     pub fn with_token(&mut self, token: MockToken) {
         self.token = token;
     }

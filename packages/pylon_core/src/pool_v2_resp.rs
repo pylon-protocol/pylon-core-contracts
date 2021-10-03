@@ -1,19 +1,17 @@
+use cosmwasm_bignumber::Uint256;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
-use cosmwasm_bignumber::Uint256;
-use cosmwasm_std::HumanAddr;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ConfigResponse {
     pub id: u64,
     pub name: String,
-    pub factory: HumanAddr,
-    pub beneficiary: HumanAddr,
-    pub yield_adapter: HumanAddr,
+    pub factory: String,
+    pub beneficiary: String,
+    pub yield_adapter: String,
     pub input_denom: String,
-    pub yield_token: HumanAddr,
-    pub dp_token: HumanAddr,
+    pub yield_token: String,
+    pub dp_token: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

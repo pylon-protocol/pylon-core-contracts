@@ -1,6 +1,6 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::{Env, HumanAddr, StdError, StdResult, Storage};
-use cosmwasm_storage::{ReadonlySingleton, Singleton};
+use cosmwasm_std::{Env, StdError, StdResult, Storage};
+use cosmwasm_storage::{singleton, singleton_read};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min};
@@ -65,13 +65,13 @@ impl DistributionConfig {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Config {
-    pub owner: HumanAddr,
+    pub owner: String,
     // share
-    pub share_token: HumanAddr,
+    pub share_token: String,
     pub deposit_config: DepositConfig,
     pub withdraw_time: Vec<TimeRange>,
     // reward
-    pub reward_token: HumanAddr,
+    pub reward_token: String,
     pub claim_time: TimeRange,
     pub distribution_config: DistributionConfig,
 }
@@ -154,11 +154,11 @@ impl Config {
     }
 }
 
-pub fn store<S: Storage>(storage: &mut S, data: &Config) -> StdResult<()> {
+pub fn store(storage: &mut dyn Storage, data: &Config) -> StdResult<()> {
     data.validate()?;
-    Singleton::new(storage, KEY_CONFIG).save(data)
+    singleton(storage, KEY_CONFIG).save(data)
 }
 
-pub fn read<S: Storage>(storage: &S) -> StdResult<Config> {
-    ReadonlySingleton::new(storage, KEY_CONFIG).load()
+pub fn read(storage: &dyn Storage) -> StdResult<Config> {
+    singleton_read(storage, KEY_CONFIG).load()
 }

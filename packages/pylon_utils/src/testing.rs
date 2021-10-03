@@ -8,14 +8,14 @@ use crate::tax::{compute_tax, deduct_tax};
 
 #[test]
 fn tax_rate_querier() {
-    let mut deps = mock_dependencies(20, &[]);
+    let mut deps = mock_dependencies(&[]);
 
     deps.querier
         .with_tax(MockTax::new(Decimal::percent(1), &[]));
 
     assert_eq!(
         Decimal256::from(
-            TerraQuerier::new(&deps.querier)
+            TerraQuerier::new(&deps.as_ref().querier)
                 .query_tax_rate()
                 .unwrap()
                 .rate
@@ -26,7 +26,7 @@ fn tax_rate_querier() {
 
 #[test]
 fn test_compute_tax() {
-    let mut deps = mock_dependencies(20, &[]);
+    let mut deps = mock_dependencies(&[]);
 
     deps.querier.with_tax(MockTax::new(
         Decimal::percent(1),
@@ -35,20 +35,20 @@ fn test_compute_tax() {
 
     // cap to 1000000
     assert_eq!(
-        compute_tax(&deps, &Coin::new(10000000000u128, "uusd")).unwrap(),
+        compute_tax(deps.as_ref(), &Coin::new(10000000000u128, "uusd")).unwrap(),
         Uint256::from(1000000u64)
     );
 
     // normal tax
     assert_eq!(
-        compute_tax(&deps, &Coin::new(50000000u128, "uusd")).unwrap(),
+        compute_tax(deps.as_ref(), &Coin::new(50000000u128, "uusd")).unwrap(),
         Uint256::from(495049u64)
     );
 }
 
 #[test]
 fn test_deduct_tax() {
-    let mut deps = mock_dependencies(20, &[]);
+    let mut deps = mock_dependencies(&[]);
 
     deps.querier.with_tax(MockTax::new(
         Decimal::percent(1),
@@ -57,19 +57,19 @@ fn test_deduct_tax() {
 
     // cap to 1000000
     assert_eq!(
-        deduct_tax(&deps, Coin::new(10000000000u128, "uusd")).unwrap(),
+        deduct_tax(deps.as_ref(), Coin::new(10000000000u128, "uusd")).unwrap(),
         Coin {
             denom: "uusd".to_string(),
-            amount: Uint128(9999000000u128)
+            amount: Uint128::from(9999000000u128)
         }
     );
 
     // normal tax
     assert_eq!(
-        deduct_tax(&deps, Coin::new(50000000u128, "uusd")).unwrap(),
+        deduct_tax(deps.as_ref(), Coin::new(50000000u128, "uusd")).unwrap(),
         Coin {
             denom: "uusd".to_string(),
-            amount: Uint128(49504951u128)
+            amount: Uint128::from(49504951u128)
         }
     );
 }

@@ -1,21 +1,19 @@
-use cosmwasm_std::HumanAddr;
 use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct InitMsg {
+pub struct InstantiateMsg {
     pub pool_id: u64,
     pub pool_name: String,
-    pub beneficiary: HumanAddr,
-    pub yield_adapter: HumanAddr,
+    pub beneficiary: String,
+    pub yield_adapter: String,
     pub dp_code_id: u64,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum HandleMsg {
-    RegisterDPToken {},
+pub enum ExecuteMsg {
     Receive(Cw20ReceiveMsg),
     Deposit {}, // UST -> DP (user)
     Earn {},    // x -> UST (beneficiary)
@@ -31,7 +29,7 @@ pub enum Cw20HookMsg {
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Config {},
-    DepositAmountOf { owner: HumanAddr },
+    DepositAmountOf { owner: String },
     TotalDepositAmount {},
     ClaimableReward {},
 }
