@@ -31,6 +31,7 @@ pub struct AvailableCapOfResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ClaimableTokenOfResponse {
     pub amount: Uint256,
+    pub remaining: Uint256,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]

@@ -61,10 +61,13 @@ pub fn available_cap_of(deps: Deps, address: String) -> StdResult<Binary> {
 }
 
 pub fn claimable_token_of(deps: Deps, env: Env, address: String) -> StdResult<Binary> {
+    let user_addr = &deps.api.addr_canonicalize(address.as_str()).unwrap();
+    let user = user::read(deps.storage, user_addr).unwrap();
     let claimable_token = strategy::claimable_token_of(deps, env.block.time.seconds(), address)?;
 
     to_binary(&resp::ClaimableTokenOfResponse {
         amount: claimable_token,
+        remaining: user.swapped_out - (user.swapped_out_claimed + claimable_token),
     })
 }
 

@@ -59,8 +59,8 @@ pub fn claimable_token_of(deps: Deps, time: u64, address: String) -> StdResult<U
         };
     }
 
-    let accumulated = user.swapped_out * ratio;
-    let claimable_token = accumulated - user.swapped_out_claimed;
+    let unlocked = user.swapped_out * ratio;
+    let claimable_token = unlocked - user.swapped_out_claimed;
 
     Ok(claimable_token)
 }
