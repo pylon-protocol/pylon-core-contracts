@@ -174,6 +174,9 @@ pub fn claim(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, Con
     user.swapped_out_claimed += claimable_token;
     state.total_claimed += claimable_token;
 
+    user::store(deps.storage, sender, &user)?;
+    state::store(deps.storage).save(&state)?;
+
     Ok(Response::new()
         .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
             contract_addr: state.y_addr,
