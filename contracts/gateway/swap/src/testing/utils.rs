@@ -5,11 +5,7 @@ use pylon_gateway::swap_msg::{ConfigureMsg, ExecuteMsg, InstantiateMsg, Strategy
 use std::str::FromStr;
 
 use crate::contract;
-use crate::testing::constants::{
-    TEST_BENEFICIARY, TEST_OWNER, TEST_POOL_LIQ_X, TEST_POOL_LIQ_Y, TEST_POOL_X_DENOM,
-    TEST_POOL_Y_ADDR, TEST_PRICE, TEST_STRATEGY_LOCKUP_PERCENT, TEST_STRATEGY_VESTING_PERCENT,
-    TEST_SWAP_POOL_SIZE, TEST_USER_1, TEST_USER_2,
-};
+use crate::testing::constants::*;
 use crate::testing::mock_querier::CustomMockQuerier;
 
 pub fn init_msg() -> InstantiateMsg {

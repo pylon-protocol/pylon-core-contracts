@@ -91,7 +91,7 @@ fn query_available_cap() {
 
     let min_user_cap = Uint256::from(10u64);
     let max_user_cap = Uint256::from(1500u64);
-    let (env, owner) = init_contract(&mut deps, min_user_cap, max_user_cap);
+    let (env, _) = init_contract(&mut deps, min_user_cap, max_user_cap);
 
     // lt min_user_cap
     let amount = min_user_cap - Uint256::from(1u64);
@@ -126,7 +126,7 @@ fn query_available_cap() {
     let amount = max_user_cap + Uint256::from(1u64);
     let msg = QueryMsg::AvailableCapOf { amount };
     let resp = from_binary::<AvailableCapOfResponse>(
-        &contract::query(deps.as_ref(), env.clone(), msg)
+        &contract::query(deps.as_ref(), env, msg)
             .expect("testing: should able to query available cap"),
     )
     .unwrap();

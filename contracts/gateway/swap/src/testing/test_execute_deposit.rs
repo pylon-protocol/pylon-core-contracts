@@ -1,5 +1,5 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
-use cosmwasm_std::{coin, Api, Timestamp, Uint128};
+use cosmwasm_std::{coin, Api, Timestamp};
 use pylon_gateway::swap_msg::ExecuteMsg;
 
 use crate::contract;
@@ -42,7 +42,7 @@ fn execute_deposit_check_period() {
 
     // gt finish
     env.block.time = Timestamp::from_seconds(12);
-    let resp = contract::execute(deps.as_mut(), env.clone(), info, ExecuteMsg::Deposit {})
+    let resp = contract::execute(deps.as_mut(), env, info, ExecuteMsg::Deposit {})
         .expect_err("testing: should execute deposit failed");
     assert!(matches!(resp, ContractError::SwapFinished { .. }));
 }
@@ -117,7 +117,7 @@ fn execute_deposit_check_cap() {
             "uusd",
         )],
     );
-    let resp = contract::execute(deps.as_mut(), env.clone(), user, ExecuteMsg::Deposit {})
+    let resp = contract::execute(deps.as_mut(), env, user, ExecuteMsg::Deposit {})
         .expect_err("testing: should execute deposit failed");
     assert!(matches!(resp, ContractError::PoolSizeExceeded { .. }));
 }
@@ -136,7 +136,7 @@ fn execute_deposit() {
 
     env.block.time = Timestamp::from_seconds(5);
     let user = mock_info(TEST_USER_1, &[coin(100, "uusd")]);
-    contract::execute(deps.as_mut(), env.clone(), user, ExecuteMsg::Deposit {})
+    contract::execute(deps.as_mut(), env, user, ExecuteMsg::Deposit {})
         .expect("testing: should execute deposit succeeded");
 
     before_user.swapped_in += Uint256::from(100u64);

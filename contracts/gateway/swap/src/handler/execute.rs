@@ -1,6 +1,7 @@
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::*;
 use cw20::Cw20ExecuteMsg;
+use pylon_gateway::swap_msg::Strategy;
 use pylon_utils::tax::deduct_tax;
 
 use crate::error::ContractError;
@@ -86,13 +87,29 @@ pub fn deposit(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, C
 
 pub fn withdraw(
     deps: DepsMut,
-    _env: Env,
+    env: Env,
     info: MessageInfo,
     amount: Uint256,
 ) -> Result<Response, ContractError> {
     // xyk
     let sender = &deps.api.addr_canonicalize(info.sender.as_str()).unwrap();
     let config = config::read(deps.storage).load().unwrap();
+    for strategy in config.distribution_strategy.iter() {
+        match strategy {
+            Strategy::Lockup { release_time, .. } => {
+                if release_time < &env.block.time.seconds() {
+                    return claim(deps, env, info);
+                }
+            }
+            Strategy::Vesting {
+                release_start_time, ..
+            } => {
+                if release_start_time < &env.block.time.seconds() {
+                    return claim(deps, env, info);
+                }
+            }
+        }
+    }
     let mut user = user::read(deps.storage, sender).unwrap();
     let mut state = state::read(deps.storage).load().unwrap();
 
