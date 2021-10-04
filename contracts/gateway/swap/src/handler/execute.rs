@@ -125,6 +125,7 @@ pub fn withdraw(
 
     let (withdraw_amount, penalty) = vpool::calculate_penalty(&state, config.price, &amount)?;
 
+    user.swapped_out = user.swapped_out - (amount / config.price);
     user.swapped_in = user.swapped_in - amount;
     state.total_swapped = state.total_swapped - amount;
     state.liq_x = state.liq_x - withdraw_amount;
