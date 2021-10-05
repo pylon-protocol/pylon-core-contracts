@@ -26,7 +26,12 @@ fn strategy_claimable_token_of() {
                 },
                 Strategy::Lockup {
                     release_time: 2,
-                    release_amount: Decimal256::from_str("0.75").unwrap(),
+                    release_amount: Decimal256::from_str("0.50").unwrap(),
+                },
+                Strategy::Vesting {
+                    release_start_time: 2,
+                    release_finish_time: 12,
+                    release_amount: Decimal256::from_str("0.25").unwrap(),
                 },
             ],
             whitelist_enabled: false,
@@ -41,7 +46,7 @@ fn strategy_claimable_token_of() {
         &user::User {
             whitelisted: false,
             swapped_in: Default::default(),
-            swapped_out: Uint256::from(100u64),
+            swapped_out: Uint256::from(10000u64),
             swapped_out_claimed: Default::default(),
         },
     )
@@ -53,10 +58,16 @@ fn strategy_claimable_token_of() {
     );
     assert_eq!(
         strategy::claimable_token_of(deps.as_ref(), 1, TEST_USER_1.to_string()).unwrap(),
-        Uint256::from(25u64),
+        Uint256::from(2500u64),
     );
     assert_eq!(
         strategy::claimable_token_of(deps.as_ref(), 2, TEST_USER_1.to_string()).unwrap(),
-        Uint256::from(100u64),
+        Uint256::from(7500u64),
     );
+    for time in 2..12 {
+        assert_eq!(
+            strategy::claimable_token_of(deps.as_ref(), time, TEST_USER_1.to_string()).unwrap(),
+            Uint256::from(7500u64 + ((time - 2) * 250)),
+        );
+    }
 }

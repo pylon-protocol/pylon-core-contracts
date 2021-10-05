@@ -44,13 +44,13 @@ pub fn claimable_token_of(deps: Deps, time: u64, address: String) -> StdResult<U
                 release_finish_time,
                 release_amount,
             } => {
-                if &time < release_start_time {
+                if &time <= release_start_time {
                     Decimal256::zero()
                 } else if release_finish_time < &time {
                     *release_amount
                 } else {
                     *release_amount
-                        / Decimal256::from_ratio(
+                        * Decimal256::from_ratio(
                             time - release_start_time,
                             release_finish_time - release_start_time,
                         )
