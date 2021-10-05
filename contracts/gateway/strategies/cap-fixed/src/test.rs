@@ -1,13 +1,13 @@
+use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::testing::{
     mock_dependencies, mock_env, mock_info, MockApi, MockQuerier, MockStorage,
 };
-
-use crate::contract::ExecuteMsg;
-use crate::{contract, state};
-use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{from_binary, Env, MessageInfo, OwnedDeps, Response};
 use pylon_gateway::cap_strategy_msg::QueryMsg;
 use pylon_gateway::cap_strategy_resp::AvailableCapOfResponse;
+
+use crate::contract::ExecuteMsg;
+use crate::{contract, state};
 
 const OWNER: &str = "owner";
 const NEW_OWNER: &str = "new_owner";
@@ -51,7 +51,7 @@ fn instantiate() {
             min_user_cap,
             max_user_cap
         }
-    )
+    );
 }
 
 #[test]
@@ -82,7 +82,7 @@ fn execute_configure() {
             min_user_cap,
             max_user_cap
         }
-    )
+    );
 }
 
 #[test]
@@ -95,7 +95,10 @@ fn query_available_cap() {
 
     // lt min_user_cap
     let amount = min_user_cap - Uint256::from(1u64);
-    let msg = QueryMsg::AvailableCapOf { amount };
+    let msg = QueryMsg::AvailableCapOf {
+        address: "".to_string(),
+        amount,
+    };
     let resp = from_binary::<AvailableCapOfResponse>(
         &contract::query(deps.as_ref(), env.clone(), msg)
             .expect("testing: should able to query available cap"),
@@ -105,7 +108,10 @@ fn query_available_cap() {
 
     // gt min_user_cap && lt max_user_cap
     let amount = min_user_cap + Uint256::from(1u64);
-    let msg = QueryMsg::AvailableCapOf { amount };
+    let msg = QueryMsg::AvailableCapOf {
+        address: "".to_string(),
+        amount,
+    };
     let resp = from_binary::<AvailableCapOfResponse>(
         &contract::query(deps.as_ref(), env.clone(), msg)
             .expect("testing: should able to query available cap"),
@@ -114,7 +120,10 @@ fn query_available_cap() {
     assert_eq!(resp.amount, max_user_cap - amount);
 
     let amount = max_user_cap - Uint256::from(1u64);
-    let msg = QueryMsg::AvailableCapOf { amount };
+    let msg = QueryMsg::AvailableCapOf {
+        address: "".to_string(),
+        amount,
+    };
     let resp = from_binary::<AvailableCapOfResponse>(
         &contract::query(deps.as_ref(), env.clone(), msg)
             .expect("testing: should able to query available cap"),
@@ -124,7 +133,10 @@ fn query_available_cap() {
 
     // gt max_user_cap
     let amount = max_user_cap + Uint256::from(1u64);
-    let msg = QueryMsg::AvailableCapOf { amount };
+    let msg = QueryMsg::AvailableCapOf {
+        address: "".to_string(),
+        amount,
+    };
     let resp = from_binary::<AvailableCapOfResponse>(
         &contract::query(deps.as_ref(), env, msg)
             .expect("testing: should able to query available cap"),
