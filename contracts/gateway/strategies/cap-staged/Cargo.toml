@@ -40,6 +40,7 @@ terraswap = "2.4.0"
 terra-cosmwasm = "2.2.0"
 thiserror = "1.0"
 pylon-core = { version = "0.2.0", path = "../../../../packages/pylon_core" }
+pylon-token = { version = "0.2.0", path = "../../../../packages/pylon_token" }
 pylon-gateway = { version = "0.2.0", path = "../../../../packages/pylon_gateway" }
 pylon-utils = { version = "0.2.0", path = "../../../../packages/pylon_utils" }
 cosmwasm-bignumber = "2.2.0"
