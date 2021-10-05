@@ -15,15 +15,6 @@ pub fn calculate_withdraw_amount(state: &state::State, dy: &Uint256) -> StdResul
     Ok(dx)
 }
 
-pub fn calculate_penalty(
-    state: &state::State,
-    price: Decimal256,
-    dy: &Uint256,
-) -> StdResult<(Uint256, Uint256)> {
-    let dx = calculate_withdraw_amount(state, dy)?;
-    Ok((dx, (*dy * price) - dx))
-}
-
 pub fn calculate_current_price(state: &state::State) -> StdResult<Decimal256> {
     let liq_x = Decimal256::from_uint256(state.liq_x);
     let liq_y = Decimal256::from_uint256(state.liq_y);
