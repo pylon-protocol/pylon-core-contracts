@@ -11,6 +11,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::state;
+use std::cmp::min;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
@@ -91,15 +92,9 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
         QueryMsg::AvailableCapOf { amount, .. } => {
             let config = state::config_r(deps.storage).load().unwrap();
-            if config.max_user_cap <= amount || config.min_user_cap > amount {
-                to_binary(&resp::AvailableCapOfResponse {
-                    amount: Uint256::zero(),
-                })
-            } else {
-                to_binary(&resp::AvailableCapOfResponse {
-                    amount: config.max_user_cap - amount,
-                })
-            }
+            to_binary(&resp::AvailableCapOfResponse {
+                amount: config.max_user_cap - min(config.max_user_cap, amount),
+            })
         }
     }
 }
