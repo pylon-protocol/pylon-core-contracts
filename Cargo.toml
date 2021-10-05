@@ -9,7 +9,6 @@ members = [
     "contracts/gateway/pool",
     "contracts/gateway/swap",
     "contracts/gateway/strategies/cap-fixed",
-    "contracts/gateway/strategies/cap-linear",
     "contracts/gateway/strategies/cap-staged",
     "contracts/mocks/adapter",
     "contracts/mocks/market",
