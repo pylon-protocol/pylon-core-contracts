@@ -9,9 +9,6 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
     Config {},
-    State {
-        block_height: Option<u64>,
-    },
     EpochState {
         block_height: Option<u64>,
         distributed_interest: Option<Uint256>,
