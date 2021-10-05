@@ -13,7 +13,7 @@ export const Network: { [network: string]: any } = {
     },
     columbus: {
         URL: "https://lcd.terra.dev",
-        chainID: "columbus-4",
+        chainID: "columbus-5",
         ...Accounts.columbus,
     },
 };
