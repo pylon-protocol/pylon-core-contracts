@@ -9,7 +9,7 @@ pub static KEY_CONFIG: &[u8] = b"config";
 #[derive(Serialize, Deserialize, Default, Clone, Debug, PartialEq, JsonSchema)]
 pub struct Stage {
     pub from: Uint256,
-    pub to: Uint256,
+    pub to: Option<Uint256>,
     pub min_cap: Uint256,
     pub max_cap: Uint256,
 }

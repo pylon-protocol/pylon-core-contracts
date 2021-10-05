@@ -10,7 +10,7 @@ use pylon_gateway::cap_strategy_resp as resp;
 use pylon_token::gov::{QueryMsg as GovQueryMsg, StakerResponse};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::cmp::min;
+use std::cmp::{max, min};
 
 use crate::state;
 
@@ -92,17 +92,21 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
             let staked: StakerResponse = deps
                 .querier
                 .query_wasm_smart(config.gov, &GovQueryMsg::Staker { address })?;
+
+            let mut max_cap = Uint256::zero();
             for stage in config.stages.iter() {
-                if stage.from <= Uint256::from(staked.balance)
-                    && Uint256::from(staked.balance) < stage.to
-                {
-                    return to_binary(&resp::AvailableCapOfResponse {
-                        amount: stage.max_cap - min(stage.max_cap, amount),
-                    });
+                if stage.from <= Uint256::from(staked.balance) {
+                    if let Some(to) = stage.to {
+                        if Uint256::from(staked.balance) < to {
+                            max_cap = max(max_cap, stage.max_cap);
+                        }
+                    } else {
+                        max_cap = max(max_cap, stage.max_cap);
+                    }
                 }
             }
             to_binary(&resp::AvailableCapOfResponse {
-                amount: Uint256::zero(),
+                amount: max_cap - min(max_cap, amount),
             })
         }
     }

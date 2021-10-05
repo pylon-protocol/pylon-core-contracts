@@ -4,13 +4,13 @@ use cosmwasm_std::{
     from_binary, to_binary, Binary, ContractResult, Env, MessageInfo, OwnedDeps, QuerierResult,
     Response, SystemError, SystemResult, Uint128,
 };
+use pylon_gateway::cap_strategy_msg::QueryMsg;
+use pylon_gateway::cap_strategy_resp::AvailableCapOfResponse;
 use pylon_token::gov::{QueryMsg as GovQueryMsg, StakerResponse};
 
 use crate::contract::ExecuteMsg;
 use crate::mock_querier::{mock_dependencies, CustomMockWasmQuerier};
 use crate::{contract, state};
-use pylon_gateway::cap_strategy_msg::QueryMsg;
-use pylon_gateway::cap_strategy_resp::AvailableCapOfResponse;
 
 const GOV: &str = "gov";
 const NEW_GOV: &str = "new_gov";
@@ -122,14 +122,14 @@ fn query_available_cap() {
         state::Stage {
             // 0 <= x < 10
             from: Uint256::from(0u64),
-            to: Uint256::from(10u64),
+            to: None,
             min_cap: Uint256::from(0u64),
             max_cap: Uint256::from(100u64),
         },
         state::Stage {
             // 10 <= x < 20
             from: Uint256::from(10u64),
-            to: Uint256::from(20u64),
+            to: Option::from(Uint256::from(20u64)),
             min_cap: Uint256::from(100u64),
             max_cap: Uint256::from(200u64),
         },
