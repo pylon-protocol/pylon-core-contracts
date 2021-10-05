@@ -1,3 +1,5 @@
+pub mod cap_strategy_msg;
+pub mod cap_strategy_resp;
 pub mod common;
 pub mod factory_msg;
 pub mod factory_resp;

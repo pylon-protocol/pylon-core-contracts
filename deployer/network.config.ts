@@ -6,14 +6,14 @@ export const Network: { [network: string]: any } = {
         chainID: "localterra",
         ...Accounts.local,
     },
-    tequila: {
-        URL: "https://tequila-lcd.terra.dev",
-        chainID: "tequila-0004",
-        ...Accounts.tequila,
+    bombay: {
+        URL: "https://bombay-lcd.terra.dev",
+        chainID: "bombay-12",
+        ...Accounts.bombay,
     },
     columbus: {
         URL: "https://lcd.terra.dev",
-        chainID: "columbus-4",
+        chainID: "columbus-5",
         ...Accounts.columbus,
     },
 };

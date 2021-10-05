@@ -3,14 +3,16 @@ use cosmwasm_std::{CanonicalAddr, Deps, Order, StdResult, Storage};
 use cosmwasm_storage::{bucket, bucket_read, Bucket, ReadonlyBucket};
 use pylon_utils::common::OrderBy;
 use schemars::JsonSchema;
-use serde::de::StdError;
 use serde::{Deserialize, Serialize};
 
 pub static PREFIX_USER: &[u8] = b"user";
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct User {
-    pub amount: Uint256,
+    pub whitelisted: bool,
+    pub swapped_in: Uint256,
+    pub swapped_out: Uint256,
+    pub swapped_out_claimed: Uint256,
 }
 
 pub fn store(storage: &mut dyn Storage, owner: &CanonicalAddr, user: &User) -> StdResult<()> {
@@ -28,7 +30,10 @@ pub fn read(storage: &dyn Storage, owner: &CanonicalAddr) -> StdResult<User> {
     match user_bucket.may_load(owner.as_slice())? {
         Some(user) => Ok(user),
         None => Ok(User {
-            amount: Uint256::zero(),
+            whitelisted: false,
+            swapped_in: Uint256::zero(),
+            swapped_out: Uint256::zero(),
+            swapped_out_claimed: Uint256::zero(),
         }),
     }
 }

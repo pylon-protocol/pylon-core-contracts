@@ -19,8 +19,8 @@ endif
 deploy-columbus:
 	make deploy network=columbus
 
-deploy-tequila:
-	make deploy network=tequila
+deploy-bombay:
+	make deploy network=bombay
 
 deploy-local:
 	make deploy network=local

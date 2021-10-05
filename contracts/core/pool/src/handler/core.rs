@@ -260,7 +260,7 @@ pub fn register_dp_token(
     address: Addr,
 ) -> Result<Response, ContractError> {
     let mut config = config::read(deps.storage).unwrap();
-    if config.dp_token != deps.api.addr_canonicalize("").unwrap() {
+    if config.dp_token != CanonicalAddr::from(vec![]) {
         return Err(ContractError::Unauthorized {
             action: "register_dp_token".to_string(),
             expected: "<empty>".to_string(),

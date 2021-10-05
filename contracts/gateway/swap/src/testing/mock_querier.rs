@@ -8,9 +8,6 @@ use pylon_utils::mock_tax::MockTax;
 use pylon_utils::mock_token::MockToken;
 use terra_cosmwasm::{TaxCapResponse, TaxRateResponse, TerraQuery, TerraQueryWrapper, TerraRoute};
 
-use crate::testing::constants::TEST_STAKING;
-use crate::testing::mock_staking::MockStaking;
-
 pub fn mock_dependencies(
     contract_balance: &[Coin],
 ) -> OwnedDeps<MockStorage, MockApi, CustomMockQuerier> {
@@ -30,7 +27,6 @@ pub struct CustomMockQuerier {
     base: MockQuerier<TerraQueryWrapper>,
     tax: MockTax,
     token: MockToken,
-    staking: MockStaking,
 }
 
 impl Querier for CustomMockQuerier {
@@ -58,12 +54,12 @@ impl CustomMockQuerier {
                             let res = TaxRateResponse {
                                 rate: self.tax.rate,
                             };
-                            SystemResult::Ok(ContractResult::Ok(to_binary(&res)?))
+                            SystemResult::Ok(ContractResult::Ok(to_binary(&res).unwrap()))
                         }
                         TerraQuery::TaxCap { denom } => {
                             let cap = self.tax.caps.get(denom).copied().unwrap_or_default();
                             let res = TaxCapResponse { cap };
-                            SystemResult::Ok(ContractResult::Ok(to_binary(&res)?))
+                            SystemResult::Ok(ContractResult::Ok(to_binary(&res).unwrap()))
                         }
                         _ => panic!("DO NOT ENTER HERE"),
                     }
@@ -79,12 +75,7 @@ impl CustomMockQuerier {
                     self.token
                         .handle_query(contract_addr, from_binary(bin_msg).unwrap())
                 } else {
-                    match contract_addr.to_string().as_str() {
-                        TEST_STAKING => self.staking.handle_query(from_binary(bin_msg).unwrap()),
-                        _ => SystemResult::Err(SystemError::UnsupportedRequest {
-                            kind: contract_addr.to_string(),
-                        }),
-                    }
+                    panic!("DO NOT ENTER HERE")
                 }
             }
             _ => self.base.handle_query(request),
@@ -98,7 +89,6 @@ impl CustomMockQuerier {
             base,
             tax: MockTax::default(),
             token: MockToken::default(),
-            staking: MockStaking::default(),
         }
     }
 
@@ -110,9 +100,5 @@ impl CustomMockQuerier {
     #[allow(dead_code)]
     pub fn with_token(&mut self, token: MockToken) {
         self.token = token;
-    }
-
-    pub fn with_staking(&mut self, staking: MockStaking) {
-        self.staking = staking;
     }
 }

@@ -7,16 +7,17 @@ members = [
     "contracts/core/adapters/anchor",
     "contracts/gateway/factory",
     "contracts/gateway/pool",
-#    "contracts/gateway/swap",
-#    "contracts/gateway/swap-refund",
+    "contracts/gateway/swap",
+    "contracts/gateway/strategies/cap-fixed",
+    "contracts/gateway/strategies/cap-staged",
+    "contracts/mocks/adapter",
+    "contracts/mocks/market",
     "contracts/pylon/airdrop",
     "contracts/pylon/collector",
     "contracts/pylon/community",
     "contracts/pylon/gov",
     "contracts/pylon/staking",
     "contracts/pylon/vesting",
-    "contracts/mocks/market",
-    "contracts/mocks/adapter"
 ]
 
 [profile.release]
