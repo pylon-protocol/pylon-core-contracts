@@ -104,7 +104,7 @@ fn query_available_cap() {
             .expect("testing: should able to query available cap"),
     )
     .unwrap();
-    assert_eq!(resp.amount, Uint256::zero());
+    assert_eq!(resp.amount, max_user_cap - amount);
 
     // gt min_user_cap && lt max_user_cap
     let amount = min_user_cap + Uint256::from(1u64);
