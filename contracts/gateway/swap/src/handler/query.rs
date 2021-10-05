@@ -94,7 +94,8 @@ pub fn simulate_withdraw(
 ) -> StdResult<Binary> {
     let config = config::read(deps.storage).load().unwrap();
     let state = state::read(deps.storage).load().unwrap();
-    let (withdraw_amount, penalty) = vpool::calculate_penalty(&state, config.price, &amount)?;
+    let withdraw_amount = vpool::calculate_withdraw_amount(&state, &amount)?;
+    let penalty = (amount * config.price) - withdraw_amount;
 
     let mut withdrawable = true;
     if let Some(address) = address {
