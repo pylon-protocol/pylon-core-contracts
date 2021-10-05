@@ -38,6 +38,7 @@ pub fn instantiate(
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
     Configure {
         owner: Option<String>,
@@ -88,7 +89,7 @@ pub fn execute(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::AvailableCapOf { amount } => {
+        QueryMsg::AvailableCapOf { amount, .. } => {
             let config = state::config_r(deps.storage).load().unwrap();
             if config.max_user_cap <= amount || config.min_user_cap > amount {
                 to_binary(&resp::AvailableCapOfResponse {

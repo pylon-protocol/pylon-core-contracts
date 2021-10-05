@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
-    AvailableCapOf { amount: Uint256 },
+    AvailableCapOf { address: String, amount: Uint256 },
 }
 
 /// We currently take no arguments for migrations
