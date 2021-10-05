@@ -1,7 +1,7 @@
 use cosmwasm_std::testing::{MockApi, MockQuerier, MockStorage, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{
-    from_slice, Binary, Coin, OwnedDeps, Querier, QuerierResult, QueryRequest, SystemError,
-    SystemResult, WasmQuery,
+    from_slice, Binary, Coin, ContractResult, OwnedDeps, Querier, QuerierResult, QueryRequest,
+    StdResult, SystemError, SystemResult, WasmQuery,
 };
 use std::collections::HashMap;
 use terra_cosmwasm::TerraQueryWrapper;
@@ -21,10 +21,12 @@ pub fn mock_dependencies(
     }
 }
 
+pub type WasmQueryHandler = dyn Fn(&Binary) -> StdResult<Binary>;
+
 pub struct CustomMockWasmQuerier {
     base: MockQuerier<TerraQueryWrapper>,
-    wasm_smart_query_handlers: HashMap<String, Box<dyn Fn(&Binary) -> QuerierResult>>,
-    wasm_raw_query_handlers: HashMap<String, Box<dyn Fn(&Binary) -> QuerierResult>>,
+    wasm_smart_query_handlers: HashMap<String, Box<WasmQueryHandler>>,
+    wasm_raw_query_handlers: HashMap<String, Box<WasmQueryHandler>>,
 }
 
 impl Querier for CustomMockWasmQuerier {
@@ -48,7 +50,7 @@ impl CustomMockWasmQuerier {
     pub fn register_wasm_smart_query_handler(
         &mut self,
         address: String,
-        handler: Box<dyn Fn(&Binary) -> QuerierResult>,
+        handler: Box<WasmQueryHandler>,
     ) {
         self.wasm_smart_query_handlers.insert(address, handler);
     }
@@ -57,7 +59,7 @@ impl CustomMockWasmQuerier {
     pub fn register_wasm_raw_query_handler(
         &mut self,
         address: String,
-        handler: Box<dyn Fn(&Binary) -> QuerierResult>,
+        handler: Box<WasmQueryHandler>,
     ) {
         self.wasm_raw_query_handlers.insert(address, handler);
     }
@@ -65,14 +67,18 @@ impl CustomMockWasmQuerier {
     fn handle_query(&self, request: &QueryRequest<TerraQueryWrapper>) -> QuerierResult {
         match request {
             QueryRequest::Wasm(wasm_request) => match wasm_request {
-                WasmQuery::Smart { contract_addr, msg } => self
-                    .wasm_smart_query_handlers
-                    .get(contract_addr.as_str())
-                    .unwrap()(msg),
-                WasmQuery::Raw { contract_addr, key } => self
-                    .wasm_raw_query_handlers
-                    .get(contract_addr.as_str())
-                    .unwrap()(key),
+                WasmQuery::Smart { contract_addr, msg } => SystemResult::Ok(ContractResult::Ok(
+                    self.wasm_smart_query_handlers
+                        .get(contract_addr.as_str())
+                        .expect("wasm: smart query handler not found")(msg)
+                    .unwrap(),
+                )),
+                WasmQuery::Raw { contract_addr, key } => SystemResult::Ok(ContractResult::Ok(
+                    self.wasm_raw_query_handlers
+                        .get(contract_addr.as_str())
+                        .expect("wasm: raw query handler not found")(key)
+                    .unwrap(),
+                )),
                 _ => SystemResult::Err(SystemError::UnsupportedRequest {
                     kind: stringify!(request).to_string(),
                 }),

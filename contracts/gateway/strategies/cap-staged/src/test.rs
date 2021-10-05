@@ -1,8 +1,7 @@
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::testing::{mock_env, mock_info, MockApi, MockStorage};
 use cosmwasm_std::{
-    from_binary, to_binary, Binary, ContractResult, Env, MessageInfo, OwnedDeps, QuerierResult,
-    Response, SystemError, SystemResult, Uint128,
+    from_binary, to_binary, Env, MessageInfo, OwnedDeps, Response, StdError, Uint128,
 };
 use pylon_gateway::cap_strategy_msg::QueryMsg;
 use pylon_gateway::cap_strategy_resp::AvailableCapOfResponse;
@@ -97,24 +96,17 @@ fn query_available_cap() {
     let mut deps = mock_dependencies(&[]);
     deps.querier.register_wasm_smart_query_handler(
         GOV.to_string(),
-        Box::new(|x: &Binary| -> QuerierResult {
-            match from_binary::<GovQueryMsg>(x).unwrap() {
-                GovQueryMsg::Staker { address } => SystemResult::Ok(ContractResult::Ok(
-                    to_binary(&StakerResponse {
-                        balance: match address.as_str() {
-                            "tester_1" => Uint128::from(5u64),
-                            "tester_2" => Uint128::from(15u64),
-                            _ => Uint128::zero(),
-                        },
-                        share: Default::default(),
-                        locked_balance: vec![],
-                    })
-                    .unwrap(),
-                )),
-                _ => SystemResult::Err(SystemError::UnsupportedRequest {
-                    kind: stringify!(x).to_string(),
-                }),
-            }
+        Box::new(|x| match from_binary::<GovQueryMsg>(x).unwrap() {
+            GovQueryMsg::Staker { address } => to_binary(&StakerResponse {
+                balance: match address.as_str() {
+                    "tester_1" => Uint128::from(5u64),
+                    "tester_2" => Uint128::from(15u64),
+                    _ => Uint128::zero(),
+                },
+                share: Default::default(),
+                locked_balance: vec![],
+            }),
+            _ => Err(StdError::generic_err("not implemented")),
         }),
     );
 
