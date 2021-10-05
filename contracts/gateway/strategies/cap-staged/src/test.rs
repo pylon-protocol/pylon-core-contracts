@@ -42,9 +42,7 @@ fn init_contract(
 fn instantiate() {
     let mut deps = mock_dependencies(&[]);
 
-    let mut stages: Vec<state::Stage> = Vec::new();
-    stages.push(state::Stage::default());
-    stages.push(state::Stage::default());
+    let stages: Vec<state::Stage> = vec![state::Stage::default(), state::Stage::default()];
     let _ = init_contract(&mut deps, GOV.to_string(), stages.clone());
 
     let config = state::config_r(deps.as_ref().storage).load().unwrap();
@@ -62,9 +60,7 @@ fn instantiate() {
 fn execute_configure() {
     let mut deps = mock_dependencies(&[]);
 
-    let mut stages: Vec<state::Stage> = Vec::new();
-    stages.push(state::Stage::default());
-    stages.push(state::Stage::default());
+    let mut stages: Vec<state::Stage> = vec![state::Stage::default(), state::Stage::default()];
     let (env, owner) = init_contract(&mut deps, GOV.to_string(), stages.clone());
 
     stages.push(state::Stage::default());
@@ -81,7 +77,7 @@ fn execute_configure() {
         msg.clone(),
     )
     .expect_err("testing: should not able to configure settings (non-owner)");
-    let resp = contract::execute(deps.as_mut(), env.clone(), owner, msg)
+    let resp = contract::execute(deps.as_mut(), env, owner, msg)
         .expect("testing: should able to configure settings (owner)");
     assert_eq!(resp, Response::default());
 
@@ -122,21 +118,22 @@ fn query_available_cap() {
         }),
     );
 
-    let mut stages: Vec<state::Stage> = Vec::new();
-    stages.push(state::Stage {
-        // 0 <= x < 10
-        from: Uint256::from(0u64),
-        to: Uint256::from(10u64),
-        min_cap: Uint256::from(0u64),
-        max_cap: Uint256::from(100u64),
-    });
-    stages.push(state::Stage {
-        // 10 <= x < 20
-        from: Uint256::from(10u64),
-        to: Uint256::from(20u64),
-        min_cap: Uint256::from(100u64),
-        max_cap: Uint256::from(200u64),
-    });
+    let stages: Vec<state::Stage> = vec![
+        state::Stage {
+            // 0 <= x < 10
+            from: Uint256::from(0u64),
+            to: Uint256::from(10u64),
+            min_cap: Uint256::from(0u64),
+            max_cap: Uint256::from(100u64),
+        },
+        state::Stage {
+            // 10 <= x < 20
+            from: Uint256::from(10u64),
+            to: Uint256::from(20u64),
+            min_cap: Uint256::from(100u64),
+            max_cap: Uint256::from(200u64),
+        },
+    ];
 
     init_contract(&mut deps, GOV.to_string(), stages);
 
