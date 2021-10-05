@@ -16,6 +16,7 @@ pub fn available_cap_of(deps: Deps, strategy: String, address: String) -> StdRes
         strategy,
         &QueryMsg::AvailableCapOf {
             amount: user.swapped_in,
+            address,
         },
     )?;
     Ok(resp.amount)
