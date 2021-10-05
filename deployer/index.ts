@@ -168,6 +168,7 @@ async function main(): Promise<void> {
   console.log(client.config);
 
   const balance = await client.bank.balance(wallet.key.accAddress);
+  console.log(wallet.key.accAddress);
   console.log(balance);
 
   if (directory) {

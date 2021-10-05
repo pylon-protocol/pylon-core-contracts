@@ -1,3 +1,4 @@
+use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{OverflowError, StdError};
 use thiserror::Error;
 
@@ -10,7 +11,7 @@ pub enum ContractError {
     Overflow(#[from] OverflowError),
 
     #[error(
-        "Core/Pool: Unauthorized (action: {action:?}, expected: {expected:?}, actual: {actual:?})"
+        "Gateway/Swap: Unauthorized (action: {action:?}, expected: {expected:?}, actual: {actual:?})"
     )]
     Unauthorized {
         action: String,
@@ -18,15 +19,33 @@ pub enum ContractError {
         actual: String,
     },
 
-    #[error("Core/Pool: Invalid reply ID (ID: {id:?}")]
+    #[error("Gateway/Swap: not started. (time: {start:?})")]
+    SwapNotStarted { start: u64 },
+
+    #[error("Gateway/Swap: finished. (time: {finish:?})")]
+    SwapFinished { finish: u64 },
+
+    #[error("Gateway/Swap: withdraw amount exceeds deposit amount (Available: {available:?})")]
+    WithdrawAmountExceeded { available: Uint256 },
+
+    #[error("Gateway/Swap: deposit amount exceeds available cap (Available: {available:?})")]
+    AvailableCapExceeded { available: Uint256 },
+
+    #[error("Gateway/Swap: deposit amount exceeds pool size (Available: {available:?})")]
+    PoolSizeExceeded { available: Uint256 },
+
+    #[error("Gateway/Swap: Invalid reply ID (ID: {id:?}")]
     InvalidReplyId { id: u64 },
 
-    #[error("Core/Pool: Zero amount not allowed")]
+    #[error("Gateway/Swap: Zero amount not allowed")]
     NotAllowZeroAmount {},
 
-    #[error("Core/Pool: other denom except {denom:?} is not allowed")]
+    #[error("Gateway/Swap: other denom except {denom:?} is not allowed")]
     NotAllowOtherDenoms { denom: String },
 
-    #[error("Core/Pool: other action except {action:?} is not allowed")]
-    NotAllowOtherCw20ReceiveAction { action: String },
+    #[error("Gateway/Swap: {address:?} is not whitelisted")]
+    NotAllowNonWhitelisted { address: String },
+
+    #[error("Gateway/Swap: refund not allowed after token claim")]
+    NotAllowWithdrawAfterClaim {},
 }

@@ -8,6 +8,8 @@ members = [
     "contracts/gateway/factory",
     "contracts/gateway/pool",
     "contracts/gateway/swap",
+    "contracts/gateway/strategies/cap-fixed",
+    "contracts/gateway/strategies/cap-staged",
     "contracts/mocks/adapter",
     "contracts/mocks/market",
     "contracts/pylon/airdrop",
@@ -22,4 +24,3 @@ members = [
 rpath = false
 lto = true
 overflow-checks = true
-

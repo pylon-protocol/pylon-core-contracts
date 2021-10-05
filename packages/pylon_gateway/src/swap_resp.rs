@@ -18,9 +18,20 @@ pub struct BalanceOfResponse {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct IsWhitelistedResponse {
+    pub whitelisted: bool,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct AvailableCapOfResponse {
-    pub staked: Uint256,
-    pub cap: Uint256,
+    pub amount: Option<Uint256>,
+    pub unlimited: bool,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct ClaimableTokenOfResponse {
+    pub amount: Uint256,
+    pub remaining: Uint256,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -36,4 +47,6 @@ pub struct CurrentPriceResponse {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct SimulateWithdrawResponse {
     pub amount: Uint256,
+    pub penalty: Uint256,
+    pub withdrawable: bool,
 }

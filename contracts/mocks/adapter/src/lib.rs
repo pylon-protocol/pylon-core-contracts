@@ -1,5 +1,5 @@
 pub mod config;
+pub mod contract;
 pub mod msg;
 
-mod contract;
 mod market;
