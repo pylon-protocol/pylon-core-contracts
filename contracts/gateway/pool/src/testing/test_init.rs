@@ -42,7 +42,7 @@ fn proper_initialization() {
             // reward
             reward_token: msg.reward_token,
             claim_time: time_range::TimeRange {
-                start: msg.cliff,
+                start: msg.start.add(msg.cliff),
                 finish: 0,
                 inverse: false,
             },
