@@ -10,14 +10,23 @@ pub fn swap(
     _info: MessageInfo,
     owner: Option<String>,
     beneficiary: Option<String>,
+    cap_strategy: Option<String>,
+    whitelist_enabled: Option<bool>,
 ) -> Result<Response, ContractError> {
     let mut config = config::read(deps.storage).load().unwrap();
 
     if let Some(v) = owner {
         config.owner = v;
     }
+
     if let Some(v) = beneficiary {
         config.beneficiary = v;
+    }
+
+    config.cap_strategy = cap_strategy;
+
+    if let Some(v) = whitelist_enabled {
+        config.whitelist_enabled = v;
     }
 
     config::store(deps.storage).save(&config).unwrap();

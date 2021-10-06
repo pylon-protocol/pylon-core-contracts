@@ -38,6 +38,8 @@ pub enum ConfigureMsg {
     Swap {
         owner: Option<String>,
         beneficiary: Option<String>,
+        cap_strategy: Option<String>,
+        whitelist_enabled: Option<bool>,
     },
     Pool {
         x_denom: Option<String>,
