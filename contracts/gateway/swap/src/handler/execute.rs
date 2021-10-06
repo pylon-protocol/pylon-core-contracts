@@ -117,7 +117,7 @@ pub fn withdraw(
         return Err(ContractError::NotAllowWithdrawAfterClaim {});
     }
 
-    if user.swapped_in < amount {
+    if user.swapped_in < amount * config.price {
         return Err(ContractError::WithdrawAmountExceeded {
             available: user.swapped_in,
         });

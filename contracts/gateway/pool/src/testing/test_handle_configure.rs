@@ -12,27 +12,6 @@ use crate::testing::constants::*;
 use crate::testing::utils;
 
 #[test]
-fn handle_configure_owner() {
-    let mut deps = mock_dependencies(&[]);
-    let (env, owner) = utils::initialize(&mut deps);
-    let user = mock_info(TEST_USER, &[]);
-
-    let msg = ExecuteMsg::Configure(ConfigureMsg::Owner {
-        address: TEST_USER.to_string(),
-    });
-    let err = contract::execute(deps.as_mut(), env.clone(), user, msg.clone())
-        .expect_err("testing: should fail if non-owner executes this msg");
-    utils::assert_generic_err("cfg_owner: check_owner", err);
-    let res = contract::execute(deps.as_mut(), env, owner, msg)
-        .expect("testing: handle configure::owner");
-    assert_eq!(res.data, None);
-    assert_eq!(res.messages, vec![]);
-
-    let config = config::read(&deps.storage).unwrap();
-    assert_eq!(config.owner, TEST_USER.to_string());
-}
-
-#[test]
 fn handle_configure_deposit() {
     let mut deps = mock_dependencies(&[]);
     let (env, owner) = utils::initialize(&mut deps);

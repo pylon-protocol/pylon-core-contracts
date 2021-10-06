@@ -6,7 +6,6 @@ pub const TEST_USER: &str = "user";
 pub const TEST_POOL_START: u64 = 10;
 pub const TEST_POOL_PERIOD: u64 = 1000;
 pub const TEST_POOL_CLIFF: u64 = 500;
-pub const TEST_POOL_REWARD_RATE: &str = "1.0";
 
 // =============================== TOKENS
 pub const TEST_SHARE_TOKEN: &str = "token_stake";

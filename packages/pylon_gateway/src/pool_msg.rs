@@ -1,4 +1,4 @@
-use cosmwasm_bignumber::{Decimal256, Uint256};
+use cosmwasm_bignumber::Uint256;
 use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -8,16 +8,18 @@ pub struct InstantiateMsg {
     pub start: u64,
     pub period: u64,
     pub cliff: u64,
-    pub reward_rate: Decimal256,
     pub share_token: String,
     pub reward_token: String,
+    pub reward_amount: Uint256,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ConfigureMsg {
-    Owner {
-        address: String,
+    Pool {
+        owner: Option<String>,
+        share_token: Option<String>,
+        reward_token: Option<String>,
     },
     Deposit {
         start: Option<u64>,

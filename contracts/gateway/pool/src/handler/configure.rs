@@ -25,18 +25,26 @@ pub fn configure(
     }
 
     match msg {
-        ConfigureMsg::Owner { address: owner } => {
+        ConfigureMsg::Pool {
+            owner,
+            share_token,
+            reward_token,
+        } => {
             let mut config = config::read(deps.storage).unwrap();
 
-            let prev_owner = config.owner;
-            config.owner = owner;
+            if let Some(v) = owner {
+                config.owner = v;
+            }
+            if let Some(v) = share_token {
+                config.share_token = v;
+            }
+            if let Some(v) = reward_token {
+                config.reward_token = v;
+            }
 
             config::store(deps.storage, &config).unwrap();
 
-            Ok(Response::new()
-                .add_attribute("action", "configure_owner")
-                .add_attribute("prev_owner", prev_owner)
-                .add_attribute("next_owner", config.owner))
+            Ok(Response::default())
         }
         ConfigureMsg::Deposit {
             start,

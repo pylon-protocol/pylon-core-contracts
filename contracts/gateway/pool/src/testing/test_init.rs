@@ -52,7 +52,7 @@ fn proper_initialization() {
                     finish: msg.start.add(msg.period),
                     inverse: false,
                 },
-                reward_rate: msg.reward_rate,
+                reward_rate: Decimal256::from_ratio(msg.reward_amount, Uint256::from(msg.period)),
             },
         }
     );

@@ -216,7 +216,7 @@ pub fn query_stakers(
     let state = state_read(deps.storage).load().unwrap();
     let config = config_read(deps.storage).load().unwrap();
     let start = start_after
-        .map(|x| deps.api.addr_canonicalize(&x).unwrap())
+        .map(|x| deps.api.addr_canonicalize(x.as_str()).unwrap())
         .map(|x| {
             let mut v = x.as_slice().to_vec();
             v.push(1);

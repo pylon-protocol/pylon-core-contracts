@@ -64,9 +64,20 @@ pub fn execute(
             }
 
             match cfg_msg {
-                ConfigureMsg::Swap { owner, beneficiary } => {
-                    ConfigHandler::swap(deps, env, info, owner, beneficiary)
-                }
+                ConfigureMsg::Swap {
+                    owner,
+                    beneficiary,
+                    cap_strategy,
+                    whitelist_enabled,
+                } => ConfigHandler::swap(
+                    deps,
+                    env,
+                    info,
+                    owner,
+                    beneficiary,
+                    cap_strategy,
+                    whitelist_enabled,
+                ),
                 ConfigureMsg::Pool {
                     x_denom,
                     y_addr,
