@@ -8,9 +8,9 @@ pub struct InstantiateMsg {
     pub start: u64,
     pub period: u64,
     pub cliff: u64,
-    pub reward_rate: Decimal256,
     pub share_token: String,
     pub reward_token: String,
+    pub reward_amount: Uint256,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
