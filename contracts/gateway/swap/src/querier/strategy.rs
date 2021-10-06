@@ -27,6 +27,7 @@ pub fn claimable_token_of(deps: Deps, time: u64, address: String) -> StdResult<U
     let config = config::read(deps.storage).load().unwrap();
     let user = user::read(deps.storage, sender).unwrap();
 
+    let mut count = 0;
     let mut ratio = Decimal256::zero();
     for strategy in config.distribution_strategy.iter() {
         ratio += match strategy {
@@ -37,6 +38,7 @@ pub fn claimable_token_of(deps: Deps, time: u64, address: String) -> StdResult<U
                 if time < *release_time {
                     Decimal256::zero()
                 } else {
+                    count += 1;
                     *release_amount
                 }
             }
@@ -48,6 +50,7 @@ pub fn claimable_token_of(deps: Deps, time: u64, address: String) -> StdResult<U
                 if &time <= release_start_time {
                     Decimal256::zero()
                 } else if release_finish_time < &time {
+                    count += 1;
                     *release_amount
                 } else {
                     *release_amount
@@ -58,6 +61,9 @@ pub fn claimable_token_of(deps: Deps, time: u64, address: String) -> StdResult<U
                 }
             }
         };
+    }
+    if config.distribution_strategy.len() == count {
+        ratio = Decimal256::one();
     }
 
     let unlocked = user.swapped_out * ratio;
