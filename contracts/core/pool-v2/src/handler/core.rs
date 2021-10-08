@@ -109,7 +109,7 @@ pub fn deposit(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, 
 pub fn redeem(
     deps: DepsMut,
     _env: Env,
-    info: MessageInfo,
+    _info: MessageInfo,
     sender: String,
     amount: Uint128,
 ) -> Result<Response, ContractError> {
@@ -150,11 +150,11 @@ pub fn redeem(
             Uint256::from(amount).div(exchange_rate),
         )?)
         .add_message(CosmosMsg::Bank(BankMsg::Send {
-            to_address: sender,
+            to_address: sender.clone(),
             amount: vec![return_amount.clone()],
         }))
         .add_attribute("action", "redeem")
-        .add_attribute("sender", info.sender.to_string())
+        .add_attribute("sender", sender)
         .add_attribute("burn_amount", amount.to_string())
         .add_attribute("redeem_amount", return_amount.amount.to_string()))
 }
