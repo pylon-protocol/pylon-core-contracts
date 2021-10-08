@@ -151,7 +151,10 @@ pub fn redeem(
         )?)
         .add_message(CosmosMsg::Bank(BankMsg::Send {
             to_address: sender.clone(),
-            amount: vec![return_amount.clone()],
+            amount: vec![coin(
+                u128::from(return_amount.amount),
+                return_amount.denom.clone(),
+            )],
         }))
         .add_attribute("action", "redeem")
         .add_attribute("sender", sender)

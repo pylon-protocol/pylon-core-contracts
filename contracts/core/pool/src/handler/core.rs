@@ -140,11 +140,14 @@ pub fn redeem(
         )?)
         .add_message(CosmosMsg::Bank(BankMsg::Send {
             to_address: sender.clone(),
-            amount: vec![user_redeem_amount.clone()],
+            amount: vec![coin(
+                u128::from(user_redeem_amount.amount),
+                user_redeem_amount.denom.clone(),
+            )],
         }))
         .add_attribute("action", "redeem")
         .add_attribute("sender", sender)
-        .add_attribute("amount", user_redeem_amount.amount.to_string()))
+        .add_attribute("amount", user_redeem_amount.to_string()))
 }
 
 pub fn earn(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
