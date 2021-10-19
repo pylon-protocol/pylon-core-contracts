@@ -145,6 +145,12 @@ fn claim() {
     };
     let _res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
 
+    let info = mock_info("owner0000", &[]);
+    let msg = ExecuteMsg::RegisterMerkleRoot {
+        merkle_root: "634de21cde1044f41d90373733b0f0fb1c1c71f9652b905cdf159e73c4cf0d37".to_string(),
+    };
+    let _res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
+
     let msg = ExecuteMsg::Claim {
         amount: Uint128::new(1000001u128),
         stage: 1u8,
@@ -154,6 +160,7 @@ fn claim() {
             "f328b89c766a62b8f1c768fefa1139c9562c6e05bab57a2af87f35e83f9e9dcf".to_string(),
             "fe19ca2434f87cadb0431311ac9a484792525eb66a952e257f68bf02b4561950".to_string(),
         ],
+        receiver: None,
     };
 
     let info = mock_info("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8", &[]);
@@ -213,6 +220,7 @@ fn claim() {
             "4847b2b9a6432a7bdf2bdafacbbeea3aab18c524024fc6e1bc655e04cbc171f3".to_string(),
             "cad1958c1a5c815f23450f1a2761a5a75ab2b894a258601bf93cd026469d42f2".to_string(),
         ],
+        receiver: None,
     };
 
     let info = mock_info("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8", &[]);
@@ -236,6 +244,45 @@ fn claim() {
         vec![
             attr("action", "claim"),
             attr("stage", "2"),
+            attr("address", "terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
+            attr("amount", "2000001")
+        ]
+    );
+
+    // Claim next airdrop with third party
+    let msg = ExecuteMsg::Claim {
+        amount: Uint128::new(2000001u128),
+        stage: 3u8,
+        proof: vec![
+            "ca2784085f944e5594bb751c3237d6162f7c2b24480b3a37e9803815b7a5ce42".to_string(),
+            "5b07b5898fc9aa101f27344dab0737aede6c3aa7c9f10b4b1fda6d26eb669b0f".to_string(),
+            "4847b2b9a6432a7bdf2bdafacbbeea3aab18c524024fc6e1bc655e04cbc171f3".to_string(),
+            "cad1958c1a5c815f23450f1a2761a5a75ab2b894a258601bf93cd026469d42f2".to_string(),
+        ],
+        receiver: Option::from("terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8".to_string()),
+    };
+
+    let info = mock_info("thirdparty0000", &[]);
+    let res = execute(deps.as_mut(), mock_env(), info, msg).unwrap();
+
+    assert_eq!(
+        res.messages,
+        vec![SubMsg::new(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: "anchor0000".to_string(),
+            msg: to_binary(&Cw20ExecuteMsg::Transfer {
+                recipient: "terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8".to_string(),
+                amount: Uint128::new(2000001u128),
+            })
+            .unwrap(),
+            funds: vec![]
+        }))]
+    );
+
+    assert_eq!(
+        res.attributes,
+        vec![
+            attr("action", "claim"),
+            attr("stage", "3"),
             attr("address", "terra1qfqa2eu9wp272ha93lj4yhcenrc6ymng079nu8"),
             attr("amount", "2000001")
         ]

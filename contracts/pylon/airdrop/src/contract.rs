@@ -56,7 +56,8 @@ pub fn execute(
             stage,
             amount,
             proof,
-        } => claim(deps, info, stage, amount, proof),
+            receiver,
+        } => claim(deps, info, stage, amount, proof, receiver),
     }
 }
 
@@ -113,18 +114,20 @@ pub fn claim(
     stage: u8,
     amount: Uint128,
     proof: Vec<String>,
+    receiver: Option<String>,
 ) -> Result<Response, ContractError> {
     let config: Config = read_config(deps.storage)?;
     let merkle_root: String = read_merkle_root(deps.storage, stage)?;
+    let recipient = receiver.unwrap_or_else(|| info.sender.to_string());
 
-    let user_raw = deps.api.addr_canonicalize(info.sender.as_str())?;
+    let user_raw = deps.api.addr_canonicalize(recipient.as_str())?;
 
     // If user claimed target stage, return err
     if read_claimed(deps.storage, &user_raw, stage)? {
         return Err(ContractError::AlreadyClaimed {});
     }
 
-    let user_input: String = info.sender.to_string() + &amount.to_string();
+    let user_input: String = recipient.clone() + &amount.to_string();
     let mut hash: [u8; 32] = sha3::Keccak256::digest(user_input.as_bytes())
         .as_slice()
         .try_into()
@@ -164,14 +167,14 @@ pub fn claim(
             contract_addr: deps.api.addr_humanize(&config.pylon_token)?.to_string(),
             funds: vec![],
             msg: to_binary(&Cw20ExecuteMsg::Transfer {
-                recipient: info.sender.to_string(),
+                recipient: recipient.clone(),
                 amount,
             })?,
         })])
         .add_attributes(vec![
             ("action", "claim"),
             ("stage", &stage.to_string()),
-            ("address", info.sender.as_str()),
+            ("address", recipient.as_str()),
             ("amount", &amount.to_string()),
         ]))
 }
