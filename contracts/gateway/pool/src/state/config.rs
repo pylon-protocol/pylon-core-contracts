@@ -1,11 +1,11 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::{Env, StdError, StdResult, Storage};
 use cosmwasm_storage::{singleton, singleton_read};
+use pylon_gateway::time_range::TimeRange;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min};
 
-use crate::state::time_range::TimeRange;
 use crate::state::Validator;
 
 pub static KEY_CONFIG: &[u8] = b"config";
