@@ -98,14 +98,14 @@ pub fn withdraw(
         match strategy {
             Strategy::Lockup { release_time, .. } => {
                 if release_time < &env.block.time.seconds() {
-                    return claim(deps, env, info);
+                    return Err(ContractError::NotAllowWithdrawAfterRelease {});
                 }
             }
             Strategy::Vesting {
                 release_start_time, ..
             } => {
                 if release_start_time < &env.block.time.seconds() {
-                    return claim(deps, env, info);
+                    return Err(ContractError::NotAllowWithdrawAfterRelease {});
                 }
             }
         }
@@ -193,15 +193,20 @@ pub fn claim(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, Con
         .add_attribute("amount", claimable_token.to_string()))
 }
 
-pub fn earn(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+const EARN_LOCK_PERIOD: u64 = 86400 * 7;
+
+pub fn earn(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     let config = config::read(deps.storage).load().unwrap();
-    let state = state::read(deps.storage).load().unwrap();
     if config.beneficiary != info.sender {
         return Err(ContractError::Unauthorized {
             action: "earn".to_string(),
             expected: config.beneficiary,
             actual: info.sender.to_string(),
         });
+    }
+
+    if config.finish + EARN_LOCK_PERIOD < env.block.time.seconds() {
+        return Err(ContractError::NotAllowEarnBeforeLockPeriod {});
     }
 
     let earn_amount = state.total_claimed * config.price;
