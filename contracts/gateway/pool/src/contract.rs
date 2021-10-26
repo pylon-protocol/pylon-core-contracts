@@ -4,6 +4,7 @@ use cosmwasm_std::entry_point;
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::{Binary, Deps, DepsMut, Env, MessageInfo, Response, StdResult};
 use pylon_gateway::pool_msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use pylon_gateway::time_range::TimeRange;
 use std::ops::Add;
 
 use crate::error::ContractError;
@@ -11,7 +12,7 @@ use crate::handler::configure as Config;
 use crate::handler::core as Core;
 use crate::handler::query as Query;
 use crate::handler::router as Router;
-use crate::state::{config, reward, time_range};
+use crate::state::{config, reward};
 
 #[allow(dead_code)]
 #[cfg_attr(not(feature = "library"), entry_point)]
@@ -28,7 +29,7 @@ pub fn instantiate(
             // share
             share_token: msg.share_token,
             deposit_config: config::DepositConfig {
-                time: time_range::TimeRange {
+                time: TimeRange {
                     start: msg.start,
                     finish: 0,
                     inverse: false,
@@ -36,20 +37,20 @@ pub fn instantiate(
                 user_cap: Uint256::zero(),
                 total_cap: Uint256::zero(),
             },
-            withdraw_time: vec![time_range::TimeRange {
+            withdraw_time: vec![TimeRange {
                 start: msg.start,
                 finish: msg.start.add(msg.period),
                 inverse: true,
             }],
             // reward
             reward_token: msg.reward_token,
-            claim_time: time_range::TimeRange {
+            claim_time: TimeRange {
                 start: msg.start.add(msg.cliff),
                 finish: 0,
                 inverse: false,
             },
             distribution_config: config::DistributionConfig {
-                time: time_range::TimeRange {
+                time: TimeRange {
                     start: msg.start,
                     finish: msg.start.add(msg.period),
                     inverse: false,
