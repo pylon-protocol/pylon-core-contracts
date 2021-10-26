@@ -196,6 +196,7 @@ pub fn claim(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, Con
 const EARN_LOCK_PERIOD: u64 = 86400 * 7;
 
 pub fn earn(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
+    let state = state::read(deps.storage).load().unwrap();
     let config = config::read(deps.storage).load().unwrap();
     if config.beneficiary != info.sender {
         return Err(ContractError::Unauthorized {
@@ -209,19 +210,16 @@ pub fn earn(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, Cont
         return Err(ContractError::NotAllowEarnBeforeLockPeriod {});
     }
 
-    let earn_amount = state.total_claimed * config.price;
     Ok(Response::new()
         .add_message(CosmosMsg::Bank(BankMsg::Send {
             to_address: config.beneficiary,
             amount: vec![deduct_tax(
                 deps.as_ref(),
-                Coin {
-                    denom: state.x_denom,
-                    amount: earn_amount.into(),
-                },
+                deps.querier
+                    .query_balance(env.contract.address, state.x_denom)
+                    .unwrap(),
             )?],
         }))
         .add_attribute("action", "earn")
-        .add_attribute("sender", info.sender.to_string())
-        .add_attribute("amount", earn_amount.to_string()))
+        .add_attribute("sender", info.sender.to_string()))
 }
