@@ -206,7 +206,7 @@ pub fn earn(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, Cont
         });
     }
 
-    if config.finish + EARN_LOCK_PERIOD < env.block.time.seconds() {
+    if env.block.time.seconds() < config.finish + EARN_LOCK_PERIOD {
         return Err(ContractError::NotAllowEarnBeforeLockPeriod {});
     }
 
