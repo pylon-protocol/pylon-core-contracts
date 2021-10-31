@@ -1,6 +1,8 @@
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::*;
 use cw20::Cw20ExecuteMsg;
+use pylon_gateway::cap_strategy_msg::QueryMsg;
+use pylon_gateway::cap_strategy_resp;
 use std::ops::{Add, Sub};
 
 use crate::error::ContractError;
@@ -96,6 +98,22 @@ pub fn deposit_internal(
         return Err(ContractError::DepositUserCapExceeded {
             cap: config.deposit_config.user_cap,
         });
+    }
+
+    if let Some(strategy) = config.cap_strategy {
+        let resp: cap_strategy_resp::AvailableCapOfResponse = deps.querier.query_wasm_smart(
+            strategy,
+            &QueryMsg::AvailableCapOf {
+                address: sender.clone(),
+                amount: user.amount,
+            },
+        )?;
+
+        if let Some(v) = resp.amount {
+            if v < user.amount {
+                return Err(ContractError::DepositUserCapExceeded { cap: v });
+            }
+        }
     }
 
     reward::store(deps.storage, &reward).unwrap();

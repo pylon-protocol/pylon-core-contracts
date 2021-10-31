@@ -73,6 +73,8 @@ pub struct Config {
     pub reward_token: String,
     pub claim_time: TimeRange,
     pub distribution_config: DistributionConfig,
+    // strategy
+    pub cap_strategy: Option<String>,
 }
 
 impl Validator for Config {

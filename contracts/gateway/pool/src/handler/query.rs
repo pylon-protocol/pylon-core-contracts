@@ -1,4 +1,5 @@
 use cosmwasm_std::*;
+use pylon_gateway::cap_strategy_msg::QueryMsg;
 use pylon_gateway::pool_resp as resp;
 
 use crate::handler::util_staking;
@@ -80,4 +81,29 @@ pub fn claimable_reward(deps: Deps, env: Env, owner: String) -> StdResult<Binary
                 .applicable_reward_time(env.block.time.seconds()),
         )?,
     })
+}
+
+pub fn available_cap_of(deps: Deps, _env: Env, address: String) -> StdResult<Binary> {
+    let config = config::read(deps.storage).unwrap();
+    let user = user::read(
+        deps.storage,
+        &deps.api.addr_canonicalize(address.as_str()).unwrap(),
+    )
+    .unwrap();
+
+    if let Some(strategy) = config.cap_strategy {
+        let resp: resp::AvailableCapOfResponse = deps.querier.query_wasm_smart(
+            strategy,
+            &QueryMsg::AvailableCapOf {
+                address,
+                amount: user.amount,
+            },
+        )?;
+        to_binary(&resp)
+    } else {
+        to_binary(&resp::AvailableCapOfResponse {
+            amount: None,
+            unlimited: true,
+        })
+    }
 }
