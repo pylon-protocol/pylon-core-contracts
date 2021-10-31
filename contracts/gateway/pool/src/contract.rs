@@ -57,6 +57,7 @@ pub fn instantiate(
                 },
                 reward_rate: Decimal256::from_ratio(msg.reward_amount, Uint256::from(msg.period)),
             },
+            cap_strategy: msg.cap_strategy,
         },
     )?;
 
@@ -109,6 +110,7 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::Reward {} => Query::reward(deps, env),
         QueryMsg::BalanceOf { owner } => Query::balance_of(deps, env, owner),
         QueryMsg::ClaimableReward { owner } => Query::claimable_reward(deps, env, owner),
+        QueryMsg::AvailableCapOf { address } => Query::available_cap_of(deps, env, address),
     }
 }
 

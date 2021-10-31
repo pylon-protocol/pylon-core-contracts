@@ -4,5 +4,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct AvailableCapOfResponse {
-    pub amount: Uint256,
+    pub amount: Option<Uint256>,
+    pub unlimited: bool,
 }
