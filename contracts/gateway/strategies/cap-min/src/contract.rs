@@ -10,7 +10,6 @@ use pylon_gateway::cap_strategy_resp as resp;
 use pylon_token::gov::{QueryMsg as GovQueryMsg, StakerResponse};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::cmp::min;
 
 use crate::state;
 
@@ -91,7 +90,7 @@ pub fn execute(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::AvailableCapOf { amount, address } => {
+        QueryMsg::AvailableCapOf { address, .. } => {
             let config = state::config_r(deps.storage).load().unwrap();
             let staked: StakerResponse = deps
                 .querier

@@ -1,5 +1,5 @@
 use cosmwasm_bignumber::Uint256;
-use cosmwasm_std::testing::{mock_env, mock_info, MockApi, MockQuerier, MockStorage};
+use cosmwasm_std::testing::{mock_env, mock_info, MockApi, MockStorage};
 use cosmwasm_std::{
     from_binary, to_binary, Env, MessageInfo, OwnedDeps, Response, StdError, Uint128,
 };
@@ -15,7 +15,6 @@ const GOV: &str = "gov";
 const NEW_GOV: &str = "new_gov";
 const OWNER: &str = "owner";
 const NEW_OWNER: &str = "new_owner";
-const USER: &str = "user";
 
 fn init_contract(
     deps: &mut OwnedDeps<MockStorage, MockApi, CustomMockWasmQuerier>,
@@ -45,7 +44,7 @@ fn instantiate() {
     let mut deps = mock_dependencies(&[]);
 
     let minimum_stake_amount = Uint256::from(1000u64);
-    let _ = init_contract(&mut deps, GOV.to_string(), minimum_stake_amount.clone());
+    let _ = init_contract(&mut deps, GOV.to_string(), minimum_stake_amount);
 
     let config = state::config_r(deps.as_ref().storage).load().unwrap();
     assert_eq!(
@@ -63,12 +62,12 @@ fn execute_configure() {
     let mut deps = mock_dependencies(&[]);
 
     let minimum_stake_amount = Uint256::from(1000u64);
-    let (env, owner) = init_contract(&mut deps, GOV.to_string(), minimum_stake_amount.clone());
+    let (env, owner) = init_contract(&mut deps, GOV.to_string(), minimum_stake_amount);
 
     let msg = ExecuteMsg::Configure {
         owner: Option::from(NEW_OWNER.to_string()),
         gov: Option::from(NEW_GOV.to_string()),
-        minimum_stake_amount: Option::from(minimum_stake_amount.clone()),
+        minimum_stake_amount: Option::from(minimum_stake_amount),
     };
     let resp = contract::execute(deps.as_mut(), env, owner, msg)
         .expect("testing: should able to configure settings");
@@ -106,7 +105,7 @@ fn query_available_cap() {
         }),
     );
 
-    let (env, _) = init_contract(&mut deps, GOV.to_string(), minimum_stake_amount.clone());
+    let (env, _) = init_contract(&mut deps, GOV.to_string(), minimum_stake_amount);
 
     let amount = Uint256::from(10u64);
 
@@ -121,7 +120,7 @@ fn query_available_cap() {
     )
     .unwrap();
     assert_eq!(resp.amount, Option::Some(Uint256::from(0u64)));
-    assert_eq!(resp.unlimited, false);
+    assert!(!resp.unlimited);
 
     // gt minimum_stake_amount
     let msg = QueryMsg::AvailableCapOf {
@@ -129,10 +128,10 @@ fn query_available_cap() {
         amount,
     };
     let resp = from_binary::<AvailableCapOfResponse>(
-        &contract::query(deps.as_ref(), env.clone(), msg)
+        &contract::query(deps.as_ref(), env, msg)
             .expect("testing: should able to query available cap"),
     )
     .unwrap();
     assert_eq!(resp.amount, Option::None);
-    assert_eq!(resp.unlimited, true);
+    assert!(resp.unlimited);
 }
