@@ -10,14 +10,14 @@ use pylon_gateway::cap_strategy_resp as resp;
 use pylon_token::gov::{QueryMsg as GovQueryMsg, StakerResponse};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use std::cmp::{max, min};
+use std::cmp::min;
 
 use crate::state;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
     pub gov: String,
-    pub stages: Vec<state::Stage>,
+    pub minimum_stake_amount: Uint256,
 }
 
 #[allow(dead_code)]
@@ -32,7 +32,7 @@ pub fn instantiate(
         .save(&state::Config {
             owner: info.sender.to_string(),
             gov: msg.gov,
-            stages: msg.stages,
+            minimum_stake_amount: msg.minimum_stake_amount,
         })
         .unwrap();
 
@@ -45,7 +45,7 @@ pub enum ExecuteMsg {
     Configure {
         owner: Option<String>,
         gov: Option<String>,
-        stages: Option<Vec<state::Stage>>,
+        minimum_stake_amount: Option<Uint256>,
     },
 }
 
@@ -58,12 +58,16 @@ pub fn execute(
     msg: ExecuteMsg,
 ) -> StdResult<Response> {
     match msg {
-        ExecuteMsg::Configure { owner, gov, stages } => {
+        ExecuteMsg::Configure {
+            owner,
+            gov,
+            minimum_stake_amount,
+        } => {
             let mut config = state::config_r(deps.storage).load().unwrap();
             if config.owner != info.sender {
                 return Err(StdError::generic_err(format!(
                     "expected: {}, actual: {}",
-                    config.owner, info.sender,
+                    config.owner, info.sender
                 )));
             }
 
@@ -73,8 +77,8 @@ pub fn execute(
             if let Some(v) = gov {
                 config.gov = v;
             }
-            if let Some(v) = stages {
-                config.stages = v;
+            if let Some(v) = minimum_stake_amount {
+                config.minimum_stake_amount = v;
             }
 
             state::config_w(deps.storage).save(&config).unwrap();
@@ -87,28 +91,23 @@ pub fn execute(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
     match msg {
-        QueryMsg::AvailableCapOf { address, amount } => {
+        QueryMsg::AvailableCapOf { amount, address } => {
             let config = state::config_r(deps.storage).load().unwrap();
             let staked: StakerResponse = deps
                 .querier
                 .query_wasm_smart(config.gov, &GovQueryMsg::Staker { address })?;
 
-            let mut max_cap = Uint256::zero();
-            for stage in config.stages.iter() {
-                if stage.from <= Uint256::from(staked.balance) {
-                    if let Some(to) = stage.to {
-                        if Uint256::from(staked.balance) < to {
-                            max_cap = max(max_cap, stage.max_cap);
-                        }
-                    } else {
-                        max_cap = max(max_cap, stage.max_cap);
-                    }
-                }
+            if config.minimum_stake_amount <= Uint256::from(staked.balance) {
+                to_binary(&resp::AvailableCapOfResponse {
+                    amount: Option::None,
+                    unlimited: true,
+                })
+            } else {
+                to_binary(&resp::AvailableCapOfResponse {
+                    amount: Option::Some(Uint256::from(0u64)),
+                    unlimited: false,
+                })
             }
-            to_binary(&resp::AvailableCapOfResponse {
-                amount: Option::Some(max_cap - min(max_cap, amount)),
-                unlimited: false,
-            })
         }
     }
 }
