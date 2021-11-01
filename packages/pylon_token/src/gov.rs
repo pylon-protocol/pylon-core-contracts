@@ -8,6 +8,7 @@ use crate::common::OrderBy;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InstantiateMsg {
+    pub voting_token: String,
     pub quorum: Decimal,
     pub threshold: Decimal,
     pub voting_period: u64,
@@ -18,14 +19,36 @@ pub struct InstantiateMsg {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
-pub enum ExecuteMsg {
-    Receive(Cw20ReceiveMsg),
-    ExecutePollMsgs {
+pub enum PollMsg {
+    CastVote {
+        poll_id: u64,
+        vote: VoteOption,
+        amount: Uint128,
+    },
+    Execute {
         poll_id: u64,
     },
-    RegisterContracts {
-        pylon_token: String,
+    ExecuteMsgs {
+        poll_id: u64,
     },
+    Snapshot {
+        poll_id: u64,
+    },
+    End {
+        poll_id: u64,
+    },
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum StakingMsg {
+    Withdraw { amount: Option<Uint128> },
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ExecuteMsg {
+    Receive(Cw20ReceiveMsg),
     UpdateConfig {
         owner: Option<String>,
         quorum: Option<Decimal>,
@@ -35,23 +58,8 @@ pub enum ExecuteMsg {
         proposal_deposit: Option<Uint128>,
         snapshot_period: Option<u64>,
     },
-    CastVote {
-        poll_id: u64,
-        vote: VoteOption,
-        amount: Uint128,
-    },
-    WithdrawVotingTokens {
-        amount: Option<Uint128>,
-    },
-    EndPoll {
-        poll_id: u64,
-    },
-    ExecutePoll {
-        poll_id: u64,
-    },
-    SnapshotPoll {
-        poll_id: u64,
-    },
+    Poll(PollMsg),
+    Staking(StakingMsg),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -193,7 +201,7 @@ pub enum PollStatus {
     Passed,
     Rejected,
     Executed,
-    Expired, // Depricated
+    Expired, // Deprecated
     Failed,
 }
 

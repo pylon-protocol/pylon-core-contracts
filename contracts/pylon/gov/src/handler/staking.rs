@@ -1,17 +1,29 @@
-use crate::error::ContractError;
-use crate::state::{
-    bank_read, bank_store, config_read, config_store, poll_read, poll_voter_store, state_read,
-    state_store, Config, Poll, State, TokenManager,
-};
-
 use cosmwasm_std::{
-    to_binary, Addr, CanonicalAddr, CosmosMsg, Deps, DepsMut, MessageInfo, Order, Response,
-    StdResult, Storage, Uint128, WasmMsg,
+    to_binary, Addr, Binary, CanonicalAddr, CosmosMsg, Deps, DepsMut, Env, MessageInfo, Response,
+    Storage, Uint128, WasmMsg,
 };
 use cw20::Cw20ExecuteMsg;
 use pylon_token::common::OrderBy;
-use pylon_token::gov::{PollStatus, StakerResponse, StakersResponse};
+use pylon_token::gov::{PollStatus, StakingMsg};
 use terraswap::querier::query_token_balance;
+
+use crate::error::ContractError;
+use crate::querier::bank::{staker, stakers};
+use crate::state::bank::{bank_r, bank_w, TokenManager};
+use crate::state::config::config_r;
+use crate::state::poll::{poll_r, poll_voter_w};
+use crate::state::state::{state_r, state_w};
+
+pub fn handle_staking_msg(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    msg: StakingMsg,
+) -> Result<Response, ContractError> {
+    match msg {
+        StakingMsg::Withdraw { amount } => withdraw_voting_tokens(deps, info, amount),
+    }
+}
 
 pub fn stake_voting_tokens(
     deps: DepsMut,
@@ -25,9 +37,9 @@ pub fn stake_voting_tokens(
     let sender_address_raw = deps.api.addr_canonicalize(sender.as_str())?;
     let key = &sender_address_raw.as_slice();
 
-    let mut token_manager = bank_read(deps.storage).may_load(key)?.unwrap_or_default();
-    let config: Config = config_store(deps.storage).load()?;
-    let mut state: State = state_store(deps.storage).load()?;
+    let mut token_manager = bank_r(deps.storage).may_load(key)?.unwrap_or_default();
+    let config = config_r(deps.storage).load()?;
+    let mut state = state_r(deps.storage).load()?;
 
     // balance already increased, so subtract deposit amount
     let total_balance = query_token_balance(
@@ -46,8 +58,8 @@ pub fn stake_voting_tokens(
     token_manager.share += share;
     state.total_share += share;
 
-    state_store(deps.storage).save(&state)?;
-    bank_store(deps.storage).save(key, &token_manager)?;
+    state_w(deps.storage).save(&state)?;
+    bank_w(deps.storage).save(key, &token_manager)?;
 
     Ok(Response::new().add_attributes(vec![
         ("action", "staking"),
@@ -66,9 +78,9 @@ pub fn withdraw_voting_tokens(
     let sender_address_raw = deps.api.addr_canonicalize(info.sender.as_str())?;
     let key = sender_address_raw.as_slice();
 
-    if let Some(mut token_manager) = bank_read(deps.storage).may_load(key)? {
-        let config: Config = config_store(deps.storage).load()?;
-        let mut state: State = state_store(deps.storage).load()?;
+    if let Some(mut token_manager) = bank_r(deps.storage).may_load(key)? {
+        let config = config_r(deps.storage).load()?;
+        let mut state = state_w(deps.storage).load()?;
 
         // Load total share & total balance except proposal deposit amount
         let total_share = state.total_share.u128();
@@ -98,10 +110,10 @@ pub fn withdraw_voting_tokens(
             let share = user_share - withdraw_share;
             token_manager.share = Uint128::from(share);
 
-            bank_store(deps.storage).save(key, &token_manager)?;
+            bank_w(deps.storage).save(key, &token_manager)?;
 
             state.total_share = Uint128::from(total_share - withdraw_share);
-            state_store(deps.storage).save(&state)?;
+            state_w(deps.storage).save(&state)?;
 
             send_tokens(
                 deps,
@@ -124,11 +136,11 @@ fn compute_locked_balance(
     voter: &CanonicalAddr,
 ) -> u128 {
     token_manager.locked_balance.retain(|(poll_id, _)| {
-        let poll: Poll = poll_read(storage).load(&poll_id.to_be_bytes()).unwrap();
+        let poll = poll_r(storage).load(&poll_id.to_be_bytes()).unwrap();
 
         if poll.status != PollStatus::InProgress {
             // remove voter info from the poll
-            poll_voter_store(storage, *poll_id).remove(voter.as_slice());
+            poll_voter_w(storage, *poll_id).remove(voter.as_slice());
         }
 
         poll.status == PollStatus::InProgress
@@ -168,101 +180,15 @@ fn send_tokens(
         ]))
 }
 
-pub fn query_staker(deps: Deps, address: String) -> StdResult<StakerResponse> {
-    let addr_raw = deps.api.addr_canonicalize(&address).unwrap();
-    let config: Config = config_read(deps.storage).load()?;
-    let state: State = state_read(deps.storage).load()?;
-    let mut token_manager = bank_read(deps.storage)
-        .may_load(addr_raw.as_slice())?
-        .unwrap_or_default();
-
-    // filter out not in-progress polls
-    token_manager.locked_balance.retain(|(poll_id, _)| {
-        let poll: Poll = poll_read(deps.storage)
-            .load(&poll_id.to_be_bytes())
-            .unwrap();
-
-        poll.status == PollStatus::InProgress
-    });
-
-    let total_balance = query_token_balance(
-        &deps.querier,
-        deps.api.addr_humanize(&config.pylon_token)?,
-        deps.api.addr_humanize(&state.contract_addr)?,
-    )?
-    .checked_sub(state.total_deposit)?;
-
-    Ok(StakerResponse {
-        balance: if !state.total_share.is_zero() {
-            token_manager
-                .share
-                .multiply_ratio(total_balance, state.total_share)
-        } else {
-            Uint128::zero()
-        },
-        share: token_manager.share,
-        locked_balance: token_manager.locked_balance,
-    })
+pub fn query_staker(deps: Deps, address: String) -> Result<Binary, ContractError> {
+    Ok(to_binary(&staker(deps, address)?)?)
 }
 
-const MAX_LIMIT: u32 = 30;
-const DEFAULT_LIMIT: u32 = 10;
 pub fn query_stakers(
     deps: Deps,
     start_after: Option<String>,
     limit: Option<u32>,
     order: Option<OrderBy>,
-) -> StdResult<StakersResponse> {
-    let state = state_read(deps.storage).load().unwrap();
-    let config = config_read(deps.storage).load().unwrap();
-    let start = start_after
-        .map(|x| deps.api.addr_canonicalize(x.as_str()).unwrap())
-        .map(|x| {
-            let mut v = x.as_slice().to_vec();
-            v.push(1);
-            v
-        });
-    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
-    let order = order.map(Order::from).unwrap_or(Order::Ascending);
-
-    let total_balance = query_token_balance(
-        &deps.querier,
-        deps.api.addr_humanize(&config.pylon_token)?,
-        deps.api.addr_humanize(&state.contract_addr)?,
-    )?
-    .checked_sub(state.total_deposit)?;
-
-    let stakers: Vec<(String, StakerResponse)> = bank_read(deps.storage)
-        .range(start.as_deref(), None, order)
-        .take(limit)
-        .map(|elem: StdResult<(Vec<u8>, TokenManager)>| {
-            let (k, mut v) = elem.unwrap();
-
-            // filter out not in-progress polls
-            v.locked_balance.retain(|(poll_id, _)| {
-                let poll: Poll = poll_read(deps.storage)
-                    .load(&poll_id.to_be_bytes())
-                    .unwrap();
-
-                poll.status == PollStatus::InProgress
-            });
-
-            (
-                deps.api
-                    .addr_humanize(&CanonicalAddr::from(k))
-                    .unwrap()
-                    .to_string(),
-                StakerResponse {
-                    balance: if !state.total_share.is_zero() {
-                        v.share.multiply_ratio(total_balance, state.total_share)
-                    } else {
-                        Uint128::zero()
-                    },
-                    share: v.share,
-                    locked_balance: v.locked_balance,
-                },
-            )
-        })
-        .collect();
-    Ok(StakersResponse { stakers })
+) -> Result<Binary, ContractError> {
+    Ok(to_binary(&stakers(deps, start_after, limit, order)?)?)
 }

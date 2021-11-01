@@ -1,11 +1,10 @@
 pub mod contract;
 
+mod constant;
 mod error;
-mod staking;
+mod handler;
+mod querier;
 mod state;
 
 #[cfg(test)]
-mod tests;
-
-#[cfg(test)]
-mod mock_querier;
+mod testing;
