@@ -1,7 +1,8 @@
 use cosmwasm_std::testing::{mock_env, mock_info, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{attr, from_binary, to_binary, Uint128};
 use cw20::Cw20ReceiveMsg;
-use pylon_token::gov::{Cw20HookMsg, ExecuteMsg, QueryMsg, StakerResponse, StakingMsg};
+use pylon_token::gov_msg::{Cw20HookMsg, ExecuteMsg, QueryMsg, StakingMsg};
+use pylon_token::gov_resp::StakerResponse;
 
 use crate::contract;
 use crate::error::ContractError;

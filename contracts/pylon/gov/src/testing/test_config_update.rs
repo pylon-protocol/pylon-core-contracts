@@ -1,6 +1,7 @@
 use cosmwasm_std::testing::{mock_env, mock_info};
 use cosmwasm_std::{from_binary, Decimal, Uint128};
-use pylon_token::gov::{ConfigResponse, ExecuteMsg, QueryMsg};
+use pylon_token::gov_msg::{ExecuteMsg, QueryMsg};
+use pylon_token::gov_resp::ConfigResponse;
 
 use crate::contract;
 use crate::error::ContractError;

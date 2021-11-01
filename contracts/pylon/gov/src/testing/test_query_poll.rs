@@ -2,7 +2,8 @@ use cosmwasm_std::testing::{mock_env, mock_info};
 use cosmwasm_std::{from_binary, to_binary, Uint128};
 use cw20::Cw20ExecuteMsg;
 use pylon_token::common::OrderBy;
-use pylon_token::gov::{PollExecuteMsg, PollResponse, PollStatus, PollsResponse, QueryMsg};
+use pylon_token::gov_msg::{PollExecuteMsg, PollStatus, QueryMsg};
+use pylon_token::gov_resp::{PollResponse, PollsResponse};
 
 use crate::contract;
 use crate::error::ContractError;

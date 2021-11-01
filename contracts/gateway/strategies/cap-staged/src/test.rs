@@ -5,7 +5,8 @@ use cosmwasm_std::{
 };
 use pylon_gateway::cap_strategy_msg::QueryMsg;
 use pylon_gateway::cap_strategy_resp::AvailableCapOfResponse;
-use pylon_token::gov::{QueryMsg as GovQueryMsg, StakerResponse};
+use pylon_token::gov_msg::QueryMsg as GovQueryMsg;
+use pylon_token::gov_resp::StakerResponse;
 
 use crate::contract::ExecuteMsg;
 use crate::mock_querier::{mock_dependencies, CustomMockWasmQuerier};

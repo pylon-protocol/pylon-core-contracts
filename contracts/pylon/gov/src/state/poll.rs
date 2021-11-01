@@ -3,7 +3,7 @@ use cosmwasm_storage::{
     bucket, bucket_read, singleton, singleton_read, Bucket, ReadonlyBucket, ReadonlySingleton,
     Singleton,
 };
-use pylon_token::gov::{PollStatus, VoterInfo};
+use pylon_token::gov_msg::{PollStatus, VoterInfo};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;

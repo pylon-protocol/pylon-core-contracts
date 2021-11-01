@@ -1,6 +1,6 @@
 use cosmwasm_std::testing::MOCK_CONTRACT_ADDR;
 use cosmwasm_std::{attr, Deps, Response, Uint128};
-use pylon_token::gov::VoteOption;
+use pylon_token::gov_msg::VoteOption;
 
 use crate::state::state::{state_r, State};
 use crate::testing::constants::*;

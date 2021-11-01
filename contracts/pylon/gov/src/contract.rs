@@ -5,7 +5,7 @@ use cosmwasm_std::{
     from_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, Uint128,
 };
 use cw20::Cw20ReceiveMsg;
-use pylon_token::gov::{Cw20HookMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use pylon_token::gov_msg::{Cw20HookMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
 
 use crate::constant::POLL_EXECUTE_REPLY_ID;
 use crate::error::ContractError;

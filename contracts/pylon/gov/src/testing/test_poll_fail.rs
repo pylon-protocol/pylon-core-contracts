@@ -4,10 +4,10 @@ use cosmwasm_std::{
 };
 use cw20::{Cw20ExecuteMsg, Cw20ReceiveMsg};
 use pylon_token::common::OrderBy;
-use pylon_token::gov::{
-    Cw20HookMsg, ExecuteMsg, PollExecuteMsg, PollMsg, PollResponse, PollStatus, PollsResponse,
-    QueryMsg, VoteOption,
+use pylon_token::gov_msg::{
+    Cw20HookMsg, ExecuteMsg, PollExecuteMsg, PollMsg, PollStatus, QueryMsg, VoteOption,
 };
+use pylon_token::gov_resp::{PollResponse, PollsResponse};
 
 use crate::contract;
 use crate::error::ContractError;

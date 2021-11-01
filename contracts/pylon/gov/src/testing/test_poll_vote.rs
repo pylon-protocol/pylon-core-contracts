@@ -2,10 +2,8 @@ use cosmwasm_std::testing::{mock_env, mock_info, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{coins, from_binary, to_binary, Uint128};
 use cw20::Cw20ReceiveMsg;
 use pylon_token::common::OrderBy;
-use pylon_token::gov::{
-    Cw20HookMsg, ExecuteMsg, PollMsg, PollResponse, QueryMsg, StakerResponse, VoteOption,
-    VoterInfo, VotersResponse, VotersResponseItem,
-};
+use pylon_token::gov_msg::{Cw20HookMsg, ExecuteMsg, PollMsg, QueryMsg, VoteOption, VoterInfo};
+use pylon_token::gov_resp::{PollResponse, StakerResponse, VotersResponse, VotersResponseItem};
 
 use crate::contract;
 use crate::error::ContractError;

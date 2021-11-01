@@ -4,10 +4,10 @@ use cosmwasm_std::{
 };
 use cw20::Cw20ExecuteMsg;
 use pylon_token::common::OrderBy;
-use pylon_token::gov::{
-    ExecuteMsg, PollExecuteMsg, PollMsg, PollResponse, PollStatus, PollsResponse, VoteOption,
-    VoterInfo, VotersResponse, VotersResponseItem,
+use pylon_token::gov_msg::{
+    ExecuteMsg, PollExecuteMsg, PollMsg, PollStatus, VoteOption, VoterInfo,
 };
+use pylon_token::gov_resp::{PollResponse, PollsResponse, VotersResponse, VotersResponseItem};
 use terraswap::querier::query_token_balance;
 
 use crate::constant::POLL_EXECUTE_REPLY_ID;

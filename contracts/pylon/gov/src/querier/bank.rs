@@ -1,6 +1,7 @@
 use cosmwasm_std::{CanonicalAddr, Deps, Order, StdResult, Uint128};
 use pylon_token::common::OrderBy;
-use pylon_token::gov::{PollStatus, StakerResponse, StakersResponse};
+use pylon_token::gov_msg::PollStatus;
+use pylon_token::gov_resp::{StakerResponse, StakersResponse};
 use terraswap::querier::query_token_balance;
 
 use crate::state::bank::{bank_r, TokenManager};

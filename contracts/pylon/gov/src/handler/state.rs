@@ -1,5 +1,5 @@
 use cosmwasm_std::{to_binary, Binary, Deps};
-use pylon_token::gov::StateResponse;
+use pylon_token::gov_resp::StateResponse;
 
 use crate::error::ContractError;
 use crate::state::state::state_r;

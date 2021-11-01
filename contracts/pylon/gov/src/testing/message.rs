@@ -1,6 +1,6 @@
 use cosmwasm_std::{to_binary, Uint128};
 use cw20::Cw20ReceiveMsg;
-use pylon_token::gov::{Cw20HookMsg, ExecuteMsg, PollExecuteMsg};
+use pylon_token::gov_msg::{Cw20HookMsg, ExecuteMsg, PollExecuteMsg};
 
 use crate::testing::constants::*;
 

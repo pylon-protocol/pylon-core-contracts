@@ -1,5 +1,5 @@
 use cosmwasm_std::{to_binary, Binary, Decimal, Deps, DepsMut, MessageInfo, Response, Uint128};
-use pylon_token::gov::ConfigResponse;
+use pylon_token::gov_resp::ConfigResponse;
 
 use crate::error::ContractError;
 use crate::state::config::{config_r, config_w};

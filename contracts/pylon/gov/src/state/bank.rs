@@ -1,6 +1,6 @@
 use cosmwasm_std::{Storage, Uint128};
 use cosmwasm_storage::{bucket, bucket_read, Bucket, ReadonlyBucket};
-use pylon_token::gov::VoterInfo;
+use pylon_token::gov_msg::VoterInfo;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 

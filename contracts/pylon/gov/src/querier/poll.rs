@@ -1,7 +1,7 @@
 use cosmwasm_std::{CanonicalAddr, StdResult, Storage};
 use cosmwasm_storage::ReadonlyBucket;
 use pylon_token::common::OrderBy;
-use pylon_token::gov::{PollStatus, VoterInfo};
+use pylon_token::gov_msg::{PollStatus, VoterInfo};
 
 use crate::state::poll::{
     poll_indexer_r, poll_r, poll_voter_r, tmp_poll_id_r, tmp_poll_id_w, Poll,

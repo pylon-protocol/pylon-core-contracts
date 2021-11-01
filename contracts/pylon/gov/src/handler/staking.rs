@@ -4,7 +4,7 @@ use cosmwasm_std::{
 };
 use cw20::Cw20ExecuteMsg;
 use pylon_token::common::OrderBy;
-use pylon_token::gov::{PollStatus, StakingMsg};
+use pylon_token::gov_msg::{PollStatus, StakingMsg};
 use terraswap::querier::query_token_balance;
 
 use crate::error::ContractError;
