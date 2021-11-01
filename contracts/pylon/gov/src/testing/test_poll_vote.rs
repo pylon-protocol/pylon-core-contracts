@@ -46,7 +46,7 @@ fn cast_vote() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(11u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -172,7 +172,7 @@ fn cast_vote_with_snapshot() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(11u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -218,7 +218,7 @@ fn cast_vote_with_snapshot() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER_2.to_string(),
         amount: Uint128::from(11u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -262,7 +262,7 @@ fn cast_vote_with_snapshot() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER_3.to_string(),
         amount: Uint128::from(11u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -312,7 +312,7 @@ fn fails_cast_vote_not_enough_staked() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(10u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -373,7 +373,7 @@ fn fails_cast_vote_twice() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(11u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);

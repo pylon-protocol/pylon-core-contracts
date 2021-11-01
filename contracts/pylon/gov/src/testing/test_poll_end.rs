@@ -102,7 +102,7 @@ fn end_poll() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(stake_amount as u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -421,7 +421,7 @@ fn end_poll_with_controlled_quorum() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(stake_amount as u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -488,7 +488,7 @@ fn end_poll_with_controlled_quorum() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER_2.to_string(),
         amount: Uint128::from(8 * stake_amount as u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -615,7 +615,7 @@ fn end_poll_zero_quorum() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(stake_amount as u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -720,7 +720,7 @@ fn end_poll_quorum_rejected() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(stake_amount as u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -852,7 +852,7 @@ fn end_poll_nay_rejected() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(voter1_stake as u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -877,7 +877,7 @@ fn end_poll_nay_rejected() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER_2.to_string(),
         amount: Uint128::from(voter2_stake as u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -1016,7 +1016,7 @@ fn fails_end_poll_quorum_inflation_without_snapshot_poll() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(stake_amount as u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -1067,7 +1067,7 @@ fn fails_end_poll_quorum_inflation_without_snapshot_poll() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER_2.to_string(),
         amount: Uint128::from(8 * stake_amount as u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);

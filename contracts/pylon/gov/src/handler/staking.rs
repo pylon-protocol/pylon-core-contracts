@@ -21,7 +21,7 @@ pub fn handle_staking_msg(
     msg: StakingMsg,
 ) -> Result<Response, ContractError> {
     match msg {
-        StakingMsg::Withdraw { amount } => withdraw_voting_tokens(deps, info, amount),
+        StakingMsg::Unstake { amount } => withdraw_voting_tokens(deps, info, amount),
     }
 }
 

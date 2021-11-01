@@ -72,7 +72,7 @@ fn fail_poll() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(stake_amount as u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);

@@ -26,7 +26,7 @@ fn withdraw_voting_tokens() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(11u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -51,7 +51,7 @@ fn withdraw_voting_tokens() {
     )]);
 
     let info = mock_info(TEST_VOTER, &[]);
-    let msg = ExecuteMsg::Staking(StakingMsg::Withdraw {
+    let msg = ExecuteMsg::Staking(StakingMsg::Unstake {
         amount: Some(Uint128::from(11u128)),
     });
 
@@ -96,7 +96,7 @@ fn withdraw_voting_tokens_all() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(11u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -121,7 +121,7 @@ fn withdraw_voting_tokens_all() {
     )]);
 
     let info = mock_info(TEST_VOTER, &[]);
-    let msg = ExecuteMsg::Staking(StakingMsg::Withdraw { amount: None });
+    let msg = ExecuteMsg::Staking(StakingMsg::Unstake { amount: None });
 
     let execute_res = contract::execute(deps.as_mut(), mock_env(), info, msg).unwrap();
     let msg = execute_res.messages.get(0).expect("no message");
@@ -164,7 +164,7 @@ fn withdraw_voting_tokens_remove_not_in_progress_poll_voter_info() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(11u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -260,7 +260,7 @@ fn withdraw_voting_tokens_remove_not_in_progress_poll_voter_info() {
 
     // withdraw voting token must remove not in-progress votes infos from the store
     let info = mock_info(TEST_VOTER, &[]);
-    let msg = ExecuteMsg::Staking(StakingMsg::Withdraw {
+    let msg = ExecuteMsg::Staking(StakingMsg::Unstake {
         amount: Some(Uint128::from(5u128)),
     });
 
@@ -300,7 +300,7 @@ fn fails_withdraw_voting_tokens_no_stake() {
     mock_instantiate(deps.as_mut());
 
     let info = mock_info(TEST_VOTER, &coins(11, VOTING_TOKEN));
-    let msg = ExecuteMsg::Staking(StakingMsg::Withdraw {
+    let msg = ExecuteMsg::Staking(StakingMsg::Unstake {
         amount: Some(Uint128::from(11u128)),
     });
 
@@ -326,7 +326,7 @@ fn fails_withdraw_too_many_tokens() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(10u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -334,7 +334,7 @@ fn fails_withdraw_too_many_tokens() {
     assert_stake_tokens_result(10, 0, 10, 0, execute_res, deps.as_ref());
 
     let info = mock_info(TEST_VOTER, &[]);
-    let msg = ExecuteMsg::Staking(StakingMsg::Withdraw {
+    let msg = ExecuteMsg::Staking(StakingMsg::Unstake {
         amount: Some(Uint128::from(11u128)),
     });
 

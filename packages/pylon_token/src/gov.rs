@@ -42,7 +42,7 @@ pub enum PollMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum StakingMsg {
-    Withdraw { amount: Option<Uint128> },
+    Unstake { amount: Option<Uint128> },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -67,7 +67,7 @@ pub enum ExecuteMsg {
 pub enum Cw20HookMsg {
     /// StakeVotingTokens a user can stake their mirror token to receive rewards
     /// or do vote on polls
-    StakeVotingTokens {},
+    Stake {},
     /// CreatePoll need to receive deposit from a proposer
     CreatePoll {
         title: String,

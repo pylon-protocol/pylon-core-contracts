@@ -23,7 +23,7 @@ fn stake_voting_tokens() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(11u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -42,7 +42,7 @@ fn fails_insufficient_funds() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(0u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -71,7 +71,7 @@ fn fails_staking_wrong_token() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(11u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(&(VOTING_TOKEN.to_string() + "2"), &[]);
@@ -100,7 +100,7 @@ fn share_calculation() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(100u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -118,7 +118,7 @@ fn share_calculation() {
     let msg = ExecuteMsg::Receive(Cw20ReceiveMsg {
         sender: TEST_VOTER.to_string(),
         amount: Uint128::from(100u128),
-        msg: to_binary(&Cw20HookMsg::StakeVotingTokens {}).unwrap(),
+        msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
 
     let info = mock_info(VOTING_TOKEN, &[]);
@@ -133,7 +133,7 @@ fn share_calculation() {
         ]
     );
 
-    let msg = ExecuteMsg::Staking(StakingMsg::Withdraw {
+    let msg = ExecuteMsg::Staking(StakingMsg::Unstake {
         amount: Some(Uint128::from(100u128)),
     });
     let info = mock_info(TEST_VOTER, &[]);

@@ -116,7 +116,7 @@ pub fn receive_cw20(
     }
 
     match from_binary(&cw20_msg.msg) {
-        Ok(Cw20HookMsg::StakeVotingTokens {}) => {
+        Ok(Cw20HookMsg::Stake {}) => {
             let api = deps.api;
             stake_voting_tokens(deps, api.addr_validate(&cw20_msg.sender)?, cw20_msg.amount)
         }
