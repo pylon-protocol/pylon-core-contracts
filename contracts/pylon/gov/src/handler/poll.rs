@@ -20,6 +20,16 @@ use crate::state::poll::{
 };
 use crate::state::state::{state_r, state_w};
 
+/**
+ * Poll Lifecycle
+ * 1. CreatePoll
+ * 2. CastVote
+ * 3. ExecutePoll
+ * 3-A. ExecutePollMsgs (Internal)
+ * 3-B. FailPoll (Reply)
+ * 4. SnapshotPoll
+ * 5. EndPoll
+ */
 pub fn handle_poll_msg(
     deps: DepsMut,
     env: Env,
