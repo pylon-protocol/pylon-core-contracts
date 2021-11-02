@@ -2,11 +2,10 @@ use cosmwasm_std::testing::{mock_env, mock_info};
 use cosmwasm_std::{from_binary, to_binary, Uint128};
 use cw20::Cw20ExecuteMsg;
 use pylon_token::common::OrderBy;
-use pylon_token::gov_msg::{ExecuteMsg, PollExecuteMsg, PollStatus, QueryMsg};
+use pylon_token::gov_msg::{PollExecuteMsg, PollStatus, QueryMsg};
 use pylon_token::gov_resp::{PollResponse, PollsResponse};
 
 use crate::contract;
-use crate::contract::execute;
 use crate::error::ContractError;
 use crate::testing::constants::*;
 use crate::testing::message::create_poll_msg;
@@ -74,7 +73,7 @@ fn query_polls() {
         description: "test".to_string(),
         link: Some("http://google.com".to_string()),
         deposit_amount: Uint128::from(DEFAULT_PROPOSAL_DEPOSIT),
-        execute_data: Some(execute_data.clone()),
+        execute_data: Some(execute_data),
         yes_votes: Uint128::zero(),
         no_votes: Uint128::zero(),
         staked_amount: None,
@@ -189,7 +188,7 @@ fn query_polls() {
     )
     .unwrap();
     let response: PollsResponse = from_binary(&res).unwrap();
-    assert_eq!(response.polls, vec![poll_12.clone(), poll_11.clone()]);
+    assert_eq!(response.polls, vec![poll_12, poll_11.clone()]);
 
     let res = contract::query(
         deps.as_ref(),
@@ -234,7 +233,7 @@ fn query_polls() {
     )
     .unwrap();
     let response: PollsResponse = from_binary(&res).unwrap();
-    assert_eq!(response.polls, vec![poll_21.clone(), poll_22.clone()]);
+    assert_eq!(response.polls, vec![poll_21, poll_22]);
 
     let res = contract::query(
         deps.as_ref(),
