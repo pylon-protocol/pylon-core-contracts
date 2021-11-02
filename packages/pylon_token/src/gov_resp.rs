@@ -5,6 +5,11 @@ use serde::{Deserialize, Serialize};
 use crate::gov_msg::{PollExecuteMsg, PollStatus, VoteOption, VoterInfo};
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema)]
+pub struct APIVersionResponse {
+    pub version: String,
+}
+
+#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema)]
 pub struct ConfigResponse {
     pub owner: String,
     pub pylon_token: String,
