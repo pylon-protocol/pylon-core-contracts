@@ -93,7 +93,8 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::AvailableCapOf { amount, .. } => {
             let config = state::config_r(deps.storage).load().unwrap();
             to_binary(&resp::AvailableCapOfResponse {
-                amount: config.max_user_cap - min(config.max_user_cap, amount),
+                amount: Option::Some(config.max_user_cap - min(config.max_user_cap, amount)),
+                unlimited: false,
             })
         }
     }

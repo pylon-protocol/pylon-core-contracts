@@ -11,6 +11,7 @@ pub struct InstantiateMsg {
     pub share_token: String,
     pub reward_token: String,
     pub reward_amount: Uint256,
+    pub cap_strategy: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -76,6 +77,9 @@ pub enum QueryMsg {
     BalanceOf {
         owner: String,
     }, // -> Uint256
+    AvailableCapOf {
+        address: String,
+    },
     ClaimableReward {
         owner: String,
     }, // -> Uint256

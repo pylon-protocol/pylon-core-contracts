@@ -143,6 +143,7 @@ async function deployDirectory(wallet: Wallet) {
 
       codeIds[fileName.replace(/\.[^/.]+$/, "")] = codeId;
     }
+    await sleep(3000);
   }
 
   fs.writeFileSync(

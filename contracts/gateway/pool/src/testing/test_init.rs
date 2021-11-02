@@ -55,6 +55,7 @@ fn proper_initialization() {
                 },
                 reward_rate: Decimal256::from_ratio(msg.reward_amount, Uint256::from(msg.period)),
             },
+            cap_strategy: msg.cap_strategy,
         }
     );
 

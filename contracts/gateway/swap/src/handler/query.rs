@@ -1,5 +1,6 @@
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{to_binary, Binary, Coin, Deps, Env, StdResult};
+use pylon_gateway::cap_strategy_msg::QueryMsg as CapQueryMsg;
 use pylon_gateway::swap_resp as resp;
 use pylon_utils::tax::deduct_tax;
 
@@ -46,12 +47,20 @@ pub fn is_whitelisted(deps: Deps, address: String) -> StdResult<Binary> {
 
 pub fn available_cap_of(deps: Deps, address: String) -> StdResult<Binary> {
     let config = config::read(deps.storage).load().unwrap();
+    let user = user::read(
+        deps.storage,
+        &deps.api.addr_canonicalize(address.as_str()).unwrap(),
+    )
+    .unwrap();
     if let Some(strategy) = config.cap_strategy {
-        let available_cap = strategy::available_cap_of(deps, strategy, address)?;
-        to_binary(&resp::AvailableCapOfResponse {
-            amount: Option::Some(available_cap),
-            unlimited: false,
-        })
+        let resp: resp::AvailableCapOfResponse = deps.querier.query_wasm_smart(
+            strategy,
+            &CapQueryMsg::AvailableCapOf {
+                amount: user.swapped_in,
+                address,
+            },
+        )?;
+        to_binary(&resp)
     } else {
         to_binary(&resp::AvailableCapOfResponse {
             amount: None,

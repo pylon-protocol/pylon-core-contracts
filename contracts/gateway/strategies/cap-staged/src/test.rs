@@ -142,7 +142,7 @@ fn query_available_cap() {
         .unwrap(),
     )
     .unwrap();
-    assert_eq!(resp.amount, Uint256::from(100u64));
+    assert_eq!(resp.amount, Option::from(Uint256::from(100u64)));
 
     let resp: AvailableCapOfResponse = from_binary(
         &contract::query(
@@ -156,7 +156,7 @@ fn query_available_cap() {
         .unwrap(),
     )
     .unwrap();
-    assert_eq!(resp.amount, Uint256::from(200u64));
+    assert_eq!(resp.amount, Option::from(Uint256::from(200u64)));
 
     let resp: AvailableCapOfResponse = from_binary(
         &contract::query(
@@ -170,5 +170,5 @@ fn query_available_cap() {
         .unwrap(),
     )
     .unwrap();
-    assert_eq!(resp.amount, Uint256::from(100u64));
+    assert_eq!(resp.amount, Option::from(Uint256::from(100u64)));
 }

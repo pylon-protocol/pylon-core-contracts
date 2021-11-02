@@ -1,6 +1,8 @@
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::*;
 use cw20::Cw20ExecuteMsg;
+use pylon_gateway::cap_strategy_msg::QueryMsg as CapQueryMsg;
+use pylon_gateway::cap_strategy_resp;
 use pylon_gateway::swap_msg::Strategy;
 use pylon_utils::tax::deduct_tax;
 
@@ -53,13 +55,18 @@ pub fn deposit(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, C
 
     // check available cap via calling cap_strategy contract
     if let Some(strategy) = config.cap_strategy {
-        let available_cap =
-            strategy::available_cap_of(deps.as_ref(), strategy, info.sender.to_string())?;
+        let resp: cap_strategy_resp::AvailableCapOfResponse = deps.querier.query_wasm_smart(
+            strategy,
+            &CapQueryMsg::AvailableCapOf {
+                amount: user.swapped_in,
+                address: info.sender.to_string(),
+            },
+        )?;
 
-        if available_cap < swapped_in {
-            return Err(ContractError::AvailableCapExceeded {
-                available: available_cap,
-            });
+        if let Some(v) = resp.amount {
+            if v < swapped_in {
+                return Err(ContractError::AvailableCapExceeded { available: v });
+            }
         }
     } // or remains cap strategy to unlimited
 
