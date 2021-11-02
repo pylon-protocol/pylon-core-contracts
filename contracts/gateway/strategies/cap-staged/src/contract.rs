@@ -7,7 +7,8 @@ use cosmwasm_std::{
 };
 use pylon_gateway::cap_strategy_msg::{MigrateMsg, QueryMsg};
 use pylon_gateway::cap_strategy_resp as resp;
-use pylon_token::gov::{QueryMsg as GovQueryMsg, StakerResponse};
+use pylon_token::gov_msg::QueryMsg as GovQueryMsg;
+use pylon_token::gov_resp::StakerResponse;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min};
