@@ -103,7 +103,7 @@ pub fn create_poll(
         no_votes: Uint128::zero(),
         end_height: env.block.height + config.voting_period,
         title,
-        category,
+        category: category.clone(),
         description,
         link,
         execute_data: all_execute_data,

@@ -1,4 +1,4 @@
-use cosmwasm_std::{CanonicalAddr, Pair, StdResult, Storage};
+use cosmwasm_std::{CanonicalAddr, StdResult, Storage};
 use cosmwasm_storage::ReadonlyBucket;
 use pylon_token::common::OrderBy;
 use pylon_token::gov_msg::{PollStatus, VoterInfo};
@@ -32,31 +32,40 @@ pub fn polls(
         _ => (None, calc_range_end(start_after), OrderBy::Desc),
     };
 
-    let polls = if let Some(status) = status_filter {
-        poll_indexed_by_status_r(storage, &status)
-            .range(start.as_deref(), end.as_deref(), order_by.into())
-            .take(limit)
-            .map(|item| -> StdResult<Poll> {
-                let (k, _) = item?;
-                poll_r(storage).load(&k)
-            });
-    } else {
-        poll_r(storage)
+    if let Some(status) = status_filter {
+        let poll_indexer_store = poll_indexed_by_status_r(storage, &status);
+        let polls = poll_indexer_store
             .range(start.as_deref(), end.as_deref(), order_by.into())
             .take(limit)
             .map(|item| {
+                let (k, _) = item?;
+                poll_r(storage).load(&k)
+            });
+
+        if let Some(category) = category_filter {
+            polls
+                .filter(|item| item.as_ref().unwrap().category == category)
+                .collect()
+        } else {
+            polls.collect()
+        }
+    } else {
+        let poll_store = poll_r(storage);
+        let polls = poll_store
+            .range(start.as_deref(), end.as_deref(), order_by.into())
+            .take(limit)
+            .map(|item| -> StdResult<Poll> {
                 let (_, v) = item?;
                 Ok(v)
-            })
-            .collect()
-    };
+            });
 
-    if let Some(category) = category_filter {
-        polls
-            .filter(|item| item.unwrap().category == category)
-            .collect()
-    } else {
-        polls.collect()
+        if let Some(category) = category_filter {
+            polls
+                .filter(|item| item.as_ref().unwrap().category == category)
+                .collect()
+        } else {
+            polls.collect()
+        }
     }
 }
 

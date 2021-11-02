@@ -86,9 +86,10 @@ pub fn tmp_poll_id_w(storage: &mut dyn Storage) -> Singleton<u64> {
 }
 
 // indexer
+#[allow(dead_code)]
 pub fn poll_indexed_by_category_r<'a>(
     storage: &'a dyn Storage,
-    category: &String,
+    category: &str,
 ) -> ReadonlyBucket<'a, bool> {
     ReadonlyBucket::multilevel(
         storage,
@@ -98,7 +99,7 @@ pub fn poll_indexed_by_category_r<'a>(
 
 pub fn poll_indexed_by_category_w<'a>(
     storage: &'a mut dyn Storage,
-    category: &String,
+    category: &str,
 ) -> Bucket<'a, bool> {
     Bucket::multilevel(
         storage,
@@ -165,9 +166,9 @@ impl Poll {
 
     /// validate_category returns an error if the category is invalid
     pub fn validate_category(category: &str) -> StdResult<()> {
-        if category.len() < MIN_TITLE_LENGTH {
+        if category.len() < MIN_CATEGORY_LENGTH {
             Err(StdError::generic_err("Category too short"))
-        } else if title.len() > MAX_TITLE_LENGTH {
+        } else if category.len() > MAX_CATEGORY_LENGTH {
             Err(StdError::generic_err("Category too long"))
         } else {
             Ok(())
