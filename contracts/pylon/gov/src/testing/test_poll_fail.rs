@@ -38,13 +38,7 @@ fn fail_poll() {
         contract: VOTING_TOKEN.to_string(),
         msg: exec_msg_bz.clone(),
     }];
-    let msg = create_poll_msg(
-        "test".to_string(),
-        "test".to_string(),
-        None,
-        Some(execute_msgs),
-    );
-
+    let msg = create_poll_msg(None, None, None, None, Some(execute_msgs));
     let execute_res = contract::execute(
         deps.as_mut(),
         creator_env.clone(),
@@ -74,7 +68,6 @@ fn fail_poll() {
         amount: Uint128::from(stake_amount as u128),
         msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
-
     let info = mock_info(VOTING_TOKEN, &[]);
     let execute_res = contract::execute(deps.as_mut(), mock_env(), info, msg).unwrap();
     assert_stake_tokens_result(
@@ -196,7 +189,8 @@ fn fail_poll() {
         deps.as_ref(),
         mock_env(),
         QueryMsg::Polls {
-            filter: Some(PollStatus::Failed),
+            category_filter: None,
+            status_filter: Some(PollStatus::Failed),
             start_after: None,
             limit: None,
             order_by: Some(OrderBy::Desc),

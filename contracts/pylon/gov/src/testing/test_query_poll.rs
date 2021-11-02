@@ -53,21 +53,29 @@ fn query_polls() {
     ];
 
     let msg = create_poll_msg(
-        "test".to_string(),
-        "test".to_string(),
+        None,
+        None,
+        None,
         Some("http://google.com".to_string()),
         Some(execute_msgs.clone()),
     );
 
     let _execute_res = contract::execute(deps.as_mut(), env.clone(), info.clone(), msg).unwrap();
-    let msg = create_poll_msg("test2".to_string(), "test2".to_string(), None, None);
+    let msg = create_poll_msg(
+        Some("test2".to_string()),
+        Some("test2".to_string()),
+        Some("test2".to_string()),
+        None,
+        None,
+    );
     let _execute_res = contract::execute(deps.as_mut(), env, info, msg).unwrap();
 
     let res = contract::query(
         deps.as_ref(),
         mock_env(),
         QueryMsg::Polls {
-            filter: None,
+            category_filter: None,
+            status_filter: None,
             start_after: None,
             limit: None,
             order_by: Some(OrderBy::Asc),
@@ -84,6 +92,7 @@ fn query_polls() {
                 status: PollStatus::InProgress,
                 end_height: 20000u64,
                 title: "test".to_string(),
+                category: "test".to_string(),
                 description: "test".to_string(),
                 link: Some("http://google.com".to_string()),
                 deposit_amount: Uint128::from(DEFAULT_PROPOSAL_DEPOSIT),
@@ -99,6 +108,7 @@ fn query_polls() {
                 status: PollStatus::InProgress,
                 end_height: 20000u64,
                 title: "test2".to_string(),
+                category: "test2".to_string(),
                 description: "test2".to_string(),
                 link: None,
                 deposit_amount: Uint128::from(DEFAULT_PROPOSAL_DEPOSIT),
@@ -115,7 +125,8 @@ fn query_polls() {
         deps.as_ref(),
         mock_env(),
         QueryMsg::Polls {
-            filter: None,
+            category_filter: None,
+            status_filter: None,
             start_after: Some(1u64),
             limit: None,
             order_by: Some(OrderBy::Asc),
@@ -131,6 +142,7 @@ fn query_polls() {
             status: PollStatus::InProgress,
             end_height: 20000u64,
             title: "test2".to_string(),
+            category: "test2".to_string(),
             description: "test2".to_string(),
             link: None,
             deposit_amount: Uint128::from(DEFAULT_PROPOSAL_DEPOSIT),
@@ -146,7 +158,8 @@ fn query_polls() {
         deps.as_ref(),
         mock_env(),
         QueryMsg::Polls {
-            filter: None,
+            category_filter: None,
+            status_filter: None,
             start_after: Some(2u64),
             limit: None,
             order_by: Some(OrderBy::Desc),
@@ -162,6 +175,7 @@ fn query_polls() {
             status: PollStatus::InProgress,
             end_height: 20000u64,
             title: "test".to_string(),
+            category: "test".to_string(),
             description: "test".to_string(),
             link: Some("http://google.com".to_string()),
             deposit_amount: Uint128::from(DEFAULT_PROPOSAL_DEPOSIT),
@@ -177,7 +191,8 @@ fn query_polls() {
         deps.as_ref(),
         mock_env(),
         QueryMsg::Polls {
-            filter: Some(PollStatus::InProgress),
+            category_filter: None,
+            status_filter: Some(PollStatus::InProgress),
             start_after: Some(1u64),
             limit: None,
             order_by: Some(OrderBy::Asc),
@@ -193,6 +208,7 @@ fn query_polls() {
             status: PollStatus::InProgress,
             end_height: 20000u64,
             title: "test2".to_string(),
+            category: "test2".to_string(),
             description: "test2".to_string(),
             link: None,
             deposit_amount: Uint128::from(DEFAULT_PROPOSAL_DEPOSIT),
@@ -208,7 +224,8 @@ fn query_polls() {
         deps.as_ref(),
         mock_env(),
         QueryMsg::Polls {
-            filter: Some(PollStatus::Passed),
+            category_filter: None,
+            status_filter: Some(PollStatus::Passed),
             start_after: None,
             limit: None,
             order_by: None,

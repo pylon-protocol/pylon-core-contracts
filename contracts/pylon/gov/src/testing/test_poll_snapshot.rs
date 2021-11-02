@@ -16,7 +16,7 @@ fn snapshot_poll() {
     let mut deps = mock_dependencies(&coins(100, VOTING_TOKEN));
     mock_instantiate(deps.as_mut());
 
-    let msg = create_poll_msg("test".to_string(), "test".to_string(), None, None);
+    let msg = create_poll_msg(None, None, None, None, None);
     let mut creator_env = mock_env();
     let creator_info = mock_info(VOTING_TOKEN, &[]);
     let execute_res = contract::execute(
