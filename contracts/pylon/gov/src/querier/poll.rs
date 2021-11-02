@@ -1,10 +1,10 @@
-use cosmwasm_std::{CanonicalAddr, StdResult, Storage};
+use cosmwasm_std::{CanonicalAddr, Pair, StdResult, Storage};
 use cosmwasm_storage::ReadonlyBucket;
 use pylon_token::common::OrderBy;
 use pylon_token::gov_msg::{PollStatus, VoterInfo};
 
 use crate::state::poll::{
-    poll_indexer_r, poll_r, poll_voter_r, tmp_poll_id_r, tmp_poll_id_w, Poll,
+    poll_indexed_by_status_r, poll_r, poll_voter_r, tmp_poll_id_r, tmp_poll_id_w, Poll,
 };
 
 const MAX_LIMIT: u32 = 30;
@@ -18,9 +18,10 @@ pub fn read_tmp_poll_id(storage: &dyn Storage) -> StdResult<u64> {
     tmp_poll_id_r(storage).load()
 }
 
-pub fn polls<'a>(
-    storage: &'a dyn Storage,
-    filter: Option<PollStatus>,
+pub fn polls(
+    storage: &dyn Storage,
+    category_filter: Option<String>,
+    status_filter: Option<PollStatus>,
     start_after: Option<u64>,
     limit: Option<u32>,
     order_by: Option<OrderBy>,
@@ -31,21 +32,16 @@ pub fn polls<'a>(
         _ => (None, calc_range_end(start_after), OrderBy::Desc),
     };
 
-    if let Some(status) = filter {
-        let poll_indexer: ReadonlyBucket<'a, bool> = poll_indexer_r(storage, &status);
-
-        poll_indexer
+    let polls = if let Some(status) = status_filter {
+        poll_indexed_by_status_r(storage, &status)
             .range(start.as_deref(), end.as_deref(), order_by.into())
             .take(limit)
-            .map(|item| {
+            .map(|item| -> StdResult<Poll> {
                 let (k, _) = item?;
                 poll_r(storage).load(&k)
-            })
-            .collect()
+            });
     } else {
-        let polls: ReadonlyBucket<'a, Poll> = poll_r(storage);
-
-        polls
+        poll_r(storage)
             .range(start.as_deref(), end.as_deref(), order_by.into())
             .take(limit)
             .map(|item| {
@@ -53,6 +49,14 @@ pub fn polls<'a>(
                 Ok(v)
             })
             .collect()
+    };
+
+    if let Some(category) = category_filter {
+        polls
+            .filter(|item| item.unwrap().category == category)
+            .collect()
+    } else {
+        polls.collect()
     }
 }
 

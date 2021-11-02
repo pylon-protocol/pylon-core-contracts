@@ -16,7 +16,8 @@ use crate::querier::poll::{poll_voters, polls, store_tmp_poll_id};
 use crate::state::bank::{bank_r, bank_w};
 use crate::state::config::config_r;
 use crate::state::poll::{
-    poll_indexer_w, poll_r, poll_voter_r, poll_voter_w, poll_w, ExecuteData, Poll,
+    poll_indexed_by_category_w, poll_indexed_by_status_w, poll_r, poll_voter_r, poll_voter_w,
+    poll_w, ExecuteData, Poll,
 };
 use crate::state::state::{state_r, state_w};
 
@@ -59,6 +60,7 @@ pub fn create_poll(
     proposer: String,
     deposit_amount: Uint128,
     title: String,
+    category: String,
     description: String,
     link: Option<String>,
     execute_msgs: Option<Vec<PollExecuteMsg>>,
@@ -101,6 +103,7 @@ pub fn create_poll(
         no_votes: Uint128::zero(),
         end_height: env.block.height + config.voting_period,
         title,
+        category,
         description,
         link,
         execute_data: all_execute_data,
@@ -111,7 +114,9 @@ pub fn create_poll(
     new_poll.validate()?;
 
     poll_w(deps.storage).save(&poll_id.to_be_bytes(), &new_poll)?;
-    poll_indexer_w(deps.storage, &PollStatus::InProgress).save(&poll_id.to_be_bytes(), &true)?;
+    poll_indexed_by_category_w(deps.storage, &category).save(&poll_id.to_be_bytes(), &true)?;
+    poll_indexed_by_status_w(deps.storage, &PollStatus::InProgress)
+        .save(&poll_id.to_be_bytes(), &true)?;
 
     state_w(deps.storage).save(&state)?;
 
@@ -256,8 +261,9 @@ fn execute_poll_messages(
 
     let mut a_poll: Poll = poll_r(deps.storage).load(&poll_id.to_be_bytes())?;
 
-    poll_indexer_w(deps.storage, &PollStatus::Passed).remove(&poll_id.to_be_bytes());
-    poll_indexer_w(deps.storage, &PollStatus::Executed).save(&poll_id.to_be_bytes(), &true)?;
+    poll_indexed_by_status_w(deps.storage, &PollStatus::Passed).remove(&poll_id.to_be_bytes());
+    poll_indexed_by_status_w(deps.storage, &PollStatus::Executed)
+        .save(&poll_id.to_be_bytes(), &true)?;
 
     a_poll.status = PollStatus::Executed;
     poll_w(deps.storage).save(&poll_id.to_be_bytes(), &a_poll)?;
@@ -327,8 +333,9 @@ fn snapshot_poll(deps: DepsMut, env: Env, poll_id: u64) -> Result<Response, Cont
 pub fn fail_poll(deps: DepsMut, poll_id: u64) -> Result<Response, ContractError> {
     let mut a_poll: Poll = poll_r(deps.storage).load(&poll_id.to_be_bytes())?;
 
-    poll_indexer_w(deps.storage, &PollStatus::Passed).remove(&poll_id.to_be_bytes());
-    poll_indexer_w(deps.storage, &PollStatus::Failed).save(&poll_id.to_be_bytes(), &true)?;
+    poll_indexed_by_status_w(deps.storage, &PollStatus::Passed).remove(&poll_id.to_be_bytes());
+    poll_indexed_by_status_w(deps.storage, &PollStatus::Failed)
+        .save(&poll_id.to_be_bytes(), &true)?;
 
     a_poll.status = PollStatus::Failed;
     poll_w(deps.storage).save(&poll_id.to_be_bytes(), &a_poll)?;
@@ -419,8 +426,9 @@ fn end_poll(deps: DepsMut, env: Env, poll_id: u64) -> Result<Response, ContractE
     state_w(deps.storage).save(&state)?;
 
     // Update poll indexer
-    poll_indexer_w(deps.storage, &PollStatus::InProgress).remove(&a_poll.id.to_be_bytes());
-    poll_indexer_w(deps.storage, &poll_status).save(&a_poll.id.to_be_bytes(), &true)?;
+    poll_indexed_by_status_w(deps.storage, &PollStatus::InProgress)
+        .remove(&a_poll.id.to_be_bytes());
+    poll_indexed_by_status_w(deps.storage, &poll_status).save(&a_poll.id.to_be_bytes(), &true)?;
 
     // Update poll status
     a_poll.status = poll_status;
@@ -450,6 +458,7 @@ pub fn query_poll(deps: Deps, poll_id: u64) -> Result<Binary, ContractError> {
         status: poll.status,
         end_height: poll.end_height,
         title: poll.title,
+        category: poll.category,
         description: poll.description,
         link: poll.link,
         deposit_amount: poll.deposit_amount,
@@ -475,12 +484,20 @@ pub fn query_poll(deps: Deps, poll_id: u64) -> Result<Binary, ContractError> {
 
 pub fn query_polls(
     deps: Deps,
-    filter: Option<PollStatus>,
+    category_filter: Option<String>,
+    status_filter: Option<PollStatus>,
     start_after: Option<u64>,
     limit: Option<u32>,
     order_by: Option<OrderBy>,
 ) -> Result<Binary, ContractError> {
-    let polls = polls(deps.storage, filter, start_after, limit, order_by)?;
+    let polls = polls(
+        deps.storage,
+        category_filter,
+        status_filter,
+        start_after,
+        limit,
+        order_by,
+    )?;
 
     let poll_responses: StdResult<Vec<PollResponse>> = polls
         .iter()
@@ -491,6 +508,7 @@ pub fn query_polls(
                 status: poll.status.clone(),
                 end_height: poll.end_height,
                 title: poll.title.to_string(),
+                category: poll.category.to_string(),
                 description: poll.description.to_string(),
                 link: poll.link.clone(),
                 deposit_amount: poll.deposit_amount,

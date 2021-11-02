@@ -122,6 +122,7 @@ pub fn receive_cw20(
         }
         Ok(Cw20HookMsg::CreatePoll {
             title,
+            category,
             description,
             link,
             execute_msgs,
@@ -131,6 +132,7 @@ pub fn receive_cw20(
             cw20_msg.sender,
             cw20_msg.amount,
             title,
+            category,
             description,
             link,
             execute_msgs,
@@ -152,11 +154,19 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> Result<Binary, ContractErr
         } => query_stakers(deps, start_after, limit, order),
         QueryMsg::Poll { poll_id } => query_poll(deps, poll_id),
         QueryMsg::Polls {
-            filter,
+            category_filter,
+            status_filter,
             start_after,
             limit,
             order_by,
-        } => query_polls(deps, filter, start_after, limit, order_by),
+        } => query_polls(
+            deps,
+            category_filter,
+            status_filter,
+            start_after,
+            limit,
+            order_by,
+        ),
         QueryMsg::Voters {
             poll_id,
             start_after,
