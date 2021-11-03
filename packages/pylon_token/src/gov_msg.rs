@@ -183,3 +183,6 @@ impl fmt::Display for VoteOption {
         }
     }
 }
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct MigrateMsg {}
