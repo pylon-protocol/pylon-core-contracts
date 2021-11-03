@@ -1,3 +1,4 @@
+use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{Binary, Decimal, Uint128};
 use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
@@ -47,6 +48,30 @@ pub enum StakingMsg {
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
+pub enum AirdropMsg {
+    Instantiate {
+        start: u64,
+        period: u64,
+        reward_token: String,
+        reward_amount: Uint256,
+    },
+    Allocate {
+        airdrop_id: u64,
+        recipient: String,
+        allocate_amount: Uint256,
+    },
+    Deallocate {
+        airdrop_id: u64,
+        recipient: String,
+        deallocate_amount: Uint256,
+    },
+    Claim {
+        airdrop_id: u64,
+    },
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
 pub enum ExecuteMsg {
     Receive(Cw20ReceiveMsg),
     UpdateConfig {
@@ -60,6 +85,7 @@ pub enum ExecuteMsg {
     },
     Poll(PollMsg),
     Staking(StakingMsg),
+    Airdrop(AirdropMsg),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -85,9 +111,6 @@ pub struct PollExecuteMsg {
     pub contract: String,
     pub msg: Binary,
 }
-
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct MigrateMsg {}
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]

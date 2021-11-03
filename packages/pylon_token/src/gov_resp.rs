@@ -1,4 +1,4 @@
-use cosmwasm_std::{Decimal, Uint128};
+use cosmwasm_std::{Decimal, Uint128, Uint256};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -60,6 +60,7 @@ pub struct PollCountResponse {
 pub struct StakerResponse {
     pub balance: Uint128,
     pub share: Uint128,
+    pub claimable_airdrop: Vec<(String, Uint256)>,
     pub locked_balance: Vec<(u64, VoterInfo)>,
 }
 
@@ -78,4 +79,17 @@ pub struct VotersResponseItem {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema)]
 pub struct VotersResponse {
     pub voters: Vec<VotersResponseItem>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema)]
+pub struct AirdropResponse {
+    pub start: u64,
+    pub period: u64,
+    pub reward_token: String,
+    pub reward_amount: Uint256,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema)]
+pub struct AirdropsResponse {
+    pub airdrops: Vec<(u64, AirdropResponse)>,
 }
