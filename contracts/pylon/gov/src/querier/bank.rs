@@ -4,13 +4,11 @@ use pylon_token::gov_msg::PollStatus;
 use pylon_token::gov_resp::{StakerResponse, StakersResponse};
 use terraswap::querier::query_token_balance;
 
+use crate::constant::{DEFAULT_QUERY_LIMIT, MAX_QUERY_LIMIT};
 use crate::state::bank::{bank_r, TokenManager};
 use crate::state::config::config_r;
 use crate::state::poll::poll_r;
 use crate::state::state::state_r;
-
-const MAX_LIMIT: u32 = 30;
-const DEFAULT_LIMIT: u32 = 10;
 
 pub fn staker(deps: Deps, address: String) -> StdResult<StakerResponse> {
     let addr_raw = deps.api.addr_canonicalize(&address).unwrap();
@@ -62,7 +60,7 @@ pub fn stakers(
             v.push(1);
             v
         });
-    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+    let limit = limit.unwrap_or(DEFAULT_QUERY_LIMIT).min(MAX_QUERY_LIMIT) as usize;
     let order = order.map(Order::from).unwrap_or(Order::Ascending);
 
     let total_balance = query_token_balance(

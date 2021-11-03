@@ -3,10 +3,8 @@ use cosmwasm_storage::ReadonlyBucket;
 use pylon_token::common::OrderBy;
 use pylon_token::gov_msg::{PollStatus, VoterInfo};
 
+use crate::constant::{DEFAULT_QUERY_LIMIT, MAX_QUERY_LIMIT};
 use crate::state::poll::{poll_indexed_by_status_r, poll_r, poll_voter_r, Poll};
-
-const MAX_LIMIT: u32 = 30;
-const DEFAULT_LIMIT: u32 = 10;
 
 pub fn polls(
     storage: &dyn Storage,
@@ -16,7 +14,7 @@ pub fn polls(
     limit: Option<u32>,
     order_by: Option<OrderBy>,
 ) -> StdResult<Vec<Poll>> {
-    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+    let limit = limit.unwrap_or(DEFAULT_QUERY_LIMIT).min(MAX_QUERY_LIMIT) as usize;
     let (start, end, order_by) = match order_by {
         Some(OrderBy::Asc) => (calc_range_start(start_after), None, OrderBy::Asc),
         _ => (None, calc_range_end(start_after), OrderBy::Desc),
@@ -66,7 +64,7 @@ pub fn poll_voters<'a>(
     limit: Option<u32>,
     order_by: Option<OrderBy>,
 ) -> StdResult<Vec<(CanonicalAddr, VoterInfo)>> {
-    let limit = limit.unwrap_or(DEFAULT_LIMIT).min(MAX_LIMIT) as usize;
+    let limit = limit.unwrap_or(DEFAULT_QUERY_LIMIT).min(MAX_QUERY_LIMIT) as usize;
     let (start, end, order_by) = match order_by {
         Some(OrderBy::Asc) => (calc_range_start_addr(start_after), None, OrderBy::Asc),
         _ => (None, calc_range_end_addr(start_after), OrderBy::Desc),
