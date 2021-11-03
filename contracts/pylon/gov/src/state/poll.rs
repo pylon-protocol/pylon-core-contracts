@@ -85,6 +85,14 @@ pub fn tmp_poll_id_w(storage: &mut dyn Storage) -> Singleton<u64> {
     singleton(storage, KEY_TMP_POLL_ID)
 }
 
+pub fn store_tmp_poll_id(storage: &mut dyn Storage, poll_id: u64) -> StdResult<()> {
+    tmp_poll_id_w(storage).save(&poll_id)
+}
+
+pub fn read_tmp_poll_id(storage: &dyn Storage) -> StdResult<u64> {
+    tmp_poll_id_r(storage).load()
+}
+
 // indexer
 #[allow(dead_code)]
 pub fn poll_indexed_by_category_r<'a>(

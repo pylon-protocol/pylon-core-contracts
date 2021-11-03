@@ -12,12 +12,12 @@ use terraswap::querier::query_token_balance;
 
 use crate::constant::POLL_EXECUTE_REPLY_ID;
 use crate::error::ContractError;
-use crate::querier::poll::{poll_voters, polls, store_tmp_poll_id};
+use crate::querier::poll::{poll_voters, polls};
 use crate::state::bank::{bank_r, bank_w};
 use crate::state::config::config_r;
 use crate::state::poll::{
     poll_indexed_by_category_w, poll_indexed_by_status_w, poll_r, poll_voter_r, poll_voter_w,
-    poll_w, ExecuteData, Poll,
+    poll_w, store_tmp_poll_id, ExecuteData, Poll,
 };
 use crate::state::state::{state_r, state_w};
 

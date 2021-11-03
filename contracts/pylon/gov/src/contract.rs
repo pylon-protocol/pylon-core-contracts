@@ -18,8 +18,8 @@ use crate::handler::staking::{
     handle_staking_msg, query_staker, query_stakers, stake_voting_tokens,
 };
 use crate::handler::state::query_state;
-use crate::querier::poll::read_tmp_poll_id;
 use crate::state::config::{config_r, config_w, Config};
+use crate::state::poll::read_tmp_poll_id;
 use crate::state::state::{state_w, State};
 
 #[cfg_attr(not(feature = "library"), entry_point)]

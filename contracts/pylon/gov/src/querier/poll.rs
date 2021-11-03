@@ -3,20 +3,10 @@ use cosmwasm_storage::ReadonlyBucket;
 use pylon_token::common::OrderBy;
 use pylon_token::gov_msg::{PollStatus, VoterInfo};
 
-use crate::state::poll::{
-    poll_indexed_by_status_r, poll_r, poll_voter_r, tmp_poll_id_r, tmp_poll_id_w, Poll,
-};
+use crate::state::poll::{poll_indexed_by_status_r, poll_r, poll_voter_r, Poll};
 
 const MAX_LIMIT: u32 = 30;
 const DEFAULT_LIMIT: u32 = 10;
-
-pub fn store_tmp_poll_id(storage: &mut dyn Storage, poll_id: u64) -> StdResult<()> {
-    tmp_poll_id_w(storage).save(&poll_id)
-}
-
-pub fn read_tmp_poll_id(storage: &dyn Storage) -> StdResult<u64> {
-    tmp_poll_id_r(storage).load()
-}
 
 pub fn polls(
     storage: &dyn Storage,
