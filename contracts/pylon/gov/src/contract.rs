@@ -2,12 +2,13 @@
 use cosmwasm_std::entry_point;
 
 use cosmwasm_std::{
-    from_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, Uint128,
+    from_binary, to_binary, Binary, Deps, DepsMut, Env, MessageInfo, Reply, Response, Uint128,
 };
 use cw20::Cw20ReceiveMsg;
 use pylon_token::gov_msg::{Cw20HookMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use pylon_token::gov_resp::APIVersionResponse;
 
-use crate::constant::POLL_EXECUTE_REPLY_ID;
+use crate::constant::{API_VERSION, POLL_EXECUTE_REPLY_ID};
 use crate::error::ContractError;
 use crate::handler::config::{query_config, update_config};
 use crate::handler::poll::{
@@ -144,6 +145,9 @@ pub fn receive_cw20(
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> Result<Binary, ContractError> {
     match msg {
+        QueryMsg::APIVersion {} => Ok(to_binary(&APIVersionResponse {
+            version: API_VERSION.to_string(),
+        })?),
         QueryMsg::Config {} => query_config(deps),
         QueryMsg::State {} => query_state(deps),
         QueryMsg::Staker { address } => query_staker(deps, address),
