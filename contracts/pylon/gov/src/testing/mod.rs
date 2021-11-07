@@ -10,6 +10,7 @@ mod test_poll_execute;
 mod test_poll_fail;
 mod test_poll_snapshot;
 mod test_poll_vote;
+mod test_query;
 mod test_query_poll;
 mod test_staking_deposit;
 mod test_staking_withdraw;
