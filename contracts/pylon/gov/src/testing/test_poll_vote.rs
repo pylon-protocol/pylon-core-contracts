@@ -22,7 +22,7 @@ fn cast_vote() {
 
     let env = mock_env_height(0, 10000);
     let info = mock_info(VOTING_TOKEN, &[]);
-    let msg = create_poll_msg("test".to_string(), "test".to_string(), None, None);
+    let msg = create_poll_msg(None, None, None, None, None);
 
     let execute_res = contract::execute(deps.as_mut(), env, info, msg).unwrap();
     assert_create_poll_result(
@@ -148,7 +148,7 @@ fn cast_vote_with_snapshot() {
 
     let env = mock_env_height(0, 10000);
     let info = mock_info(VOTING_TOKEN, &[]);
-    let msg = create_poll_msg("test".to_string(), "test".to_string(), None, None);
+    let msg = create_poll_msg(None, None, None, None, None);
 
     let execute_res = contract::execute(deps.as_mut(), env, info, msg).unwrap();
     assert_create_poll_result(
@@ -288,8 +288,7 @@ fn fails_cast_vote_not_enough_staked() {
     let env = mock_env_height(0, 10000);
     let info = mock_info(VOTING_TOKEN, &[]);
 
-    let msg = create_poll_msg("test".to_string(), "test".to_string(), None, None);
-
+    let msg = create_poll_msg(None, None, None, None, None);
     let execute_res = contract::execute(deps.as_mut(), env, info, msg).unwrap();
     assert_create_poll_result(
         1,
@@ -312,7 +311,6 @@ fn fails_cast_vote_not_enough_staked() {
         amount: Uint128::from(10u128),
         msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
-
     let info = mock_info(VOTING_TOKEN, &[]);
     let execute_res = contract::execute(deps.as_mut(), mock_env(), info, msg).unwrap();
     assert_stake_tokens_result(
@@ -349,9 +347,8 @@ fn fails_cast_vote_twice() {
     let env = mock_env_height(0, 10000);
     let info = mock_info(VOTING_TOKEN, &coins(2, VOTING_TOKEN));
 
-    let msg = create_poll_msg("test".to_string(), "test".to_string(), None, None);
+    let msg = create_poll_msg(None, None, None, None, None);
     let execute_res = contract::execute(deps.as_mut(), env.clone(), info, msg).unwrap();
-
     assert_create_poll_result(
         1,
         env.block.height + DEFAULT_VOTING_PERIOD,
@@ -373,7 +370,6 @@ fn fails_cast_vote_twice() {
         amount: Uint128::from(11u128),
         msg: to_binary(&Cw20HookMsg::Stake {}).unwrap(),
     });
-
     let info = mock_info(VOTING_TOKEN, &[]);
     let execute_res = contract::execute(deps.as_mut(), mock_env(), info, msg).unwrap();
     assert_stake_tokens_result(

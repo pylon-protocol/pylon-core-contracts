@@ -58,12 +58,7 @@ fn add_several_execute_msgs() {
         },
     ];
 
-    let msg = create_poll_msg(
-        "test".to_string(),
-        "test".to_string(),
-        None,
-        Some(execute_msgs.clone()),
-    );
+    let msg = create_poll_msg(None, None, None, None, Some(execute_msgs.clone()));
 
     let execute_res = contract::execute(deps.as_mut(), env.clone(), info, msg).unwrap();
     assert_create_poll_result(
@@ -146,13 +141,7 @@ fn execute_poll_with_order() {
         },
     ];
 
-    let msg = create_poll_msg(
-        "test".to_string(),
-        "test".to_string(),
-        None,
-        Some(execute_msgs),
-    );
-
+    let msg = create_poll_msg(None, None, None, None, Some(execute_msgs));
     let execute_res = contract::execute(
         deps.as_mut(),
         creator_env.clone(),
@@ -324,8 +313,7 @@ fn poll_with_empty_execute_data_marked_as_executed() {
     let mut creator_env = mock_env_height(POLL_START_HEIGHT, 10000);
     let mut creator_info = mock_info(VOTING_TOKEN, &coins(2, VOTING_TOKEN));
 
-    let msg = create_poll_msg("test".to_string(), "test".to_string(), None, Some(vec![]));
-
+    let msg = create_poll_msg(None, None, None, None, Some(vec![]));
     let execute_res = contract::execute(
         deps.as_mut(),
         creator_env.clone(),
@@ -464,7 +452,8 @@ fn poll_with_empty_execute_data_marked_as_executed() {
         deps.as_ref(),
         mock_env(),
         QueryMsg::Polls {
-            filter: Some(PollStatus::Executed),
+            category_filter: None,
+            status_filter: Some(PollStatus::Executed),
             start_after: None,
             limit: None,
             order_by: Some(OrderBy::Desc),
@@ -487,8 +476,7 @@ fn poll_with_none_execute_data_marked_as_executed() {
     let mut creator_env = mock_env_height(POLL_START_HEIGHT, 10000);
     let mut creator_info = mock_info(VOTING_TOKEN, &coins(2, VOTING_TOKEN));
 
-    let msg = create_poll_msg("test".to_string(), "test".to_string(), None, None);
-
+    let msg = create_poll_msg(None, None, None, None, None);
     let execute_res = contract::execute(
         deps.as_mut(),
         creator_env.clone(),
@@ -627,7 +615,8 @@ fn poll_with_none_execute_data_marked_as_executed() {
         deps.as_ref(),
         mock_env(),
         QueryMsg::Polls {
-            filter: Some(PollStatus::Executed),
+            category_filter: None,
+            status_filter: Some(PollStatus::Executed),
             start_after: None,
             limit: None,
             order_by: Some(OrderBy::Desc),

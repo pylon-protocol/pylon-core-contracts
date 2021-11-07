@@ -10,6 +10,8 @@ use std::cmp::Ordering;
 
 const MIN_TITLE_LENGTH: usize = 4;
 const MAX_TITLE_LENGTH: usize = 64;
+const MIN_CATEGORY_LENGTH: usize = 4;
+const MAX_CATEGORY_LENGTH: usize = 64;
 const MIN_DESC_LENGTH: usize = 4;
 const MAX_DESC_LENGTH: usize = 1024;
 const MIN_LINK_LENGTH: usize = 12;
@@ -56,6 +58,7 @@ pub struct Poll {
     pub no_votes: Uint128,
     pub end_height: u64,
     pub title: String,
+    pub category: String,
     pub description: String,
     pub link: Option<String>,
     pub execute_data: Option<Vec<ExecuteData>>,
@@ -83,20 +86,52 @@ pub fn tmp_poll_id_w(storage: &mut dyn Storage) -> Singleton<u64> {
 }
 
 // indexer
-pub fn poll_indexer_r<'a>(
+#[allow(dead_code)]
+pub fn poll_indexed_by_category_r<'a>(
+    storage: &'a dyn Storage,
+    category: &str,
+) -> ReadonlyBucket<'a, bool> {
+    ReadonlyBucket::multilevel(
+        storage,
+        &[PREFIX_POLL_INDEXER, b"category", category.as_bytes()],
+    )
+}
+
+pub fn poll_indexed_by_category_w<'a>(
+    storage: &'a mut dyn Storage,
+    category: &str,
+) -> Bucket<'a, bool> {
+    Bucket::multilevel(
+        storage,
+        &[PREFIX_POLL_INDEXER, b"category", category.as_bytes()],
+    )
+}
+
+pub fn poll_indexed_by_status_r<'a>(
     storage: &'a dyn Storage,
     status: &PollStatus,
 ) -> ReadonlyBucket<'a, bool> {
     ReadonlyBucket::multilevel(
         storage,
-        &[PREFIX_POLL_INDEXER, status.to_string().as_bytes()],
+        &[
+            PREFIX_POLL_INDEXER,
+            b"status",
+            status.to_string().as_bytes(),
+        ],
     )
 }
 
-pub fn poll_indexer_w<'a>(storage: &'a mut dyn Storage, status: &PollStatus) -> Bucket<'a, bool> {
+pub fn poll_indexed_by_status_w<'a>(
+    storage: &'a mut dyn Storage,
+    status: &PollStatus,
+) -> Bucket<'a, bool> {
     Bucket::multilevel(
         storage,
-        &[PREFIX_POLL_INDEXER, status.to_string().as_bytes()],
+        &[
+            PREFIX_POLL_INDEXER,
+            "status".as_bytes(),
+            status.to_string().as_bytes(),
+        ],
     )
 }
 
@@ -112,6 +147,7 @@ pub fn poll_voter_w(storage: &mut dyn Storage, poll_id: u64) -> Bucket<VoterInfo
 impl Poll {
     pub fn validate(&self) -> StdResult<()> {
         Poll::validate_title(self.title.as_str())?;
+        Poll::validate_category(self.category.as_str())?;
         Poll::validate_description(self.description.as_str())?;
         Poll::validate_link(&self.link)?;
         Ok(())
@@ -123,6 +159,17 @@ impl Poll {
             Err(StdError::generic_err("Title too short"))
         } else if title.len() > MAX_TITLE_LENGTH {
             Err(StdError::generic_err("Title too long"))
+        } else {
+            Ok(())
+        }
+    }
+
+    /// validate_category returns an error if the category is invalid
+    pub fn validate_category(category: &str) -> StdResult<()> {
+        if category.len() < MIN_CATEGORY_LENGTH {
+            Err(StdError::generic_err("Category too short"))
+        } else if category.len() > MAX_CATEGORY_LENGTH {
+            Err(StdError::generic_err("Category too long"))
         } else {
             Ok(())
         }

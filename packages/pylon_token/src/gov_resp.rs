@@ -30,6 +30,7 @@ pub struct PollResponse {
     pub status: PollStatus,
     pub end_height: u64,
     pub title: String,
+    pub category: String,
     pub description: String,
     pub link: Option<String>,
     pub deposit_amount: Uint128,

@@ -71,6 +71,7 @@ pub enum Cw20HookMsg {
     /// CreatePoll need to receive deposit from a proposer
     CreatePoll {
         title: String,
+        category: String,
         description: String,
         link: Option<String>,
         execute_msgs: Option<Vec<PollExecuteMsg>>,
@@ -105,7 +106,8 @@ pub enum QueryMsg {
         poll_id: u64,
     },
     Polls {
-        filter: Option<PollStatus>,
+        category_filter: Option<String>,
+        status_filter: Option<PollStatus>,
         start_after: Option<u64>,
         limit: Option<u32>,
         order_by: Option<OrderBy>,

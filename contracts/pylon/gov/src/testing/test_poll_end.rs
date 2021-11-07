@@ -68,13 +68,7 @@ fn end_poll() {
         },
     ];
 
-    let msg = create_poll_msg(
-        "test".to_string(),
-        "test".to_string(),
-        None,
-        Some(execute_msgs),
-    );
-
+    let msg = create_poll_msg(None, None, None, None, Some(execute_msgs));
     let execute_res = contract::execute(
         deps.as_mut(),
         creator_env.clone(),
@@ -256,7 +250,8 @@ fn end_poll() {
         deps.as_ref(),
         mock_env(),
         QueryMsg::Polls {
-            filter: Some(PollStatus::Passed),
+            category_filter: None,
+            status_filter: Some(PollStatus::Passed),
             start_after: None,
             limit: None,
             order_by: None,
@@ -270,7 +265,8 @@ fn end_poll() {
         deps.as_ref(),
         mock_env(),
         QueryMsg::Polls {
-            filter: Some(PollStatus::InProgress),
+            category_filter: None,
+            status_filter: Some(PollStatus::InProgress),
             start_after: None,
             limit: None,
             order_by: None,
@@ -284,7 +280,8 @@ fn end_poll() {
         deps.as_ref(),
         mock_env(),
         QueryMsg::Polls {
-            filter: Some(PollStatus::Executed),
+            category_filter: None,
+            status_filter: Some(PollStatus::Executed),
             start_after: None,
             limit: None,
             order_by: Some(OrderBy::Desc),
@@ -387,13 +384,7 @@ fn end_poll_with_controlled_quorum() {
         },
     ];
 
-    let msg = create_poll_msg(
-        "test".to_string(),
-        "test".to_string(),
-        None,
-        Some(execute_msgs),
-    );
-
+    let msg = create_poll_msg(None, None, None, None, Some(execute_msgs));
     let execute_res = contract::execute(
         deps.as_mut(),
         creator_env.clone(),
@@ -582,13 +573,7 @@ fn end_poll_zero_quorum() {
         .unwrap(),
     }];
 
-    let msg = create_poll_msg(
-        "test".to_string(),
-        "test".to_string(),
-        None,
-        Some(execute_msgs),
-    );
-
+    let msg = create_poll_msg(None, None, None, None, Some(execute_msgs));
     let execute_res = contract::execute(
         deps.as_mut(),
         creator_env.clone(),
@@ -644,7 +629,8 @@ fn end_poll_zero_quorum() {
         deps.as_ref(),
         mock_env(),
         QueryMsg::Polls {
-            filter: Some(PollStatus::Rejected),
+            category_filter: None,
+            status_filter: Some(PollStatus::Rejected),
             start_after: None,
             limit: None,
             order_by: Some(OrderBy::Desc),
@@ -658,7 +644,8 @@ fn end_poll_zero_quorum() {
         deps.as_ref(),
         mock_env(),
         QueryMsg::Polls {
-            filter: Some(PollStatus::InProgress),
+            category_filter: None,
+            status_filter: Some(PollStatus::InProgress),
             start_after: None,
             limit: None,
             order_by: None,
@@ -672,7 +659,8 @@ fn end_poll_zero_quorum() {
         deps.as_ref(),
         mock_env(),
         QueryMsg::Polls {
-            filter: Some(PollStatus::Passed),
+            category_filter: None,
+            status_filter: Some(PollStatus::Passed),
             start_after: None,
             limit: None,
             order_by: None,
@@ -688,7 +676,7 @@ fn end_poll_quorum_rejected() {
     let mut deps = mock_dependencies(&coins(100, VOTING_TOKEN));
     mock_instantiate(deps.as_mut());
 
-    let msg = create_poll_msg("test".to_string(), "test".to_string(), None, None);
+    let msg = create_poll_msg(None, None, None, None, None);
     let mut creator_env = mock_env();
     let mut creator_info = mock_info(VOTING_TOKEN, &[]);
     let execute_res = contract::execute(
@@ -775,7 +763,7 @@ fn end_poll_quorum_rejected_nothing_staked() {
     let mut deps = mock_dependencies(&coins(100, VOTING_TOKEN));
     mock_instantiate(deps.as_mut());
 
-    let msg = create_poll_msg("test".to_string(), "test".to_string(), None, None);
+    let msg = create_poll_msg(None, None, None, None, None);
     let mut creator_env = mock_env();
     let mut creator_info = mock_info(VOTING_TOKEN, &[]);
     let execute_res = contract::execute(
@@ -822,7 +810,7 @@ fn end_poll_nay_rejected() {
     let mut creator_env = mock_env();
     let mut creator_info = mock_info(VOTING_TOKEN, &coins(2, VOTING_TOKEN));
 
-    let msg = create_poll_msg("test".to_string(), "test".to_string(), None, None);
+    let msg = create_poll_msg(None, None, None, None, None);
 
     let execute_res = contract::execute(
         deps.as_mut(),
@@ -924,7 +912,7 @@ fn fails_end_poll_before_end_height() {
     let env = mock_env_height(0, 10000);
     let info = mock_info(VOTING_TOKEN, &[]);
 
-    let msg = create_poll_msg("test".to_string(), "test".to_string(), None, None);
+    let msg = create_poll_msg(None, None, None, None, None);
 
     let execute_res = contract::execute(deps.as_mut(), env, info, msg).unwrap();
     assert_create_poll_result(
@@ -982,13 +970,7 @@ fn fails_end_poll_quorum_inflation_without_snapshot_poll() {
         },
     ];
 
-    let msg = create_poll_msg(
-        "test".to_string(),
-        "test".to_string(),
-        None,
-        Some(execute_msgs),
-    );
-
+    let msg = create_poll_msg(None, None, None, None, Some(execute_msgs));
     let execute_res = contract::execute(
         deps.as_mut(),
         creator_env.clone(),
