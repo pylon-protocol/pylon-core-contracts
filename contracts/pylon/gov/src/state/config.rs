@@ -1,5 +1,5 @@
 use cosmwasm_std::{CanonicalAddr, Decimal, StdError, StdResult, Storage, Uint128};
-use cosmwasm_storage::{singleton, singleton_read, ReadonlySingleton, Singleton};
+use cosmwasm_storage::{ReadonlySingleton, Singleton};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -18,15 +18,15 @@ pub struct Config {
     pub snapshot_period: u64,
 }
 
-pub fn config_r(storage: &dyn Storage) -> ReadonlySingleton<Config> {
-    singleton_read(storage, KEY_CONFIG)
-}
-
-pub fn config_w(storage: &mut dyn Storage) -> Singleton<Config> {
-    singleton(storage, KEY_CONFIG)
-}
-
 impl Config {
+    pub fn load(storage: &dyn Storage) -> StdResult<Config> {
+        ReadonlySingleton::new(storage, KEY_CONFIG).load()
+    }
+
+    pub fn save(storage: &mut dyn Storage, config: &Config) -> StdResult<()> {
+        Singleton::new(storage, KEY_CONFIG).save(config)
+    }
+
     pub fn validate(&self) -> StdResult<()> {
         Config::validate_quorum(self.quorum)?;
         Config::validate_threshold(self.threshold)?;
