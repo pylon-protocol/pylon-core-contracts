@@ -2,7 +2,7 @@ use cosmwasm_std::{
     from_binary, to_binary, CanonicalAddr, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Order,
     Response, Uint128, WasmMsg,
 };
-use cosmwasm_storage::ReadonlyBucket;
+use cosmwasm_storage::{ReadonlyBucket, ReadonlySingleton};
 use cw20::Cw20ReceiveMsg;
 use pylon_token::gov_msg::{AirdropMsg, Cw20HookMsg, InstantiateMsg, MigrateMsg, StakingMsg};
 use schemars::JsonSchema;
@@ -161,6 +161,13 @@ pub fn update_config(
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct LegacyState {
+    pub poll_count: u64,
+    pub total_share: Uint128,
+    pub total_deposit: Uint128,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct LegacyPoll {
     pub id: u64,
     pub creator: CanonicalAddr,
@@ -179,6 +186,22 @@ pub struct LegacyPoll {
 }
 
 pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ExecuteResult {
+    let state: LegacyState = ReadonlySingleton::new(deps.storage, b"state")
+        .load()
+        .unwrap();
+
+    State::save(
+        deps.storage,
+        &State {
+            poll_count: state.poll_count,
+            total_share: state.total_share,
+            total_deposit: state.total_deposit,
+            total_airdrop_count: 0,
+            airdrop_update_candidates: vec![],
+        },
+    )
+    .unwrap();
+
     let legacy_poll_store: ReadonlyBucket<LegacyPoll> = ReadonlyBucket::new(deps.storage, b"poll");
     let legacy_polls: Vec<LegacyPoll> = legacy_poll_store
         .range(None, None, Order::Descending)
