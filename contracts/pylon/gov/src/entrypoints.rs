@@ -168,7 +168,7 @@ pub fn reply(deps: DepsMut, _env: Env, msg: Reply) -> Result<Response, ContractE
 #[cfg_attr(not(feature = "library"), entry_point)]
 pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> Result<Binary, ContractError> {
     match msg {
-        QueryMsg::APIVersion {} => queries::query_api_version(deps),
+        QueryMsg::ApiVersion {} => queries::query_api_version(deps),
         QueryMsg::Config {} => queries::config::query_config(deps),
         QueryMsg::State {} => queries::state::query_state(deps),
         QueryMsg::Staker { address } => queries::bank::query_staker(deps, env, address),
