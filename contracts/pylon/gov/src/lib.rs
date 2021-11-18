@@ -1,9 +1,9 @@
-pub mod contract;
+pub mod entrypoints;
+pub mod executions;
+pub mod queries;
 
 mod constant;
 mod error;
-mod handler;
-mod querier;
 mod state;
 
 #[cfg(test)]

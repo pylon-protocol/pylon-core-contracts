@@ -1,8 +1,8 @@
-use cosmwasm_std::{Decimal, Uint128, Uint256};
+use cosmwasm_std::{Decimal, Uint128};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::gov_msg::{PollExecuteMsg, PollStatus, VoteOption, VoterInfo};
+use crate::gov_msg::{PollCategory, PollExecuteMsg, PollStatus, VoteOption, VoterInfo};
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema)]
 pub struct APIVersionResponse {
@@ -26,6 +26,8 @@ pub struct StateResponse {
     pub poll_count: u64,
     pub total_share: Uint128,
     pub total_deposit: Uint128,
+    pub total_airdrop_count: u64,
+    pub airdrop_update_candidates: Vec<u64>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema)]
@@ -35,7 +37,7 @@ pub struct PollResponse {
     pub status: PollStatus,
     pub end_height: u64,
     pub title: String,
-    pub category: String,
+    pub category: PollCategory,
     pub description: String,
     pub link: Option<String>,
     pub deposit_amount: Uint128,
@@ -44,6 +46,19 @@ pub struct PollResponse {
     pub no_votes: Uint128,  // balance
     pub staked_amount: Option<Uint128>,
     pub total_balance_at_end_poll: Option<Uint128>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema)]
+pub struct AirdropResponse {
+    pub start: u64,
+    pub period: u64,
+    pub reward_token: String,
+    pub reward_rate: Decimal,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema)]
+pub struct AirdropsResponse {
+    pub airdrops: Vec<(u64, AirdropResponse)>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema)]
@@ -60,7 +75,7 @@ pub struct PollCountResponse {
 pub struct StakerResponse {
     pub balance: Uint128,
     pub share: Uint128,
-    pub claimable_airdrop: Vec<(String, Uint256)>,
+    pub claimable_airdrop: Vec<(String, Uint128)>,
     pub locked_balance: Vec<(u64, VoterInfo)>,
 }
 
@@ -79,17 +94,4 @@ pub struct VotersResponseItem {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema)]
 pub struct VotersResponse {
     pub voters: Vec<VotersResponseItem>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema)]
-pub struct AirdropResponse {
-    pub start: u64,
-    pub period: u64,
-    pub reward_token: String,
-    pub reward_amount: Uint256,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema)]
-pub struct AirdropsResponse {
-    pub airdrops: Vec<(u64, AirdropResponse)>,
 }

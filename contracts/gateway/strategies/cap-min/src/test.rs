@@ -100,6 +100,7 @@ fn query_available_cap() {
                     _ => Uint128::zero(),
                 },
                 share: Default::default(),
+                claimable_airdrop: vec![],
                 locked_balance: vec![],
             }),
             _ => Err(StdError::generic_err("not implemented")),

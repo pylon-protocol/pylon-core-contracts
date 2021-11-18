@@ -1,4 +1,3 @@
-use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::{Binary, Decimal, Uint128};
 use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
@@ -43,7 +42,17 @@ pub enum PollMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum StakingMsg {
-    Unstake { amount: Option<Uint128> },
+    StakeInternal {
+        sender: String,
+        amount: Uint128,
+    },
+    Unstake {
+        amount: Option<Uint128>,
+    },
+    UnstakeInternal {
+        sender: String,
+        amount: Option<Uint128>,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -53,20 +62,24 @@ pub enum AirdropMsg {
         start: u64,
         period: u64,
         reward_token: String,
-        reward_amount: Uint256,
+        reward_amount: Uint128,
     },
     Allocate {
         airdrop_id: u64,
         recipient: String,
-        allocate_amount: Uint256,
+        allocate_amount: Uint128,
     },
     Deallocate {
         airdrop_id: u64,
         recipient: String,
-        deallocate_amount: Uint256,
+        deallocate_amount: Uint128,
     },
-    Claim {
-        airdrop_id: u64,
+    Update {
+        target: Option<String>,
+    },
+    Claim {},
+    ClaimInternal {
+        sender: String,
     },
 }
 
@@ -97,7 +110,7 @@ pub enum Cw20HookMsg {
     /// CreatePoll need to receive deposit from a proposer
     CreatePoll {
         title: String,
-        category: String,
+        category: PollCategory,
         description: String,
         link: Option<String>,
         execute_msgs: Option<Vec<PollExecuteMsg>>,
@@ -126,11 +139,29 @@ pub enum QueryMsg {
         limit: Option<u32>,
         order: Option<OrderBy>,
     },
+    Airdrop {
+        airdrop_id: u64,
+    },
+    Airdrops {
+        start_after: Option<u64>,
+        limit: Option<u32>,
+        order_by: Option<OrderBy>,
+    },
     Poll {
         poll_id: u64,
     },
     Polls {
-        category_filter: Option<String>,
+        start_after: Option<u64>,
+        limit: Option<u32>,
+        order_by: Option<OrderBy>,
+    },
+    PollsWithCategoryFilter {
+        category_filter: Option<PollCategory>,
+        start_after: Option<u64>,
+        limit: Option<u32>,
+        order_by: Option<OrderBy>,
+    },
+    PollsWithStatusFilter {
         status_filter: Option<PollStatus>,
         start_after: Option<u64>,
         limit: Option<u32>,
@@ -162,6 +193,20 @@ pub enum PollStatus {
 }
 
 impl fmt::Display for PollStatus {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum PollCategory {
+    Core,
+    Gateway,
+    None,
+}
+
+impl fmt::Display for PollCategory {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}", self)
     }
