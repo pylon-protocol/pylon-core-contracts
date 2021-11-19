@@ -185,54 +185,60 @@ pub struct LegacyPoll {
     pub staked_amount: Option<Uint128>,
 }
 
-pub fn migrate(deps: DepsMut, _env: Env, _msg: MigrateMsg) -> ExecuteResult {
-    let state: LegacyState = ReadonlySingleton::new(deps.storage, b"state")
-        .load()
-        .unwrap();
+pub fn migrate(deps: DepsMut, _env: Env, msg: MigrateMsg) -> ExecuteResult {
+    match msg {
+        MigrateMsg::State {} => {
+            let state: LegacyState = ReadonlySingleton::new(deps.storage, b"state")
+                .load()
+                .unwrap();
 
-    State::save(
-        deps.storage,
-        &State {
-            poll_count: state.poll_count,
-            total_share: state.total_share,
-            total_deposit: state.total_deposit,
-            total_airdrop_count: 0,
-            airdrop_update_candidates: vec![],
-        },
-    )
-    .unwrap();
+            State::save(
+                deps.storage,
+                &State {
+                    poll_count: state.poll_count,
+                    total_share: state.total_share,
+                    total_deposit: state.total_deposit,
+                    total_airdrop_count: 0,
+                    airdrop_update_candidates: vec![],
+                },
+            )
+            .unwrap();
 
-    let legacy_poll_store: ReadonlyBucket<LegacyPoll> = ReadonlyBucket::new(deps.storage, b"poll");
-    let legacy_polls: Vec<LegacyPoll> = legacy_poll_store
-        .range(None, None, Order::Descending)
-        .take(100)
-        .map(|item| -> LegacyPoll {
-            let (_, v) = item.unwrap();
-            v
-        })
-        .collect();
+            let legacy_poll_store: ReadonlyBucket<LegacyPoll> =
+                ReadonlyBucket::new(deps.storage, b"poll");
+            let legacy_polls: Vec<LegacyPoll> = legacy_poll_store
+                .range(None, None, Order::Descending)
+                .take(100)
+                .map(|item| -> LegacyPoll {
+                    let (_, v) = item.unwrap();
+                    v
+                })
+                .collect();
 
-    for poll in legacy_polls.iter() {
-        Poll::save(
-            deps.storage,
-            &poll.id,
-            &Poll {
-                id: poll.id,
-                creator: poll.creator.clone(),
-                status: poll.status.clone(),
-                yes_votes: poll.yes_votes,
-                no_votes: poll.no_votes,
-                end_height: poll.end_height,
-                title: poll.title.clone(),
-                category: PollCategory::None,
-                description: poll.description.clone(),
-                link: poll.link.clone(),
-                execute_data: poll.execute_data.clone(),
-                deposit_amount: poll.deposit_amount,
-                total_balance_at_end_poll: poll.total_balance_at_end_poll,
-                staked_amount: poll.staked_amount,
-            },
-        )?;
+            for poll in legacy_polls.iter() {
+                Poll::save(
+                    deps.storage,
+                    &poll.id,
+                    &Poll {
+                        id: poll.id,
+                        creator: poll.creator.clone(),
+                        status: poll.status.clone(),
+                        yes_votes: poll.yes_votes,
+                        no_votes: poll.no_votes,
+                        end_height: poll.end_height,
+                        title: poll.title.clone(),
+                        category: PollCategory::None,
+                        description: poll.description.clone(),
+                        link: poll.link.clone(),
+                        execute_data: poll.execute_data.clone(),
+                        deposit_amount: poll.deposit_amount,
+                        total_balance_at_end_poll: poll.total_balance_at_end_poll,
+                        staked_amount: poll.staked_amount,
+                    },
+                )?;
+            }
+        }
+        MigrateMsg::General {} => {}
     }
 
     Ok(Response::default())

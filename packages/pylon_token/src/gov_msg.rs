@@ -230,4 +230,8 @@ impl fmt::Display for VoteOption {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct MigrateMsg {}
+#[serde(rename_all = "snake_case")]
+pub enum MigrateMsg {
+    State {},
+    General {},
+}
