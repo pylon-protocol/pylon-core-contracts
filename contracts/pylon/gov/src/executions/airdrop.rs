@@ -200,7 +200,7 @@ pub fn update(
 pub fn claim(deps: DepsMut, env: Env, info: MessageInfo, sender: String) -> ExecuteResult {
     let mut response = Response::new()
         .add_attribute("action", "airdrop_claim")
-        .add_attribute("target", info.sender.as_str());
+        .add_attribute("target", sender.as_str());
 
     if env.contract.address != info.sender {
         return Err(ContractError::Unauthorized {});
