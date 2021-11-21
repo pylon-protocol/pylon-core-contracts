@@ -145,7 +145,7 @@ pub fn update(
     _info: MessageInfo,
     target: Option<String>,
 ) -> ExecuteResult {
-    let response = Response::new().add_attribute("action", "airdrop_update_state");
+    let response = Response::new().add_attribute("action", "airdrop_update");
 
     let target = target.map(|x| deps.api.addr_validate(x.as_str()).unwrap());
     let state = State::load(deps.storage)?;
@@ -164,7 +164,7 @@ pub fn update(
                 airdrop.state.reward_per_token_stored
                     + calculate_reward_per_token(
                         &applicable_time,
-                        &state.total_deposit,
+                        &state.total_share,
                         &airdrop.config.reward_rate,
                         &airdrop.state.last_update_time,
                     )?
@@ -180,7 +180,7 @@ pub fn update(
 
             airdrop_reward.reward = calculate_rewards(
                 &applicable_time,
-                &state.total_deposit,
+                &state.total_share,
                 &token_manager.share,
                 &airdrop,
                 &airdrop_reward,
@@ -248,24 +248,24 @@ pub fn claim(deps: DepsMut, env: Env, info: MessageInfo, sender: String) -> Exec
 
 pub fn calculate_reward_per_token(
     timestamp: &u64,
-    total_deposit: &Uint128,
+    total_share: &Uint128,
     reward_rate: &Decimal,
     last_update_time: &u64,
 ) -> StdResult<Decimal> {
-    if total_deposit.is_zero() {
+    if total_share.is_zero() {
         Ok(Decimal::zero())
     } else {
         Ok(Decimal::from_ratio(
             Uint128::from(max(timestamp, last_update_time) - last_update_time) * *reward_rate,
-            *total_deposit,
+            *total_share,
         ))
     }
 }
 
 pub fn calculate_rewards(
     timestamp: &u64,
-    total_deposit: &Uint128,
-    user_deposit: &Uint128,
+    total_share: &Uint128,
+    user_share: &Uint128,
     airdrop: &Airdrop,
     airdrop_reward: &AirdropReward,
 ) -> StdResult<Uint128> {
@@ -275,11 +275,11 @@ pub fn calculate_rewards(
         rpt = rpt
             + calculate_reward_per_token(
                 timestamp,
-                total_deposit,
+                total_share,
                 &airdrop.config.reward_rate,
                 &airdrop.state.last_update_time,
             )?;
     }
 
-    Ok(airdrop_reward.reward + (rpt * *user_deposit))
+    Ok(airdrop_reward.reward + (rpt * *user_share))
 }
