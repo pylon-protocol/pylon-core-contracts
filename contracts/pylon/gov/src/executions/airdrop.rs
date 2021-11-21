@@ -51,6 +51,7 @@ pub fn instantiate(
     )?;
 
     state.total_airdrop_count += 1;
+    state.airdrop_update_candidates.push(airdrop_id);
 
     State::save(deps.storage, &state)?;
 
