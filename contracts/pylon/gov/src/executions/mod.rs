@@ -4,7 +4,9 @@ use cosmwasm_std::{
 };
 use cosmwasm_storage::{ReadonlyBucket, ReadonlySingleton};
 use cw20::Cw20ReceiveMsg;
-use pylon_token::gov_msg::{AirdropMsg, Cw20HookMsg, InstantiateMsg, MigrateMsg, StakingMsg};
+use pylon_token::gov_msg::{
+    AirdropMsg, Cw20HookMsg, ExecuteMsg, InstantiateMsg, MigrateMsg, StakingMsg,
+};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
@@ -71,18 +73,18 @@ pub fn receive(
             // 1. Update reward
             .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: env.contract.address.to_string(),
-                msg: to_binary(&AirdropMsg::Update {
+                msg: to_binary(&ExecuteMsg::Airdrop(AirdropMsg::Update {
                     target: Some(cw20_msg.sender.to_string()),
-                })?,
+                }))?,
                 funds: vec![],
             }))
             // 2. Execute Stake
             .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
                 contract_addr: env.contract.address.to_string(),
-                msg: to_binary(&StakingMsg::StakeInternal {
+                msg: to_binary(&ExecuteMsg::Staking(StakingMsg::StakeInternal {
                     sender: cw20_msg.sender.to_string(),
                     amount: cw20_msg.amount,
-                })?,
+                }))?,
                 funds: vec![],
             }))),
         Ok(Cw20HookMsg::CreatePoll {

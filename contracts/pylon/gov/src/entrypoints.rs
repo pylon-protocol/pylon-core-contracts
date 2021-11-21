@@ -69,18 +69,18 @@ pub fn execute(
                 // 1. Update reward
                 .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: env.contract.address.to_string(),
-                    msg: to_binary(&AirdropMsg::Update {
+                    msg: to_binary(&ExecuteMsg::Airdrop(AirdropMsg::Update {
                         target: Some(info.sender.to_string()),
-                    })?,
+                    }))?,
                     funds: vec![],
                 }))
                 // 2. Execute Unstake
                 .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: env.contract.address.to_string(),
-                    msg: to_binary(&StakingMsg::UnstakeInternal {
+                    msg: to_binary(&ExecuteMsg::Staking(StakingMsg::UnstakeInternal {
                         sender: info.sender.to_string(),
                         amount,
-                    })?,
+                    }))?,
                     funds: vec![],
                 }))),
             StakingMsg::StakeInternal { sender, amount } => {
@@ -134,17 +134,17 @@ pub fn execute(
                 // 1. Update reward
                 .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: env.contract.address.to_string(),
-                    msg: to_binary(&AirdropMsg::Update {
+                    msg: to_binary(&ExecuteMsg::Airdrop(AirdropMsg::Update {
                         target: Some(info.sender.to_string()),
-                    })?,
+                    }))?,
                     funds: vec![],
                 }))
                 // 2. Execute Unstake
                 .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
                     contract_addr: env.contract.address.to_string(),
-                    msg: to_binary(&AirdropMsg::ClaimInternal {
+                    msg: to_binary(&ExecuteMsg::Airdrop(AirdropMsg::ClaimInternal {
                         sender: info.sender.to_string(),
-                    })?,
+                    }))?,
                     funds: vec![],
                 }))),
             AirdropMsg::ClaimInternal { sender } => {
