@@ -203,6 +203,10 @@ pub fn claim(deps: DepsMut, env: Env, info: MessageInfo, sender: Option<String>)
         .map(|x| deps.api.addr_validate(x.as_str()).unwrap())
         .unwrap_or(info.sender);
 
+    let state = State::load(deps.storage).unwrap();
+    let token_manager =
+        TokenManager::load(deps.storage, &deps.api.addr_canonicalize(sender.as_str())?)?;
+
     let airdrop_rewards =
         AirdropReward::load_range(deps.storage, &sender, None, Some(MAX_QUERY_LIMIT), None)?;
 
@@ -217,6 +221,38 @@ pub fn claim(deps: DepsMut, env: Env, info: MessageInfo, sender: Option<String>)
     Ok(response.add_messages(
         airdrop_rewards
             .iter()
+            .map(|(airdrop_id, airdrop_reward)| {
+                let mut airdrop = Airdrop::load(deps.storage, airdrop_id).unwrap();
+                let applicable_time = airdrop.applicable_time(&env.block);
+
+                airdrop.state.reward_per_token_stored =
+                    if airdrop.finish() == airdrop.state.last_update_time {
+                        airdrop.state.reward_per_token_stored // because it's already latest
+                    } else {
+                        airdrop.state.reward_per_token_stored
+                            + calculate_reward_per_token(
+                                &applicable_time,
+                                &state.total_share,
+                                &airdrop.config.reward_rate,
+                                &airdrop.state.last_update_time,
+                            )
+                            .unwrap()
+                    };
+                airdrop.state.last_update_time = applicable_time;
+
+                let mut airdrop_reward = airdrop_reward.clone();
+                airdrop_reward.reward = calculate_rewards(
+                    &applicable_time,
+                    &state.total_share,
+                    &token_manager.share,
+                    &airdrop,
+                    &airdrop_reward,
+                )
+                .unwrap();
+                airdrop_reward.reward_per_token_paid = airdrop.state.reward_per_token_stored;
+
+                (airdrop_id, airdrop_reward)
+            })
             .filter(|(_, airdrop_reward)| !airdrop_reward.reward.is_zero())
             .map(|(airdrop_id, _)| {
                 CosmosMsg::Wasm(WasmMsg::Execute {
