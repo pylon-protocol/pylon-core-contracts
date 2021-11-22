@@ -176,6 +176,12 @@ pub enum QueryMsg {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct ClaimableAirdrop {
+    pub token: String,
+    pub amount: Uint128,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct VoterInfo {
     pub vote: VoteOption,
     pub balance: Uint128,

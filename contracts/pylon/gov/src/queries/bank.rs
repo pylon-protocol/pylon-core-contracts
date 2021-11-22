@@ -1,10 +1,11 @@
 use cosmwasm_std::{to_binary, Deps, Env, Uint128};
 use pylon_token::common::OrderBy;
-use pylon_token::gov_msg::VoterInfo as GovVoterInfo;
+use pylon_token::gov_msg::{ClaimableAirdrop, VoterInfo as GovVoterInfo};
 use pylon_token::gov_resp::{StakerResponse, StakersResponse};
 use terraswap::querier::query_token_balance;
 
 use crate::queries::QueryResult;
+use crate::state::airdrop::{Airdrop, Reward as AirdropReward};
 use crate::state::bank::TokenManager;
 use crate::state::config::Config;
 use crate::state::poll::{Poll, PollStatus};
@@ -24,6 +25,7 @@ pub fn query_staker(deps: Deps, env: Env, address: String) -> QueryResult {
 
     Ok(to_binary(&to_response(
         deps,
+        address.as_str(),
         &state.total_share,
         &total_balance,
         &token_manager,
@@ -56,9 +58,16 @@ pub fn query_stakers(
     let stakers: Vec<(String, StakerResponse)> = managers
         .iter()
         .map(|(address, token_manager)| -> (String, StakerResponse) {
+            let address = deps.api.addr_humanize(address).unwrap();
             (
-                deps.api.addr_humanize(address).unwrap().to_string(),
-                to_response(deps, &state.total_share, &total_balance, token_manager),
+                address.to_string(),
+                to_response(
+                    deps,
+                    address.as_str(),
+                    &state.total_share,
+                    &total_balance,
+                    token_manager,
+                ),
             )
         })
         .collect();
@@ -68,6 +77,7 @@ pub fn query_stakers(
 
 fn to_response(
     deps: Deps,
+    staker: &str,
     total_share: &Uint128,
     total_balance: &Uint128,
     token_manager: &TokenManager,
@@ -99,10 +109,34 @@ fn to_response(
         })
         .collect();
 
+    let claimable_airdrop = AirdropReward::load_range(
+        deps.storage,
+        &deps.api.addr_validate(staker).unwrap(),
+        None,
+        None,
+        None,
+    )
+    .unwrap();
+
+    let claimable_airdrop = claimable_airdrop
+        .iter()
+        .filter(|(_, airdrop_reward)| !airdrop_reward.reward.is_zero())
+        .map(|(airdrop_id, airdrop_reward)| {
+            let airdrop = Airdrop::load(deps.storage, airdrop_id).unwrap();
+            (
+                *airdrop_id,
+                ClaimableAirdrop {
+                    token: airdrop.config.reward_token.to_string(),
+                    amount: airdrop_reward.reward,
+                },
+            )
+        })
+        .collect();
+
     StakerResponse {
         balance,
         share: token_manager.share,
         locked_balance,
-        claimable_airdrop: vec![],
+        claimable_airdrop,
     }
 }

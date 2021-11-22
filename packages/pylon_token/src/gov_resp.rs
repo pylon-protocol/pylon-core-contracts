@@ -2,7 +2,9 @@ use cosmwasm_std::{Decimal, Uint128};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use crate::gov_msg::{PollCategory, PollExecuteMsg, PollStatus, VoteOption, VoterInfo};
+use crate::gov_msg::{
+    ClaimableAirdrop, PollCategory, PollExecuteMsg, PollStatus, VoteOption, VoterInfo,
+};
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema)]
 pub struct APIVersionResponse {
@@ -75,7 +77,7 @@ pub struct PollCountResponse {
 pub struct StakerResponse {
     pub balance: Uint128,
     pub share: Uint128,
-    pub claimable_airdrop: Vec<(String, Uint128)>,
+    pub claimable_airdrop: Vec<(u64, ClaimableAirdrop)>,
     pub locked_balance: Vec<(u64, VoterInfo)>,
 }
 
