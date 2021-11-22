@@ -1,6 +1,7 @@
 // =============================== ACCOUNTS
 pub const TEST_OWNER: &str = "owner";
 pub const TEST_USER: &str = "user";
+// pub const TEST_CAP_STRATEGY: &str = "cap_strategy";
 
 // =============================== POOL CONFIG
 pub const TEST_POOL_START: u64 = 10;

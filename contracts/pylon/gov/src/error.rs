@@ -42,6 +42,9 @@ pub enum ContractError {
     #[error("Poll does not exist")]
     PollNotFound {},
 
+    #[error("Airdrop does not exist")]
+    AirdropNotFound {},
+
     #[error("Snapshot has already occurred")]
     SnapshotAlreadyOccurred {},
 

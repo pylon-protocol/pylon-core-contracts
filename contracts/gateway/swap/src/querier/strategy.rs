@@ -1,26 +1,8 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::{Deps, StdResult};
-use pylon_gateway::cap_strategy_msg::QueryMsg;
-use pylon_gateway::cap_strategy_resp as resp;
-
-use crate::state::{config, user};
 use pylon_gateway::swap_msg::Strategy;
 
-pub fn available_cap_of(deps: Deps, strategy: String, address: String) -> StdResult<Uint256> {
-    let user = user::read(
-        deps.storage,
-        &deps.api.addr_canonicalize(address.as_str()).unwrap(),
-    )
-    .unwrap();
-    let resp: resp::AvailableCapOfResponse = deps.querier.query_wasm_smart(
-        strategy,
-        &QueryMsg::AvailableCapOf {
-            amount: user.swapped_in,
-            address,
-        },
-    )?;
-    Ok(resp.amount)
-}
+use crate::state::{config, user};
 
 pub fn claimable_token_of(deps: Deps, time: u64, address: String) -> StdResult<Uint256> {
     let sender = &deps.api.addr_canonicalize(address.as_str()).unwrap();

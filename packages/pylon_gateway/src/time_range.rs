@@ -1,10 +1,10 @@
 use cosmwasm_std::*;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use std::fmt::{Display, Formatter};
 use std::ops::Sub;
 
-use crate::state::Validator;
-use std::fmt::{Display, Formatter};
+use crate::validator::Validator;
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct TimeRange {

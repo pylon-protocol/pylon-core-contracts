@@ -46,7 +46,7 @@ fn handle_claim_internal() {
     let mut deps = mock_dependencies(&[]);
     let (mut env, _) = utils::initialize(&mut deps);
     let contract_self = mock_info(MOCK_CONTRACT_ADDR, &[]);
-    env.block.time = Timestamp::from_seconds(TEST_POOL_CLIFF + 1);
+    env.block.time = Timestamp::from_seconds(TEST_POOL_START + TEST_POOL_CLIFF + 1);
 
     let reward_amount = Uint256::from(1000000u64);
 

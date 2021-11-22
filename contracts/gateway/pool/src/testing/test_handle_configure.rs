@@ -2,12 +2,12 @@ use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::testing::{mock_dependencies, mock_info};
 use cosmwasm_std::Timestamp;
 use pylon_gateway::pool_msg::{ConfigureMsg, ExecuteMsg};
+use pylon_gateway::time_range::TimeRange;
 use std::ops::Mul;
 use std::str::FromStr;
 
 use crate::contract;
 use crate::state::config;
-use crate::state::time_range::TimeRange;
 use crate::testing::constants::*;
 use crate::testing::utils;
 

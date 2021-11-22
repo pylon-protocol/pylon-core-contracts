@@ -97,8 +97,8 @@ pub fn deposit(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, 
 pub fn redeem(
     deps: DepsMut,
     _env: Env,
-    info: MessageInfo,
-    _sender: String,
+    _info: MessageInfo,
+    sender: String,
     amount: Uint128,
 ) -> Result<Response, ContractError> {
     let config = config::read(deps.storage).unwrap();
@@ -138,9 +138,16 @@ pub fn redeem(
             &config.atoken,
             market_redeem_amount.into(),
         )?)
+        .add_message(CosmosMsg::Bank(BankMsg::Send {
+            to_address: sender.clone(),
+            amount: vec![coin(
+                u128::from(user_redeem_amount.amount),
+                user_redeem_amount.denom.clone(),
+            )],
+        }))
         .add_attribute("action", "redeem")
-        .add_attribute("sender", info.sender.to_string())
-        .add_attribute("amount", user_redeem_amount.amount.to_string()))
+        .add_attribute("sender", sender)
+        .add_attribute("amount", user_redeem_amount.to_string()))
 }
 
 pub fn earn(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {

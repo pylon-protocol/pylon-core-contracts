@@ -1,6 +1,8 @@
 use cosmwasm_bignumber::Uint256;
 use cosmwasm_std::*;
 use cw20::Cw20ExecuteMsg;
+use pylon_gateway::cap_strategy_msg::QueryMsg as CapQueryMsg;
+use pylon_gateway::cap_strategy_resp;
 use pylon_gateway::swap_msg::Strategy;
 use pylon_utils::tax::deduct_tax;
 
@@ -53,13 +55,18 @@ pub fn deposit(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, C
 
     // check available cap via calling cap_strategy contract
     if let Some(strategy) = config.cap_strategy {
-        let available_cap =
-            strategy::available_cap_of(deps.as_ref(), strategy, info.sender.to_string())?;
+        let resp: cap_strategy_resp::AvailableCapOfResponse = deps.querier.query_wasm_smart(
+            strategy,
+            &CapQueryMsg::AvailableCapOf {
+                amount: user.swapped_in,
+                address: info.sender.to_string(),
+            },
+        )?;
 
-        if available_cap < swapped_in {
-            return Err(ContractError::AvailableCapExceeded {
-                available: available_cap,
-            });
+        if let Some(v) = resp.amount {
+            if v < swapped_in {
+                return Err(ContractError::AvailableCapExceeded { available: v });
+            }
         }
     } // or remains cap strategy to unlimited
 
@@ -98,14 +105,14 @@ pub fn withdraw(
         match strategy {
             Strategy::Lockup { release_time, .. } => {
                 if release_time < &env.block.time.seconds() {
-                    return claim(deps, env, info);
+                    return Err(ContractError::NotAllowWithdrawAfterRelease {});
                 }
             }
             Strategy::Vesting {
                 release_start_time, ..
             } => {
                 if release_start_time < &env.block.time.seconds() {
-                    return claim(deps, env, info);
+                    return Err(ContractError::NotAllowWithdrawAfterRelease {});
                 }
             }
         }
@@ -193,9 +200,11 @@ pub fn claim(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, Con
         .add_attribute("amount", claimable_token.to_string()))
 }
 
-pub fn earn(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, ContractError> {
-    let config = config::read(deps.storage).load().unwrap();
+const EARN_LOCK_PERIOD: u64 = 86400 * 7;
+
+pub fn earn(deps: DepsMut, env: Env, info: MessageInfo) -> Result<Response, ContractError> {
     let state = state::read(deps.storage).load().unwrap();
+    let config = config::read(deps.storage).load().unwrap();
     if config.beneficiary != info.sender {
         return Err(ContractError::Unauthorized {
             action: "earn".to_string(),
@@ -204,19 +213,20 @@ pub fn earn(deps: DepsMut, _env: Env, info: MessageInfo) -> Result<Response, Con
         });
     }
 
-    let earn_amount = state.total_claimed * config.price;
+    if env.block.time.seconds() < config.finish + EARN_LOCK_PERIOD {
+        return Err(ContractError::NotAllowEarnBeforeLockPeriod {});
+    }
+
     Ok(Response::new()
         .add_message(CosmosMsg::Bank(BankMsg::Send {
             to_address: config.beneficiary,
             amount: vec![deduct_tax(
                 deps.as_ref(),
-                Coin {
-                    denom: state.x_denom,
-                    amount: earn_amount.into(),
-                },
+                deps.querier
+                    .query_balance(env.contract.address, state.x_denom)
+                    .unwrap(),
             )?],
         }))
         .add_attribute("action", "earn")
-        .add_attribute("sender", info.sender.to_string())
-        .add_attribute("amount", earn_amount.to_string()))
+        .add_attribute("sender", info.sender.to_string()))
 }

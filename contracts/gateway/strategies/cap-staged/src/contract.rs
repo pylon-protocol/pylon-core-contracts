@@ -7,7 +7,8 @@ use cosmwasm_std::{
 };
 use pylon_gateway::cap_strategy_msg::{MigrateMsg, QueryMsg};
 use pylon_gateway::cap_strategy_resp as resp;
-use pylon_token::gov::{QueryMsg as GovQueryMsg, StakerResponse};
+use pylon_token::gov_msg::QueryMsg as GovQueryMsg;
+use pylon_token::gov_resp::StakerResponse;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::cmp::{max, min};
@@ -106,7 +107,8 @@ pub fn query(deps: Deps, _env: Env, msg: QueryMsg) -> StdResult<Binary> {
                 }
             }
             to_binary(&resp::AvailableCapOfResponse {
-                amount: max_cap - min(max_cap, amount),
+                amount: Option::Some(max_cap - min(max_cap, amount)),
+                unlimited: false,
             })
         }
     }

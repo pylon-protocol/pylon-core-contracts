@@ -1,11 +1,10 @@
-pub mod contract;
+pub mod entrypoints;
+pub mod executions;
+pub mod queries;
 
+mod constant;
 mod error;
-mod staking;
 mod state;
 
 #[cfg(test)]
-mod tests;
-
-#[cfg(test)]
-mod mock_querier;
+mod testing;

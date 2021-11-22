@@ -1,10 +1,11 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::testing::{mock_dependencies, mock_env, mock_info};
 use cosmwasm_std::Response;
+use pylon_gateway::time_range::TimeRange;
 use std::ops::Add;
 
 use crate::contract;
-use crate::state::{config, reward, time_range};
+use crate::state::{config, reward};
 use crate::testing::constants::TEST_OWNER;
 use crate::testing::utils;
 
@@ -26,7 +27,7 @@ fn proper_initialization() {
             // share
             share_token: msg.share_token,
             deposit_config: config::DepositConfig {
-                time: time_range::TimeRange {
+                time: TimeRange {
                     start: msg.start,
                     finish: 0,
                     inverse: false,
@@ -34,26 +35,27 @@ fn proper_initialization() {
                 user_cap: Uint256::zero(),
                 total_cap: Uint256::zero(),
             },
-            withdraw_time: vec![time_range::TimeRange {
+            withdraw_time: vec![TimeRange {
                 start: msg.start,
                 finish: msg.start.add(msg.period),
                 inverse: true,
             }],
             // reward
             reward_token: msg.reward_token,
-            claim_time: time_range::TimeRange {
-                start: msg.cliff,
+            claim_time: TimeRange {
+                start: msg.start.add(msg.cliff),
                 finish: 0,
                 inverse: false,
             },
             distribution_config: config::DistributionConfig {
-                time: time_range::TimeRange {
+                time: TimeRange {
                     start: msg.start,
                     finish: msg.start.add(msg.period),
                     inverse: false,
                 },
                 reward_rate: Decimal256::from_ratio(msg.reward_amount, Uint256::from(msg.period)),
             },
+            cap_strategy: msg.cap_strategy,
         }
     );
 

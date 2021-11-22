@@ -5,7 +5,8 @@ use cosmwasm_std::{
 };
 use pylon_gateway::cap_strategy_msg::QueryMsg;
 use pylon_gateway::cap_strategy_resp::AvailableCapOfResponse;
-use pylon_token::gov::{QueryMsg as GovQueryMsg, StakerResponse};
+use pylon_token::gov_msg::QueryMsg as GovQueryMsg;
+use pylon_token::gov_resp::StakerResponse;
 
 use crate::contract::ExecuteMsg;
 use crate::mock_querier::{mock_dependencies, CustomMockWasmQuerier};
@@ -104,6 +105,7 @@ fn query_available_cap() {
                     _ => Uint128::zero(),
                 },
                 share: Default::default(),
+                claimable_airdrop: vec![],
                 locked_balance: vec![],
             }),
             _ => Err(StdError::generic_err("not implemented")),
@@ -141,7 +143,7 @@ fn query_available_cap() {
         .unwrap(),
     )
     .unwrap();
-    assert_eq!(resp.amount, Uint256::from(100u64));
+    assert_eq!(resp.amount, Option::from(Uint256::from(100u64)));
 
     let resp: AvailableCapOfResponse = from_binary(
         &contract::query(
@@ -155,7 +157,7 @@ fn query_available_cap() {
         .unwrap(),
     )
     .unwrap();
-    assert_eq!(resp.amount, Uint256::from(200u64));
+    assert_eq!(resp.amount, Option::from(Uint256::from(200u64)));
 
     let resp: AvailableCapOfResponse = from_binary(
         &contract::query(
@@ -169,5 +171,5 @@ fn query_available_cap() {
         .unwrap(),
     )
     .unwrap();
-    assert_eq!(resp.amount, Uint256::from(100u64));
+    assert_eq!(resp.amount, Option::from(Uint256::from(100u64)));
 }

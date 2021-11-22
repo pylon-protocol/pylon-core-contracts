@@ -48,4 +48,10 @@ pub enum ContractError {
 
     #[error("Gateway/Swap: refund not allowed after token claim")]
     NotAllowWithdrawAfterClaim {},
+
+    #[error("Gateway/Swap: refund not allowed after token release")]
+    NotAllowWithdrawAfterRelease {},
+
+    #[error("Gateway/Swap: earn not allowed before lock period")]
+    NotAllowEarnBeforeLockPeriod {},
 }

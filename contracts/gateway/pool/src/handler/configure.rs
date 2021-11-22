@@ -1,11 +1,11 @@
 use cosmwasm_bignumber::{Decimal256, Uint256};
 use cosmwasm_std::{Attribute, DepsMut, Env, MessageInfo, Response};
 use pylon_gateway::pool_msg::ConfigureMsg;
+use pylon_gateway::time_range::TimeRange;
 use std::ops::{Add, Div, Sub};
 
 use crate::error::ContractError;
 use crate::state::config;
-use crate::state::time_range::TimeRange;
 
 const MAX_WITHDRAW_STRATEGY: usize = 4;
 

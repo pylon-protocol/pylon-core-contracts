@@ -39,6 +39,12 @@ pub struct BalanceOfResponse {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
+pub struct AvailableCapOfResponse {
+    pub amount: Option<Uint256>,
+    pub unlimited: bool,
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct ClaimableRewardResponse {
     pub amount: Uint256,
 }

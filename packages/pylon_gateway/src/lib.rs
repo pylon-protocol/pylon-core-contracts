@@ -7,3 +7,5 @@ pub mod pool_msg;
 pub mod pool_resp;
 pub mod swap_msg;
 pub mod swap_resp;
+pub mod time_range;
+pub mod validator;
