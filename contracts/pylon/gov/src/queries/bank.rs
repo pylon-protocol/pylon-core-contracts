@@ -4,6 +4,7 @@ use pylon_token::gov_msg::{ClaimableAirdrop, VoterInfo as GovVoterInfo};
 use pylon_token::gov_resp::{StakerResponse, StakersResponse};
 use terraswap::querier::query_token_balance;
 
+use crate::executions::airdrop::{calculate_reward_per_token, calculate_rewards};
 use crate::queries::QueryResult;
 use crate::state::airdrop::{Airdrop, Reward as AirdropReward};
 use crate::state::bank::TokenManager;
@@ -19,12 +20,13 @@ pub fn query_staker(deps: Deps, env: Env, address: String) -> QueryResult {
     let total_balance = query_token_balance(
         &deps.querier,
         deps.api.addr_humanize(&config.pylon_token)?,
-        env.contract.address,
+        env.contract.address.clone(),
     )?
     .checked_sub(state.total_deposit)?;
 
     Ok(to_binary(&to_response(
-        deps,
+        &deps,
+        &env,
         address.as_str(),
         &state.total_share,
         &total_balance,
@@ -51,7 +53,7 @@ pub fn query_stakers(
     let total_balance = query_token_balance(
         &deps.querier,
         deps.api.addr_humanize(&config.pylon_token)?,
-        env.contract.address,
+        env.contract.address.clone(),
     )?
     .checked_sub(state.total_deposit)?;
 
@@ -62,7 +64,8 @@ pub fn query_stakers(
             (
                 address.to_string(),
                 to_response(
-                    deps,
+                    &deps,
+                    &env,
                     address.as_str(),
                     &state.total_share,
                     &total_balance,
@@ -76,7 +79,8 @@ pub fn query_stakers(
 }
 
 fn to_response(
-    deps: Deps,
+    deps: &Deps,
+    env: &Env,
     staker: &str,
     total_share: &Uint128,
     total_balance: &Uint128,
@@ -120,9 +124,36 @@ fn to_response(
 
     let claimable_airdrop = claimable_airdrop
         .iter()
-        .filter(|(_, airdrop_reward)| !airdrop_reward.reward.is_zero())
         .map(|(airdrop_id, airdrop_reward)| {
-            let airdrop = Airdrop::load(deps.storage, airdrop_id).unwrap();
+            let mut airdrop = Airdrop::load(deps.storage, airdrop_id).unwrap();
+            let applicable_time = airdrop.applicable_time(&env.block);
+
+            airdrop.state.reward_per_token_stored =
+                if airdrop.finish() == airdrop.state.last_update_time {
+                    airdrop.state.reward_per_token_stored // because it's already latest
+                } else {
+                    airdrop.state.reward_per_token_stored
+                        + calculate_reward_per_token(
+                            &applicable_time,
+                            total_share,
+                            &airdrop.config.reward_rate,
+                            &airdrop.state.last_update_time,
+                        )
+                        .unwrap()
+                };
+            airdrop.state.last_update_time = applicable_time;
+
+            let mut airdrop_reward = airdrop_reward.clone();
+            airdrop_reward.reward = calculate_rewards(
+                &applicable_time,
+                total_share,
+                &token_manager.share,
+                &airdrop,
+                &airdrop_reward,
+            )
+            .unwrap();
+            airdrop_reward.reward_per_token_paid = airdrop.state.reward_per_token_stored;
+
             (
                 *airdrop_id,
                 ClaimableAirdrop {
@@ -131,6 +162,7 @@ fn to_response(
                 },
             )
         })
+        .filter(|(_, airdrop_reward)| !airdrop_reward.amount.is_zero())
         .collect();
 
     StakerResponse {

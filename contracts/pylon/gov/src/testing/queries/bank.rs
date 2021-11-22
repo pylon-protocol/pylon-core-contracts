@@ -29,19 +29,24 @@ fn stakers_filter_zero_reward() {
     )
     .unwrap();
 
-    let response = query_staker(deps.as_ref(), mock_env(), TEST_VOTER.to_string()).unwrap();
-    let response: StakerResponse = from_binary(&response).unwrap();
-    assert_eq!(response.claimable_airdrop, vec![]);
-
     airdrop_update::exec(
         &mut deps,
-        mock_env_height(env.block.height, env.block.time.seconds() + 86400 * 2),
+        mock_env(),
         mock_info(TEST_VOTER, &[]),
         Some(TEST_VOTER.to_string()),
     )
     .unwrap();
 
     let response = query_staker(deps.as_ref(), mock_env(), TEST_VOTER.to_string()).unwrap();
+    let response: StakerResponse = from_binary(&response).unwrap();
+    assert_eq!(response.claimable_airdrop, vec![]);
+
+    let response = query_staker(
+        deps.as_ref(),
+        mock_env_height(env.block.height, env.block.time.seconds() + 86400 * 2),
+        TEST_VOTER.to_string(),
+    )
+    .unwrap();
     let response: StakerResponse = from_binary(&response).unwrap();
     assert_eq!(
         response.claimable_airdrop,
