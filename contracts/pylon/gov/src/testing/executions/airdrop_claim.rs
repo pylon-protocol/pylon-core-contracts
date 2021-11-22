@@ -1,13 +1,19 @@
 use cosmwasm_std::testing::{mock_env, mock_info, MOCK_CONTRACT_ADDR};
 use cosmwasm_std::{attr, Env, MessageInfo, Uint128};
 
-use crate::executions::airdrop::claim;
+use crate::executions::airdrop::claim_internal;
 use crate::executions::ExecuteResult;
 use crate::testing::{mock_deps, mock_env_height, MockDeps, TEST_TOKEN, TEST_VOTER, VOTING_TOKEN};
 
 #[allow(dead_code)]
-pub fn exec(deps: &mut MockDeps, env: Env, info: MessageInfo, sender: String) -> ExecuteResult {
-    claim(deps.as_mut(), env, info, sender)
+pub fn exec(
+    deps: &mut MockDeps,
+    env: Env,
+    info: MessageInfo,
+    sender: String,
+    airdrop_id: u64,
+) -> ExecuteResult {
+    claim_internal(deps.as_mut(), env, info, sender, airdrop_id)
 }
 
 #[test]
@@ -43,6 +49,7 @@ fn success() {
         mock_env(),
         mock_info(MOCK_CONTRACT_ADDR, &[]),
         TEST_VOTER.to_string(),
+        0,
     )
     .unwrap();
     assert_eq!(

@@ -77,9 +77,12 @@ pub enum AirdropMsg {
     Update {
         target: Option<String>,
     },
-    Claim {},
+    Claim {
+        target: Option<String>,
+    },
     ClaimInternal {
         sender: String,
+        airdrop_id: u64,
     },
 }
 

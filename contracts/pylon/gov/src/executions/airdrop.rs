@@ -3,6 +3,7 @@ use cosmwasm_std::{
     to_binary, CosmosMsg, Decimal, DepsMut, Env, MessageInfo, Response, StdResult, Uint128, WasmMsg,
 };
 use cw20::Cw20ExecuteMsg;
+use pylon_token::gov_msg::{AirdropMsg, ExecuteMsg};
 use std::cmp::max;
 
 use crate::error::ContractError;
@@ -197,8 +198,48 @@ pub fn update(
     )]))
 }
 
-pub fn claim(deps: DepsMut, env: Env, info: MessageInfo, sender: String) -> ExecuteResult {
-    let mut response = Response::new()
+pub fn claim(deps: DepsMut, env: Env, info: MessageInfo, sender: Option<String>) -> ExecuteResult {
+    let sender = sender
+        .map(|x| deps.api.addr_validate(x.as_str()).unwrap())
+        .unwrap_or(info.sender);
+
+    let airdrop_rewards =
+        AirdropReward::load_range(deps.storage, &sender, None, Some(MAX_QUERY_LIMIT), None)?;
+
+    let response = Response::new().add_message(CosmosMsg::Wasm(WasmMsg::Execute {
+        contract_addr: env.contract.address.to_string(),
+        msg: to_binary(&ExecuteMsg::Airdrop(AirdropMsg::Update {
+            target: Some(sender.to_string()),
+        }))?,
+        funds: vec![],
+    }));
+
+    Ok(response.add_messages(
+        airdrop_rewards
+            .iter()
+            .filter(|(_, airdrop_reward)| !airdrop_reward.reward.is_zero())
+            .map(|(airdrop_id, _)| {
+                CosmosMsg::Wasm(WasmMsg::Execute {
+                    contract_addr: env.contract.address.to_string(),
+                    msg: to_binary(&ExecuteMsg::Airdrop(AirdropMsg::ClaimInternal {
+                        sender: sender.to_string(),
+                        airdrop_id: *airdrop_id,
+                    }))
+                    .unwrap(),
+                    funds: vec![],
+                })
+            }),
+    ))
+}
+
+pub fn claim_internal(
+    deps: DepsMut,
+    env: Env,
+    info: MessageInfo,
+    sender: String,
+    airdrop_id: u64,
+) -> ExecuteResult {
+    let response = Response::new()
         .add_attribute("action", "airdrop_claim")
         .add_attribute("target", sender.as_str());
 
@@ -207,43 +248,33 @@ pub fn claim(deps: DepsMut, env: Env, info: MessageInfo, sender: String) -> Exec
     }
 
     let sender = deps.api.addr_validate(sender.as_str())?;
-    let airdrop_rewards =
-        AirdropReward::load_range(deps.storage, &sender, None, Some(MAX_QUERY_LIMIT), None)?;
+    let airdrop_reward = AirdropReward::load(deps.storage, &sender, &airdrop_id)?;
+    let airdrop = Airdrop::load(deps.storage, &airdrop_id).unwrap();
+    let claim_amount = airdrop_reward.reward;
 
-    for (airdrop_id, airdrop_reward) in airdrop_rewards.iter() {
-        if airdrop_reward.reward.is_zero() {
-            continue;
-        }
+    AirdropReward::save(
+        deps.storage,
+        &sender,
+        &airdrop_id,
+        &AirdropReward {
+            reward: Uint128::zero(),
+            reward_per_token_paid: airdrop_reward.reward_per_token_paid,
+        },
+    )?;
 
-        let airdrop = Airdrop::load(deps.storage, airdrop_id).unwrap();
-        let claim_amount = airdrop_reward.reward;
-
-        AirdropReward::save(
-            deps.storage,
-            &sender,
-            airdrop_id,
-            &AirdropReward {
-                reward: Uint128::zero(),
-                reward_per_token_paid: airdrop_reward.reward_per_token_paid,
-            },
-        )?;
-
-        response = response
-            .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-                contract_addr: airdrop.config.reward_token.to_string(),
-                msg: to_binary(&Cw20ExecuteMsg::Transfer {
-                    recipient: sender.to_string(),
-                    amount: claim_amount,
-                })?,
-                funds: vec![],
-            }))
-            .add_attributes(vec![
-                ("token", airdrop.config.reward_token.as_str()),
-                ("amount", &claim_amount.to_string()),
-            ]);
-    }
-
-    Ok(response)
+    Ok(response
+        .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
+            contract_addr: airdrop.config.reward_token.to_string(),
+            msg: to_binary(&Cw20ExecuteMsg::Transfer {
+                recipient: sender.to_string(),
+                amount: claim_amount,
+            })?,
+            funds: vec![],
+        }))
+        .add_attributes(vec![
+            ("token", airdrop.config.reward_token.as_str()),
+            ("amount", &claim_amount.to_string()),
+        ]))
 }
 
 pub fn calculate_reward_per_token(

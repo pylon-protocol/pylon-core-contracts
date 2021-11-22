@@ -130,25 +130,9 @@ pub fn execute(
                 deallocate_amount,
             ),
             AirdropMsg::Update { target } => executions::airdrop::update(deps, env, info, target),
-            AirdropMsg::Claim {} => Ok(Response::new()
-                // 1. Update reward
-                .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-                    contract_addr: env.contract.address.to_string(),
-                    msg: to_binary(&ExecuteMsg::Airdrop(AirdropMsg::Update {
-                        target: Some(info.sender.to_string()),
-                    }))?,
-                    funds: vec![],
-                }))
-                // 2. Execute Unstake
-                .add_message(CosmosMsg::Wasm(WasmMsg::Execute {
-                    contract_addr: env.contract.address.to_string(),
-                    msg: to_binary(&ExecuteMsg::Airdrop(AirdropMsg::ClaimInternal {
-                        sender: info.sender.to_string(),
-                    }))?,
-                    funds: vec![],
-                }))),
-            AirdropMsg::ClaimInternal { sender } => {
-                executions::airdrop::claim(deps, env, info, sender)
+            AirdropMsg::Claim { target } => executions::airdrop::claim(deps, env, info, target),
+            AirdropMsg::ClaimInternal { sender, airdrop_id } => {
+                executions::airdrop::claim_internal(deps, env, info, sender, airdrop_id)
             }
         },
     }
