@@ -24,3 +24,6 @@ deploy-bombay:
 
 deploy-local:
 	make deploy network=local
+
+publish:
+	cargo publish --manifest-path ./packages/pylon_core/Cargo.toml

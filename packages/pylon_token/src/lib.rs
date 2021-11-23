@@ -1,9 +1,0 @@
-pub mod airdrop;
-pub mod collector;
-pub mod common;
-pub mod community;
-pub mod distributor;
-pub mod gov_msg;
-pub mod gov_resp;
-pub mod staking;
-pub mod vesting;

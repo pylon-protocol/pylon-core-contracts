@@ -1,24 +1,7 @@
 [workspace]
 members = [
     "packages/*",
-    "contracts/core/factory",
-    "contracts/core/pool",
-    "contracts/core/pool-v2",
-    "contracts/core/adapters/anchor",
-    "contracts/gateway/factory",
-    "contracts/gateway/pool",
-    "contracts/gateway/swap",
-    "contracts/gateway/strategies/cap-min",
-    "contracts/gateway/strategies/cap-fixed",
-    "contracts/gateway/strategies/cap-staged",
-    "contracts/mocks/adapter",
-    "contracts/mocks/market",
-    "contracts/pylon/airdrop",
-    "contracts/pylon/collector",
-    "contracts/pylon/community",
-    "contracts/pylon/gov",
-    "contracts/pylon/staking",
-    "contracts/pylon/vesting",
+    "contracts/*"
 ]
 
 [profile.release]
