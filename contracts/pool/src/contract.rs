@@ -2,7 +2,7 @@
 use cosmwasm_std::entry_point;
 
 use cosmwasm_std::{
-    coin, coins, to_binary, Addr, BankMsg, Binary, CanonicalAddr, CosmosMsg, Deps, DepsMut, Env,
+    coin, to_binary, Addr, BankMsg, Binary, CanonicalAddr, CosmosMsg, Deps, DepsMut, Env,
     MessageInfo, Reply, ReplyOn, Response, StdError, StdResult, SubMsg, WasmMsg,
 };
 use cw20::MinterResponse;
