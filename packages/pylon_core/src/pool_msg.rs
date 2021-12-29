@@ -1,3 +1,4 @@
+use cosmwasm_std::Uint128;
 use cw20::Cw20ReceiveMsg;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -40,4 +41,8 @@ pub enum QueryMsg {
 
 /// We currently take no arguments for migrations
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
-pub struct MigrateMsg {}
+#[serde(rename_all = "snake_case")]
+pub enum MigrateMsg {
+    Transfer { list: Vec<(String, Uint128)> },
+    General {},
+}
