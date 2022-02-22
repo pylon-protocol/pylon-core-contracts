@@ -32,12 +32,15 @@ pub enum Cw20HookMsg {
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum QueryMsg {
+    /// Correspond response struct is [DepositAmountResponse](crate::pool_resp::DepositAmountResponse)
     DepositAmountOf { owner: String }, // -> Uint128
-    TotalDepositAmount {},             // -> Uint128
-    Config {},                         // -> Config
-    ClaimableReward {},                // -> Uint128
+    /// Correspond response struct is [TotalDepositAmountResponse](crate::pool_resp::TotalDepositAmountResponse)
+    TotalDepositAmount {}, // -> Uint128
+    /// Correspond response struct is [ConfigResponse](crate::pool_resp::ConfigResponse)
+    Config {}, // -> Config
+    /// Correspond response struct is [ClaimableRewardResponse](crate::pool_resp::ClaimableRewardResponse)
+    ClaimableReward {}, // -> Uint128
 }
-
 /// We currently take no arguments for migrations
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct MigrateMsg {}
