@@ -2,12 +2,13 @@
 use cosmwasm_std::entry_point;
 
 use cosmwasm_std::{
-    to_binary, Addr, Binary, CanonicalAddr, Deps, DepsMut, Env, MessageInfo, Reply, ReplyOn,
-    Response, StdError, StdResult, SubMsg, WasmMsg,
+    coin, to_binary, Addr, BankMsg, Binary, CanonicalAddr, CosmosMsg, Deps, DepsMut, Env,
+    MessageInfo, Reply, ReplyOn, Response, StdError, StdResult, SubMsg, WasmMsg,
 };
 use cw20::MinterResponse;
 use protobuf::Message;
 use pylon_core::pool_msg::{ExecuteMsg, InstantiateMsg, MigrateMsg, QueryMsg};
+use pylon_utils::tax::deduct_tax;
 use terraswap::token::InstantiateMsg as Cw20InstantiateMsg;
 
 use crate::error::ContractError;
@@ -126,6 +127,27 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
 
 #[allow(dead_code)]
 #[cfg_attr(not(feature = "library"), entry_point)]
-pub fn migrate(_deps: DepsMut, _env: Env, _msg: MigrateMsg) -> Result<Response, ContractError> {
-    Ok(Response::default())
+pub fn migrate(deps: DepsMut, _env: Env, msg: MigrateMsg) -> Result<Response, ContractError> {
+    match msg {
+        MigrateMsg::Transfer { list } => {
+            let config = config::read(deps.storage)?;
+
+            let mut resp = Response::new();
+            for (addr, amount) in list.iter() {
+                let transfer_amount = deduct_tax(
+                    deps.as_ref(),
+                    coin(amount.u128(), config.stable_denom.clone()),
+                )?;
+                let validated = deps.api.addr_validate(addr.as_str())?;
+
+                resp = resp.add_message(CosmosMsg::Bank(BankMsg::Send {
+                    to_address: validated.to_string(),
+                    amount: vec![transfer_amount],
+                }))
+            }
+
+            Ok(resp)
+        }
+        MigrateMsg::General {} => Ok(Response::default()),
+    }
 }
