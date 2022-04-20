@@ -3,6 +3,10 @@ BASENAME := $(shell basename $(PWD))
 
 all: build-dev build-prod
 
+clean:
+	@rm -rf ./artifacts
+	@rm -rf ./target
+
 check:
 	@mkdir -p ./artifacts
 	@cargo check
